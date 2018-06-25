@@ -30,23 +30,6 @@ loop = asyncio.get_event_loop()
 loop.set_debug = True
 
 
-def prepare(self, query, transform):
-    return '\n'.join(
-        ['CREATE TEMPORARY VIEW v_export AS ({});'.format(query), transform])
-
-
-def export_csv():
-    return "COPY (SELECT * FROM v_export) TO STDOUT WITH CSV HEADER DELIMITER ',';"  # noqa E501
-
-
-def export_json():
-    return "COPY (SELECT json_agg(t) FROM (SELECT * FROM v_export) AS t) TO STDOUT;"  # noqa E501
-
-
-def export_rdf():
-    raise NotImplementedError
-
-
 class Format(IntEnum):
     CSV = 1
     JSON = 2
@@ -60,10 +43,10 @@ format_map_ext = {
 }
 
 
-format_map_func = {
-    Format.CSV: export_csv,
-    Format.JSON: export_json,
-    Format.RDF: export_rdf
+format_map_transform = {
+    Format.CSV: "COPY (SELECT * FROM v_export) TO STDOUT WITH CSV HEADER DELIMITER ',';",  # noqa E501
+    Format.JSON: "COPY (SELECT json_agg(t) FROM (SELECT * FROM v_export) AS t) TO STDOUT;",  # noqa E501
+    Format.RDF: ''
 }
 
 
@@ -91,15 +74,18 @@ def export(definition):
         return (datetime.strptime(str(id), '%Y-%m-%d %H:%M:%S.%f')
                 - datetime.utcfromtimestamp(0)).total_seconds()
 
+    def prepare(transform, selection):
+        return '\n'.join([
+            'CREATE TEMPORARY VIEW v_export AS ({});'.format(selection),
+            transform])
+
     with psycopg2.connect(dsn) as db:
         with db.cursor() as cursor:
             lbl, id, ext, selection = definition
             print(definition)
             ext = ext or Format.CSV
-
-            transform = format_map_func[ext]()
-            statement = prepare(selection, transform)
-
+            transform = format_map_transform[ext]
+            statement = prepare(transform, selection)
             # with gzip.open
             with open(exports_path.format(lbl=lbl, id=float(ts(id)), ext=format_map_ext[ext]), 'wb') as export_file:  # noqa E501
                 # log_start
