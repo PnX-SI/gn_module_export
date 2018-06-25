@@ -60,7 +60,7 @@
                                         <option value="json">JSON</option>
                                         <option value="rdf" disabled>RDF</option>
                                 </select>
-                                <br>
+                                <!-- <br>
                                 <ul> <li> Choisir un standard </li> </ul>
                                 <select class=form-control id="chooseStandard" formControlName="chooseStandard" required autocomplete="off">
                                         <option value="SINP" selected>SINP</option>
@@ -68,10 +68,10 @@
                                         <option value="ABCD" disabled>ABCD Schema</option>
                                         <option value="EML" disabled>EML</option>
                                 </select>
-                                <br>
+                                <br> -->
 
                                 <!-- Demande une adresse mail, nécessaire pour envoyer un mail à l'utilisateur pour signifier que l'envoi c'est bien passé. -->
-                                <hr width="50%">
+                                <!-- <hr width="50%">
                                 <div id="mailText">Saisir une adresse mail valide:</div>
                                 <br>
 
@@ -81,7 +81,7 @@
                                 <ngb-alert type="danger" [dismissible]="false" [hidden]="!adresseMail.hasError('required')">Adresse mail obligatoire.</ngb-alert>
                                 <ngb-alert type="danger" [dismissible]="false" [hidden]="!adresseMail.hasError('pattern')">Format du mail non valide.</ngb-alert>
                                 <ngb-alert type="danger" [dismissible]="false" [hidden]="!chooseFormat.hasError('required')">Choisir un format d'export.</ngb-alert>
-                                <ngb-alert type="danger" [dismissible]="false" [hidden]="!chooseStandard.hasError('required')">Choisir un standard d'export.</ngb-alert>
+                                <ngb-alert type="danger" [dismissible]="false" [hidden]="!chooseStandard.hasError('required')">Choisir un standard d'export.</ngb-alert> -->
 
 
                                 <!-- Affichage d'une barre de progression lors du téléchargement du fichier -->
