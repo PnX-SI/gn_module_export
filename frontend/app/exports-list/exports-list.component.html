@@ -1,0 +1,107 @@
+<div id="all">
+    <div class="row row-m">
+        <div class="container card">
+            <div id="title">
+            <h2>EXPORTS</h2>
+            <hr align="left" width="75%">
+            </div>
+            <div id="textPresentation">
+                <p>Voici la liste des exports disponibles. Ces exports ont été programmés par l'administration Géonature.</p>
+            </div>
+            <div id="textPresentation">
+                <p>Pour modifier cette liste ou avoir un export supplémentaire, veuillez contacter le service admin.</p>
+            </div>
+                <!-- Liste des exports disponibles au téléchargement -->
+            <div class="btn-group btn-group-vertical" data-toggle="buttons" id="button-export">
+              <label *ngFor='let export of exportLabels$ | async; let i = index;' class="btn btn-primary active">
+                <input type="radio" name="options" [checked]="i==0" [id]="export.label">Export {{ export.label }} - {{ export.date | date: 'dd/MM/yyyy' }}
+              </label>
+            </div>
+
+            <div id="checkLicence">
+
+                <label for="licence">Acceptez la licence</label>
+                <input type="checkbox" class="form-control" id="licence" (click)="follow()" ngModel required/>
+
+            </div>
+
+            <div id="readlicence">
+              <a href="./licence.pdf" download="licence.pdf" type="application/octet-stream">
+                <input type="button" class="btn btn-outline-secondary btn-sm pull-right" value="Lire la licence">
+              </a>
+            </div>
+
+
+        <hr align="right" width="75%">
+
+        <div id="choice">
+                <a routerLink=""><button type="submit" id="AccueilButton" class="btn btn-danger">Fermer</button></a>
+                <button [disabled]="!buttonDisabled" type="submit" id="AccueilButton" class="btn btn-success" ngbTooltip="Accepter la licence" (click)="open(content)" ng-required="licence"> Télécharger </button>
+        </div>
+
+        </div>
+    </div>
+
+        <!-- Modal Téléchargement Popup-->
+        <ng-template #content let-c="close" let-d="dismiss">
+
+            <!-- Modal content-->
+            <form [formGroup]="modalForm" class="modal-content">
+                        <div class="modal-header">
+                          <h4 class="modal-title">Configuration de l'export</h4>
+                        </div>
+
+                        <div class="modal-body">
+                                <!-- Formulaire pour le choix des standards et des formats de téléchargement des fichiers -->
+                                <br>
+                                <ul> <li> Choisir un format </li> </ul>
+                                <select class="form-control" id="chooseFormat" formControlName="chooseFormat" required autocomplete="off">
+                                        <option value="csv" selected>CSV</option>
+                                        <option value="json">JSON</option>
+                                        <option value="rdf" disabled>RDF</option>
+                                </select>
+                                <br>
+                                <ul> <li> Choisir un standard </li> </ul>
+                                <select class=form-control id="chooseStandard" formControlName="chooseStandard" required autocomplete="off">
+                                        <option value="SINP" selected>SINP</option>
+                                        <option value="DWC" selected>Darwin Core</option>
+                                        <option value="ABCD" disabled>ABCD Schema</option>
+                                        <option value="EML" disabled>EML</option>
+                                </select>
+                                <br>
+
+                                <!-- Demande une adresse mail, nécessaire pour envoyer un mail à l'utilisateur pour signifier que l'envoi c'est bien passé. -->
+                                <hr width="50%">
+                                <div id="mailText">Saisir une adresse mail valide:</div>
+                                <br>
+
+                                <input class="form-control" id="adresseMail" formControlName="adresseMail" type="email" placeholder="---" style="display:block; margin:auto;" autocomplete="off" required pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$">
+                                <br><br>
+
+                                <ngb-alert type="danger" [dismissible]="false" [hidden]="!adresseMail.hasError('required')">Adresse mail obligatoire.</ngb-alert>
+                                <ngb-alert type="danger" [dismissible]="false" [hidden]="!adresseMail.hasError('pattern')">Format du mail non valide.</ngb-alert>
+                                <ngb-alert type="danger" [dismissible]="false" [hidden]="!chooseFormat.hasError('required')">Choisir un format d'export.</ngb-alert>
+                                <ngb-alert type="danger" [dismissible]="false" [hidden]="!chooseStandard.hasError('required')">Choisir un standard d'export.</ngb-alert>
+
+
+                                <!-- Affichage d'une barre de progression lors du téléchargement du fichier -->
+                                <div class="telechargement" *ngIf="barHide">
+                                  Téléchargement en cours...
+                                </div>
+
+                                <div *ngIf="barHide">
+                                  <ng-pbar></ng-pbar>
+                                </div>
+                                <br>
+
+                        </div>
+
+                        <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
+                        <div class="modal-footer" id="choicePopup">
+                                <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Fermer</button>
+                                <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="showme()">OK</button>
+                        </div>
+             </form>
+        </ng-template>
+
+</div>

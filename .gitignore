@@ -1,0 +1,13 @@
+*~
+__pycache__
+*.py[cod]
+instance/
+.webassets-cache
+node_modules
+*.swp
+.idea
+.vscode*
+.ropeproject
+.spyderproject
+.spyproject
+.ipynb_checkpoints

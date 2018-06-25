@@ -1,0 +1,208 @@
+#redirect{
+  position: absolute;
+  right: 1%;
+  z-index: 1000;
+  margin-left: 15px;
+  margin-top: 15px;
+  padding-right: 0px;
+  padding-left: 0px;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+  border-radius: 30px;
+  box-shadow: 4px 5px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  //padding: 0px;
+}
+
+#refresh-filter{
+  color:red;
+}
+
+i.action {
+  margin-top: 30px;
+  margin-left: 10px;
+}
+
+#settings {
+  padding-left: 10px;
+  color: #7e7e7e
+}
+
+.filter-control {
+  height: 2.1rem !important;
+}
+
+.dynamic-form{
+  display: flex;
+  margin-right: 5px;
+  max-width: 15%;
+}
+
+#title {
+  line-height: 35px;
+  margin-left:5px;
+  margin-top: 15px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.col-list{
+  list-style: none;
+}
+
+ngx-datatable {
+  height: 50vh!important;
+  // position: absolute;
+  // right:0;
+  left:5px;
+  // top:0;
+  // bottom:0;
+  overflow-y: scroll;
+}
+
+.form-control-sm {
+  height: 5.0rem !important;
+}
+
+:host /deep/ #dataset-form {
+  height: 2.05rem !important;
+}
+
+:host /deep/ .ngx-datatable.material .datatable-footer .page-count{
+  padding: 5px;
+  line-height: 1.2;
+  height: 40px;
+}
+
+.modal-body {
+  text-align: left!important;
+  height:auto;
+  overflow: auto;
+  text-align: center;
+  position: relative;
+  overflow-y: auto;
+  max-height:100%;
+}
+
+:host /deep/ .datatable-body-row.active .datatable-row-group {
+  background-color: rgb(117, 227, 118) !important;
+}
+
+.card-padding {
+  background-color: white;
+  padding: 10px;
+  
+}
+
+.ngx-datatable.material {
+  box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12) !important;
+}
+
+.disabled {
+  cursor: not-allowed!important;
+}
+
+.all {
+  min-height: 100vh;
+}
+
+#button-export {
+  left:5px;
+  margin-top: 20px;
+  margin-bottom: 5px;
+  align-self: center;
+  width: 50%;
+  height: auto;
+}
+
+#choice {
+  margin-left:5px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  align-self: flex-end;
+}
+
+#export_tuned{
+  margin-top: 25px;
+  margin-bottom: 5px;
+  align-self: right;
+}
+
+#checkLicence{
+  margin-left:50px;
+  margin-top: 25px;
+  margin-bottom: 5px;
+  align-self: center;
+}
+
+#readlicence{
+  margin-bottom: 10px;
+}
+
+#part{
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+#myModal{
+  z-index: 1020;
+  background: rgba(0, 0, 0, 0.527);
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  overflow-y: scroll;
+  height:auto; 
+  display: table; 
+}
+
+#widthButton{
+  width: 100px;
+  align-self: center;
+  align-content: center;
+}
+
+#AccueilButton{
+  width: 150px;
+  align-self: center;
+  align-content: center;
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+#adresseMail{
+  margin-top: 5px;
+  margin-bottom: 15px;
+  align-self: center;
+  align-content: center;
+}
+
+#mailText{
+margin-left: 27%;
+}
+
+#choicePopup {
+  margin-left:30%;
+  margin-top: 25px;
+  margin-bottom: 5px;
+}
+
+#textPresentation {
+  margin-bottom: 5px;
+  align-self: left;
+  align-content: center;
+}
+
+#telechargement{
+  margin-bottom: 15px;
+  align-content: center;
+  align-self: center;
+}
+
+.ng-valid[required], .ng-valid.required  {
+  border-left: 5px solid #42A948; 
+}
+
+.ng-invalid[required], .ng-invalid.required  {
+  border-left: 5px solid rgb(184, 101, 101); 
+}
+
