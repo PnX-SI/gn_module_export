@@ -11,3 +11,5 @@ node_modules
 .spyderproject
 .spyproject
 .ipynb_checkpoints
+.flake8
+.pylintrc

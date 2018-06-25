@@ -30,11 +30,11 @@ def add():
         exports.append(export)
     DB.session.commit()
     return jsonify([{
-            'id': export.id,
-            'label': export.label,
-            'selection': export.selection,
-            'format': format_map_ext[export.format].upper()
-        } for export in exports])
+        'id': export.id,
+        'label': export.type.label,
+        'selection': export.type.selection,
+        'format': format_map_ext[export.format].upper()
+    } for export in exports])
 
 
 @blueprint.route('/download/<path:export>')

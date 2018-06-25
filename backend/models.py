@@ -79,13 +79,13 @@ class Export(DB.Model):
     def __init__(self, label, format):
         self.id = datetime.utcnow()
         self.format = int(format)
-        self.type = ExportType.filter_by(label=label).first()
+        self.type = ExportType.query.filter_by(label=label).first()
 
     def __repr__(self):
         return "<Export(id='{}', label='{}', selection='{}', date='{}', format='{}')>".format(  # noqa E501
             float(self.id), self.type.label, self.type.selection, self.start, self.format)  # noqa E501
 
-    def as_dict(self):
+    def as_dict(self):  # TODO: define de/serializer
         return {
             'id': float(self.ts()),
             'label': self.type.label,

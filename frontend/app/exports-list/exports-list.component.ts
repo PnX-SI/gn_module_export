@@ -61,9 +61,9 @@ export class ExportsListComponent {
     private _dynformService: DynamicFormService) {
 
     this.modalForm = this._fb.group({
-      adresseMail:['', Validators.compose([Validators.required, Validators.email])],
+      // adresseMail:['', Validators.compose([Validators.required, Validators.email])],
       chooseFormat:['', Validators.required],
-      chooseStandard:['', Validators.required]
+      // chooseStandard:['', Validators.required]
     });
 
     this._exportService.getExports();
@@ -75,14 +75,14 @@ export class ExportsListComponent {
     return this.modalForm.get('chooseFormat');
   }
 
-  get chooseStandard() {
-    return this.modalForm.get('chooseStandard');
-  }
+  // get chooseStandard() {
+  //   return this.modalForm.get('chooseStandard');
+  // }
 
   //Fonction pour envoyer un mail à l'utilisateur lorsque le ddl est terminé.
-  get adresseMail() {
-    return this.modalForm.get('adresseMail');
-  }
+  // get adresseMail() {
+  //   return this.modalForm.get('adresseMail');
+  // }
 
   open(content) {
     this.modalService.open(content).result.then((result) => {
@@ -111,7 +111,7 @@ export class ExportsListComponent {
     this.barHide = !this.barHide;
     if (this.barHide) {
       const choice = window.document.querySelector('input[name="options"]:checked');
-      const standard = StandardMap.get(this.chooseStandard.value)
+      // const standard = StandardMap.get(this.chooseStandard.value)
       const extension = this.chooseFormat.value
       this.exports$.switchMap(
         (exports: Export[]) => exports.sort((a, b) => (a.id < b.id) ? 1 : (a.id > b.id) ? -1 : 0)
