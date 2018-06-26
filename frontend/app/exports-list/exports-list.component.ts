@@ -27,13 +27,19 @@ import { Export, ExportService, ExportLabel, StandardMap } from "../services/exp
 
 @Component({
   selector: 'ng-pbar',
-  template: `<p><ngb-progressbar type="info" [value]="progress$ | async" [striped]="true" [animated]="true"></ngb-progressbar></p>`
+  template: `<div class="telechargement">Téléchargement en cours...</div>
+<p><ngb-progressbar type="info" [value]="progress$ | async" [striped]="true" [animated]="true"></ngb-progressbar></p>`
 })
 export class NgPBar {
   progress$: Observable<number>
 
   constructor(private _exportService: ExportService) {
     this.progress$ = this._exportService.downloadProgress
+
+    this.progress$.subscribe(
+      state => console.log(state),
+      error => console.error(error.message),
+      () => console.log('done!'))
   }
 }
 
@@ -61,8 +67,8 @@ export class ExportsListComponent {
     private _dynformService: DynamicFormService) {
 
     this.modalForm = this._fb.group({
-      // adresseMail:['', Validators.compose([Validators.required, Validators.email])],
       chooseFormat:['', Validators.required],
+      // adresseMail:['', Validators.compose([Validators.required, Validators.email])],
       // chooseStandard:['', Validators.required]
     });
 
@@ -116,9 +122,9 @@ export class ExportsListComponent {
       this.exports$.switchMap(
         (exports: Export[]) => exports.sort((a, b) => (a.id < b.id) ? 1 : (a.id > b.id) ? -1 : 0)
                                       .filter(
-          (x: Export) => (x.label == choice.id && x.extension == extension))  // FIXME: get latest
-      ).subscribe(
-        x => this._exportService.downloadExport(parseFloat(x.id), x.label, extension),
+          (x: Export) => (x.label == choice.id && x.extension == extension))
+      ).take(1).subscribe(
+        x => this._exportService.downloadExport(x.id, x.label, extension),
         e => console.error(e.message)
       )
     }

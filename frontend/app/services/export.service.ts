@@ -35,8 +35,8 @@ export const StandardMap = new Map([
   ['NONE', 'RAW',],
   ['SINP', 'SINP'],
   ['DWC',  'DarwinCore'],
-  // ['ABCD', 'ABCD Schema'],
-  // ['EML',  'EML']
+  ['ABCD', 'ABCD Schema'],
+  ['EML',  'EML']
 ])
 
 export const FormatMapMime = new Map([
@@ -58,13 +58,13 @@ export class ExportService {
     this.downloadProgress = <BehaviorSubject<number>>new BehaviorSubject(0.0);
   }
 
-  // FIXME: loader ?
+  // QUESTION: loader ?
   getExports() {
     this._api.get(`${apiEndpoint}/exports`).subscribe(
       (exports: Export[]) => this.exports.next(exports),
       error => console.error(error),
       () => {
-        console.info(`export service: got ${this.exports.value.length} exports`)
+        console.info(`export service: ${this.exports.value.length} exports`)
         console.debug('exports:',  this.exports.value)
         this.getLabels()
       }
@@ -89,8 +89,10 @@ export class ExportService {
     this.labels.next(uniqueLabels.sort(byLabel))
   }
 
-  downloadExport(submissionID: number, standard: string, extension: string) {
-    const downloadExportURL = `${apiEndpoint}/download/export_${standard}_${submissionID}.${extension}`
+  downloadExport(ts: number, label: string, extension: string) {
+
+    const downloadExportURL = `${apiEndpoint}/download/export_${label}_${ts}.${extension}`
+
     let source = this._api.get(downloadExportURL, {
       headers: new HttpHeaders().set('Content-Type', `${FormatMapMime.get(extension)}`),
       observe: 'events',
@@ -103,11 +105,9 @@ export class ExportService {
           if (event.hasOwnProperty('total')) {
             const percentage = Math.round((100 / event.total) * event.loaded);
             this.downloadProgress.next(percentage)
-            console.debug(`Downloaded ${percentage}%.`);
           } else {
             const kb = (parseFloat(event.loaded) / 1024).toFixed(2);
              this.downloadProgress.next(kb)
-            console.debug(`Downloaded ${kb}Kb.`);
           }
       }
       if (event.type === HttpEventType.Response) {
@@ -120,7 +120,11 @@ export class ExportService {
       console.error(e.message);
       console.error(e.status);
     },
-    () => this.saveBlob(this._blob, `export_${standard}_${submissionID}.${extension}`)
+    () => {
+      let date = new Date(0)
+      date.setUTCSeconds(ts)
+      this.saveBlob(this._blob, `export_${label}_${date.toISOString()}.${extension}`)
+    }
   )}
 
   saveBlob(blob, filename) {

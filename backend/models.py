@@ -1,6 +1,8 @@
 from datetime import datetime
-from geonature.utils.env import DB
 from enum import IntEnum
+
+from geonature.utils.env import DB
+# from geonature.utils.utilssqlalchemy import serializable
 
 
 class Format(IntEnum):
@@ -47,6 +49,7 @@ class Role(DB.Model):
     roles = DB.Column(DB.Text, nullable=False)
 
 
+# @serializable
 class ExportType(DB.Model):
     __tablename__ = 't_exports'
     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
@@ -55,6 +58,7 @@ class ExportType(DB.Model):
     selection = DB.Column(DB.Text, nullable=False)
 
 
+# @serializable
 class Export(DB.Model):
     __tablename__ = 't_exports_logs'
     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
@@ -82,18 +86,15 @@ class Export(DB.Model):
         self.type = ExportType.query.filter_by(label=label).first()
 
     def __repr__(self):
-        return "<Export(id='{}', label='{}', selection='{}', date='{}', format='{}')>".format(  # noqa E501
-            float(self.id), self.type.label, self.type.selection, self.start, self.format)  # noqa E501
+        return "<Export(id='{}', label='{}', selection='{}', format='{}', extension='{}', date='{}')>".format(  # noqa E501
+            self.id, self.type.label, self.type.selection, self.format, self.extension, self.start)  # noqa E501
 
-    def as_dict(self):  # TODO: define de/serializer
+    def as_dict(self):
         return {
-            'id': float(self.ts()),
+            'id': self.id.timestamp(),
             'label': self.type.label,
+            'selection': str(self.type.selection),
+            'format': self.format,
             'extension': format_map_ext[self.format],
-            'selection': self.type.selection,
-            'date': self.start,
+            'date': self.start
         }
-
-    def ts(self):
-        return (datetime.strptime(str(self.id), '%Y-%m-%d %H:%M:%S.%f')
-                - datetime.utcfromtimestamp(0)).total_seconds()
