@@ -91,7 +91,7 @@ ngx-datatable {
 .card-padding {
   background-color: white;
   padding: 10px;
-  
+
 }
 
 .ngx-datatable.material {
@@ -151,8 +151,8 @@ ngx-datatable {
   max-height: 100%;
   overflow: auto;
   overflow-y: scroll;
-  height:auto; 
-  display: table; 
+  height:auto;
+  display: table;
 }
 
 #widthButton{
@@ -199,10 +199,9 @@ margin-left: 27%;
 }
 
 .ng-valid[required], .ng-valid.required  {
-  border-left: 5px solid #42A948; 
+  border-left: 5px solid #42A948;
 }
 
 .ng-invalid[required], .ng-invalid.required  {
-  border-left: 5px solid rgb(184, 101, 101); 
+  border-left: 5px solid rgb(184, 101, 101);
 }
-
