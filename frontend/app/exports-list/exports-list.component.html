@@ -34,13 +34,137 @@
 
         <hr align="right" width="75%">
 
-        <div id="choice">
-                <a routerLink=""><button type="submit" id="AccueilButton" class="btn btn-danger">Fermer</button></a>
-                <button [disabled]="!buttonDisabled" type="submit" id="AccueilButton" class="btn btn-success" ngbTooltip="Accepter la licence" (click)="open(content)" ng-required="licence"> Télécharger </button>
+        <div id="globalChoice">
+            <div id="choice">
+                    <a routerLink=""><button type="submit" id="AccueilButton" class="btn btn-danger">Fermer</button></a>
+                    <button [disabled]="!buttonDisabled" type="submit" id="AccueilButton" class="btn btn-success" ngbTooltip="Accepter la licence" (click)="open(content)" ng-required="licence"> Télécharger </button>
+            </div>
+            <div id="choiceAdmin">
+                    <button type="submit" id="AccueilButtonAdmin" class="btn btn-warning" (click)="open(perso)"> Admin </button>
+            </div>
         </div>
 
         </div>
     </div>
+
+        <!-- Modal Téléchargement Personnalisé-->
+        <ng-template #perso let-c="close" let-d="dismiss">
+            
+            <!-- Modal content-->
+            <form [formGroup]="modalFormAdmin" class="modal-content" id="adminModal">
+                    <div class="modal-header">
+                    <h4 class="modal-title">Export Admin</h4>
+                    </div>
+                    
+                    <div id="textAdmin">
+                            <br> 
+                            Sélectionner les champs que vous souhaitez exporter:
+                            (Maintenir "Ctrl" pour sélectionner plusieurs champs)
+                    </div>
+
+
+                    <div class="modal-body">
+                            <div class="container col-md-12">
+                                    <div class="row">
+                                            <div class=col-md-4>
+                                                    <div class="alert alert-info center-block" role="alert" id="titleSelect">Nomenclature</div>
+                                                    <select multiple class="form-control">
+                                                            <option value="choix_1">België/Belgique</option>
+                                                            <option value="choix_2">Deutschland</option>
+                                                            <option value="choix_3">France</option>
+                                                            <option value="choix_4">Nederland</option>
+                                                            <option value="choix_5">United Kingdom</option>
+                                                    </select>
+                                            </div>
+                                            <div class=col-md-4>
+                                                    <div class="alert alert-info center-block" role="alert" id="titleSelect">Spatiotemporelle</div>
+                                                    <select multiple class="form-control">
+                                                            <option value="choix_6">België/Belgique</option>
+                                                            <option value="choix_7">Deutschland</option>
+                                                            <option value="choix_8">France</option>
+                                                            <option value="choix_9">Nederland</option>
+                                                            <option value="choix_10">United Kingdom</option>
+                                                    </select>
+                                            </div>
+                                            <div class=col-md-4>
+                                                    <div class="alert alert-info center-block" role="alert" id="titleSelect">Observateur</div>
+                                                    <select multiple class="form-control">
+                                                            <option value="choix_11">België/Belgique</option>
+                                                            <option value="choix_12">Deutschland</option>
+                                                            <option value="choix_13">France</option>
+                                                            <option value="choix_14">Nederland</option>
+                                                            <option value="choix_15">United Kingdom</option>
+                                                    </select>
+                                            </div>
+                                    </div>
+                                    <br><br>
+                                    <div class="row">
+                                            <div class=col-md-4>
+                                                    <div class="alert alert-info center-block" role="alert" id="titleSelect">Biologie</div>
+                                                    <select multiple class="form-control">
+                                                            <option value="choix_16">België/Belgique</option>
+                                                            <option value="choix_17">Deutschland</option>
+                                                            <option value="choix_18">France</option>
+                                                            <option value="choix_19">Nederland</option>
+                                                            <option value="choix_20">United Kingdom</option>
+                                                    </select>
+                                            </div>
+                                            <div class=col-md-4>
+                                                    <div class="alert alert-info center-block" role="alert" id="titleSelect">Machin</div>
+                                                    <select multiple class="form-control">
+                                                            <option value="choix_21">België/Belgique</option>
+                                                            <option value="choix_22">Deutschland</option>
+                                                            <option value="choix_23">France</option>
+                                                            <option value="choix_24">Nederland</option>
+                                                            <option value="choix_25">United Kingdom</option>
+                                                    </select>
+                                            </div>
+                                            <div class=col-md-4>
+                                                    <div class="alert alert-info center-block" role="alert" id="titleSelect">Autres</div>
+                                                    <select multiple class="form-control">
+                                                            <option value="choix_26">België/Belgique</option>
+                                                            <option value="choix_27">Deutschland</option>
+                                                            <option value="choix_28">France</option>
+                                                            <option value="choix_29">Nederland</option>
+                                                            <option value="choix_30">United Kingdom</option>
+                                                    </select>
+                                            </div>
+                                    </div>
+                                    <br><hr width="50%">
+                                    <div class="row" id="chooseFormatAdminText">
+                                            <div>Choisir un format :</div>          
+                                    </div>       
+                                    <br>
+                                    <div class="row">
+                                            <div>
+                                                    <select class="form-control" id="chooseFormatAdmin" formControlName="chooseFormatAdmin" required autocomplete="off">
+                                                            <option></option>
+                                                            <option value="un">CSV</option>
+                                                            <option value="deux">Json</option>
+                                                            <option value="trois" disabled>RDF</option>
+                                                    </select>
+                                            </div>
+                                    </div>
+                            </div>
+                    </div>
+
+                    <ngb-alert id="alertChooseFormatAdmin" type="danger" [dismissible]="false" [hidden]="!chooseFormatAdmin.hasError('required')">/!\ Choisir un format d'export /!\</ngb-alert>
+                
+                    <div class="telechargement" *ngIf="barHideAdmin">
+                    Téléchargement en cours...
+                    </div>
+
+                    <div *ngIf="barHideAdmin">
+                            <p><ngb-progressbar type="info" [value]="50" [striped]="true" [animated]="true"></ngb-progressbar></p>
+                    </div>
+                    <br>
+                    <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
+                    <div class="modal-footer" id="choicePopup">
+                            <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')" >Fermer</button>
+                            <button id="widthButton" type="submit" class="btn btn-success" (click)="showmeAdmin()">OK</button>
+                    </div>
+            </form>
+        </ng-template>
 
         <!-- Modal Téléchargement Popup-->
         <ng-template #content let-c="close" let-d="dismiss">
