@@ -31,7 +31,7 @@ const routes: Routes = [
   providers: [
     ExportService, 
     NgbModal,
-    // NgbModalWindow,
+    NgbModalWindow,
     NgbModalStack
   ],
   entryComponents: [
@@ -41,4 +41,6 @@ const routes: Routes = [
   bootstrap: []
 })
 
-export class GeonatureModule {}
+export class GeonatureModule {
+
+}

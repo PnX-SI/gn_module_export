@@ -40,7 +40,7 @@
                     <button [disabled]="!buttonDisabled" type="submit" id="AccueilButton" class="btn btn-success" ngbTooltip="Accepter la licence" (click)="open(content)" ng-required="licence"> Télécharger </button>
             </div>
             <div id="choiceAdmin">
-                    <button type="submit" id="AccueilButtonAdmin" class="btn btn-warning" (click)="open(perso)"> Admin </button>
+                    <button [disabled]="!buttonDisabled" type="submit" id="AccueilButtonAdmin" class="btn btn-warning" (click)="open(perso)"> Admin </button>
             </div>
         </div>
 
