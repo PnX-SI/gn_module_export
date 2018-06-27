@@ -3,14 +3,14 @@
 # TODO: continue processing on export failure -> error handler
 
 import os
-# import logging
+import logging
 import asyncio
 import concurrent.futures
-from datetime import datetime
 from enum import IntEnum
 # import hashlib
 # import gzip
 import psycopg2
+
 
 dsn = "dbname='geonature2db' host='localhost' user='geonatuser' password='monpassachanger'"  # noqa E501
 exports_path = '/home/pat/geonature/backend/static/exports/export_{lbl}_{id}.{ext}'  # noqa E501
@@ -18,10 +18,10 @@ num_workers = max(1, len(os.sched_getaffinity(0)) - 1)
 
 queue = asyncio.Queue(maxsize=0)
 
-# logger = logging.getLogger(__name__)
-# console_logger = logging.StreamHandler()
-# logger.addHandler(console_logger)
-# logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
+console_logger = logging.StreamHandler()
+logger.addHandler(console_logger)
+logger.setLevel(logging.DEBUG)
 # asyncio_logger = logging.getLogger('asyncio')
 # asyncio_logger.setLevel(logging.DEBUG)
 # asyncio_console_logger = logging.StreamHandler()
@@ -70,12 +70,12 @@ standard_map_label = {
 def export(definition):
     with psycopg2.connect(dsn) as db:
         with db.cursor() as cursor:
-            lbl, id, ext, selection = definition
+            label, id, ext, selection = definition
             ext = ext or Format.CSV
             transform = format_map_transform[ext]
             statement = transform.format(selection)
             # with gzip.open
-            with open(exports_path.format(lbl=lbl, id=id.isoformat(' '), ext=format_map_ext[ext]), 'wb') as export_file:  # noqa E501
+            with open(exports_path.format(lbl=label, id=id.isoformat(' '), ext=format_map_ext[ext]), 'wb') as export_file:  # noqa E501
                 # log_start
                 row_count = -1
                 cursor.execute(
@@ -97,10 +97,10 @@ def export(definition):
 
 
 async def process(executor, queue=queue, loop=loop):
-        if queue.empty():
-            return None
-        task = await queue.get()
-        return loop.run_in_executor(executor, task['func'], task['args'])
+    if queue.empty():
+        return None
+    task = await queue.get()
+    return loop.run_in_executor(executor, task['func'], task['args'])
 
 
 async def run(queue=queue, num_workers=num_workers):
@@ -115,8 +115,8 @@ async def run(queue=queue, num_workers=num_workers):
         while not queue.empty():
             tasks = [process(executor, queue) for i in range(num_workers)]
             for future in asyncio.as_completed(tasks):
-                _ = await future
-
+                results = await future
+                logger.info('%s', results)
 
 if __name__ == '__main__':
 

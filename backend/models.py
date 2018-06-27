@@ -62,6 +62,7 @@ class ExportType(DB.Model):
 class Export(DB.Model):
     __tablename__ = 't_exports_logs'
     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
+    # __mapper_args__ = {'polymorphic_on': ExportType}
     id = DB.Column(DB.TIMESTAMP(timezone=False),
                    primary_key=True, nullable=False)
     start = DB.Column(DB.DateTime)
@@ -80,14 +81,15 @@ class Export(DB.Model):
     role = DB.relationship('Role', foreign_keys='Export.id_role',
                            backref=DB.backref('Role', lazy='dynamic'))
 
-    def __init__(self, label, format):
+    def __init__(self, label, format, id_role=None):
         self.id = datetime.utcnow()
         self.format = int(format)
         self.type = ExportType.query.filter_by(label=label).first()
+        self.role = Role.query.filter_by(id_cor_role_export=id_role).first()
 
     def __repr__(self):
         return "<Export(id='{}', label='{}', selection='{}', format='{}', extension='{}', date='{}')>".format(  # noqa E501
-            self.id, self.type.label, self.type.selection, self.format, self.extension, self.start)  # noqa E501
+            self.id, self.type.label, str(self.type.selection), self.format, format_map_ext[self.format], self.start)  # noqa E501
 
     def as_dict(self):
         return {
