@@ -1,5 +1,6 @@
 import {
   Component,
+  Input,
   Renderer2,
   ViewChild,
   Pipe,
@@ -27,19 +28,24 @@ import { Export, ExportService, ExportLabel, StandardMap } from "../services/exp
 
 @Component({
   selector: 'ng-pbar',
-  template: `<div class="telechargement">Téléchargement en cours...</div>
-<p><ngb-progressbar type="info" [value]="progress$ | async" [striped]="true" [animated]="true"></ngb-progressbar></p>`
+  template: `<div class="telechargement">{{message}}</div>
+<p><ngb-progressbar [type]="type" [value]="progress$ | async" [striped]="true" [animated]="animated"></ngb-progressbar></p>`
 })
 export class NgPBar {
   progress$: Observable<number>
+  @Input() message = 'Téléchargement en cours...'
+  @Input() type ='info'
+  @Input() animated = true
 
   constructor(private _exportService: ExportService) {
     this.progress$ = this._exportService.downloadProgress
+    this.progress$.subscribe(state => (state === 100) ? this.fini(): null)
+  }
 
-    this.progress$.subscribe(
-      state => console.log(state),
-      error => console.error(error.message),
-      () => console.log('done!'))
+  fini() {
+    this.message = 'Export téléchargé.'
+    this.type = 'success'
+    this.animated = false
   }
 }
 
