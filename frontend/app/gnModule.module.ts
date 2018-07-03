@@ -24,19 +24,15 @@ const routes: Routes = [
   ],
   declarations: [
     ExportsListComponent,
-    NgbModalBackdrop,
-    NgbModalWindow,
+    // NgbModalBackdrop,
+    // NgbModalWindow,
     NgPBar
   ],
   providers: [
     ExportService, 
-    NgbModal,
-    NgbModalWindow,
-    NgbModalStack
-  ],
-  entryComponents: [
-    NgbModalBackdrop,
-    NgbModalWindow
+    // NgbModal,
+    // NgbModalWindow,
+    // NgbModalStack
   ],
   bootstrap: []
 })

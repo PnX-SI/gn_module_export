@@ -62,8 +62,6 @@ export class ExportsListComponent {
   public buttonDisabled: boolean = false;
   public barHide: boolean = false;
   public closeResult: string;
-  public modalFormAdmin : FormGroup;
-  public barHideAdmin: boolean = false;
 
   constructor(
     private _exportService: ExportService,
@@ -72,17 +70,10 @@ export class ExportsListComponent {
     private _router: Router,
     private modalService: NgbModal,
     private _fb: FormBuilder,
-    private _fba: FormBuilder,
     private _dynformService: DynamicFormService) {
 
     this.modalForm = this._fb.group({
       chooseFormat:['', Validators.required],
-      // adresseMail:['', Validators.compose([Validators.required, Validators.email])],
-      // chooseStandard:['', Validators.required]
-    });
-
-    this.modalFormAdmin = this._fba.group({
-      chooseFormatAdmin:['',Validators.required]
     });
 
     this._exportService.getExports();
@@ -93,19 +84,6 @@ export class ExportsListComponent {
   get chooseFormat() {
     return this.modalForm.get('chooseFormat');
   }
-
-  // get chooseStandard() {
-  //   return this.modalForm.get('chooseStandard');
-  // }
-
-  get chooseFormatAdmin() {
-    return this.modalFormAdmin.get('chooseFormatAdmin');
-  }
-
-  //Fonction pour envoyer un mail à l'utilisateur lorsque le ddl est terminé.
-  // get adresseMail() {
-  //   return this.modalForm.get('adresseMail');
-  // }
 
   open(content) {
     this.modalService.open(content).result.then((result) => {
@@ -146,16 +124,4 @@ export class ExportsListComponent {
       )
     }
   }
-
-  showmeAdmin() {
-    this.barHideAdmin = !this.barHideAdmin;
-    // const exportList = window.document.querySelectorAll('input[name="options"]:checked');
-    // const submissionID = /export_(\d+\.\d+)\.csv/.exec(exportList[0].id)[1]
-    //this.store.downloadExport(parseFloat(submissionID))
-  }
-
-  //Fonction pour avoir un modal vierge si l'on ferme puis réouvre le modal
-  // resetModal() {
-  //   this.modalForm.reset();
-  // }
 }

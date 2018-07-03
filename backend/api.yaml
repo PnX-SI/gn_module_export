@@ -1,0 +1,45 @@
+swagger: "2.0"
+info:
+  title: "Personnalisation des exports Géonature"
+  description: "Permet d'effectuer des exports spécifiques à la demande"
+  version: "1.0.0"
+host:
+tags:
+- name: "Classification"
+  description: "Ensemble des termes de classification des taxons"
+- name: "Reconnaissance"
+  description: "Ensemble des critères de reconnaissances des taxons"
+- name: "Geo-localisation"
+  description: "Opérations de geolocalisation autour des taxons"
+- name: "Temporelle"
+  description: "Opérations temporelle autour des taxons"
+- name: "Observateur"
+  description: "Operations autour de l'observateur"
+host: rest-api.local
+schemes:
+  - http
+produces:
+  - "application/json"
+  - "application/xml"
+consumes:
+  - "application/json"
+  - "application/xml"
+path:
+  /Classification:
+    get: 
+      tags:
+      - "lol"
+      summary: " "
+      description: " "
+      # operationId: ""
+      # parameters:
+      # - in: "body"
+      #   name: "body"
+      #   description: " "
+      #   required: true
+      #   schema:
+      #     ref: "#/definitions/Pet"
+      # responses:
+      #   405:
+      #     description: "Invalid input"
+      # security:
