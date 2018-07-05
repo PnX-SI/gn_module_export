@@ -3,43 +3,166 @@ info:
   title: "Personnalisation des exports Géonature"
   description: "Permet d'effectuer des exports spécifiques à la demande"
   version: "1.0.0"
-host:
 tags:
 - name: "Classification"
   description: "Ensemble des termes de classification des taxons"
 - name: "Reconnaissance"
-  description: "Ensemble des critères de reconnaissances des taxons"
+  description: "Critères de reconnaissances des taxons"
 - name: "Geo-localisation"
-  description: "Opérations de geolocalisation autour des taxons"
+  description: "Opérations de localisation autour des taxons"
 - name: "Temporelle"
   description: "Opérations temporelle autour des taxons"
 - name: "Observateur"
   description: "Operations autour de l'observateur"
-host: rest-api.local
+host: "rest-api.local"
 schemes:
-  - http
+  - "http"
 produces:
   - "application/json"
   - "application/xml"
 consumes:
   - "application/json"
   - "application/xml"
-path:
-  /Classification:
+paths:
+  /cdRef:
     get: 
       tags:
-      - "lol"
-      summary: " "
-      description: " "
-      # operationId: ""
-      # parameters:
-      # - in: "body"
-      #   name: "body"
-      #   description: " "
-      #   required: true
-      #   schema:
-      #     ref: "#/definitions/Pet"
-      # responses:
-      #   405:
-      #     description: "Invalid input"
-      # security:
+      - "Classification"
+      responses:
+        405:
+          description: "Invalid input"
+  /cdNom:
+    get: 
+      tags:
+      - "Classification"
+      responses:
+        405:
+          description: "Invalid input"
+  /regne:
+    get: 
+      tags:
+      - "Classification"
+      responses:
+        405:
+          description: "Invalid input"
+  /famille:
+    get: 
+      tags:
+      - "Classification"
+      responses:
+        405:
+          description: "Invalid input"
+  /groupe:
+    get: 
+      tags:
+      - "Classification"
+      responses:
+        405:
+          description: "Invalid input"
+  /obsTechnique:
+    get: 
+      tags:
+      - "Reconnaissance"
+      responses:
+        405:
+          description: "Invalid input"        
+  /bioStatus:
+    get: 
+      tags:
+      - "Reconnaissance"
+      responses:
+        405:
+          description: "Invalid input"        
+  /bioCondition:
+    get: 
+      tags:
+      - "Reconnaissance"
+      responses:
+        405:
+          description: "Invalid input" 
+  /sex:
+    get: 
+      tags:
+      - "Reconnaissance"
+      responses:
+        405:
+          description: "Invalid input"
+  /blurring:
+    get: 
+      tags:
+      - "Reconnaissance"
+      responses:
+        405:
+          description: "Invalid input"
+  /existProof:
+    get: 
+      tags:
+      - "Reconnaissance"
+      responses:
+        405:
+          description: "Invalid input"
+  /altitudeMin:
+    get: 
+      tags:
+      - "Geo-localisation"
+      responses:
+        405:
+          description: "Invalid input"
+  /altitudeMax:
+    get: 
+      tags:
+      - "Geo-localisation"
+      responses:
+        405:
+          description: "Invalid input"
+  /municipality:
+    get: 
+      tags:
+      - "Geo-localisation"
+      responses:
+        405:
+          description: "Invalid input"
+  /dateMin:
+    get: 
+      tags:
+      - "Temporelle"
+      responses:
+        405:
+          description: "Invalid input"
+  /dateMax:
+    get: 
+      tags:
+      - "Temporelle"
+      responses:
+        405:
+          description: "Invalid input"
+  /hourMin:
+    get: 
+      tags:
+      - "Temporelle"
+      responses:
+        405:
+          description: "Invalid input"
+  /hourMax:
+    get: 
+      tags:
+      - "Temporelle"
+      responses:
+        405:
+          description: "Invalid input"        
+  /observers:
+    get: 
+      tags:
+      - "Observateur"
+      responses:
+        405:
+          description: "Invalid input"
+  /determiner:
+    get: 
+      tags:
+      - "Observateur"
+      responses:
+        405:
+          description: "Invalid input"
+    
+    
