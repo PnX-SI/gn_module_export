@@ -18,19 +18,20 @@ import { AppConfig } from "@geonature_config/app.config";
 export interface Export {
   label: string;
   id: string;
-  date: Date;
-  standard: string;
+  start: Date;
+  // standard: string;
   selection: string;
   extension: string;
 }
 
 export interface ExportLabel {
   label: string;
-  date: Date;
+  start: Date;
 }
 
 const apiEndpoint='http://localhost:8000/exports';
 
+/*
 export const StandardMap = new Map([
   ['NONE', 'RAW',],
   ['SINP', 'SINP'],
@@ -38,6 +39,7 @@ export const StandardMap = new Map([
   ['ABCD', 'ABCD Schema'],
   ['EML',  'EML']
 ])
+*/
 
 export const FormatMapMime = new Map([
   ['csv', 'text/csv'],
@@ -80,7 +82,7 @@ export class ExportService {
     }
 
     let labels = []
-    this.exports.subscribe(xs => xs.map((x) => labels.push({label: x.label, date: x.date})))
+    this.exports.subscribe(xs => xs.map((x) => labels.push({label: x.label, start: x.start})))
     let seen = new Set()
     let uniqueLabels = labels.filter((item: ExportLabel) => {
                                 let k = item.label
@@ -124,6 +126,7 @@ export class ExportService {
       let date = new Date(0)
       date.setUTCSeconds(ts)
       this.saveBlob(this._blob, `export_${label}_${date.toISOString()}.${extension}`)
+      subscription.unsubscribe()
     }
   )}
 

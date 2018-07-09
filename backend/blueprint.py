@@ -1,18 +1,34 @@
 import os
 from datetime import datetime
+import logging
 from flask import (
-    Blueprint, request, current_app, send_from_directory, jsonify)
-from geonature.utils.env import DB
+    Blueprint,
+    # session,
+    request,
+    current_app,
+    send_from_directory,
+    jsonify)
+from geonature.utils.env import DB, get_module_id
+# from geonature.core.gn_meta.models import TDatasets, CorDatasetsActor
 # from geonature.utils.errors import GeonatureApiError
 # from geonature.core.users.models import TRoles, UserRigth
-# from pypnusershub.db.tools import InsufficientRightsError
+from geonature.utils.utilssqlalchemy import json_resp
+# from pypnusershub.db.tools import (
+#     InsufficientRightsError, get_or_fetch_user_cruved)
 # from pypnusershub.routes import check_auth_cruved
 
 from .models import (Export, Format, format_map_ext, format_map_mime)
-# Standard, standard_map_label)
-EXPORTS_FOLDER = os.path.join(current_app.static_folder, 'exports')
-# FIXME: backend/frontend/jobs shared conf
 
+
+logger = logging.getLogger(__name__)
+EXPORTS_FOLDER = os.path.join(current_app.static_folder, 'exports')
+
+
+try:
+    ID_MODULE = get_module_id('exports')
+except Exception as e:
+    ID_MODULE = 'Error'
+    logger.log(str(e))
 
 blueprint = Blueprint('exports', __name__)
 
@@ -32,22 +48,30 @@ def add(id_role=None):
 
 
 @blueprint.route('/exports')
-# @check_auth_cruved('R', True)
-def getExports(id_role=None):
+# @check_auth_cruved('R', True, id_app=ID_MODULE)
+# FIXME: 'No token'
+# def getExports(info_role):
+#     user_cruved = get_or_fetch_user_cruved(
+#         session=session,
+#         id_role=info_role.id_role,
+#         id_application=ID_MODULE,
+#         id_application_parent=current_app.config['ID_APPLICATION_GEONATURE']
+#     )
+#     logger.debug('cruved_user', user_cruved)
+@json_resp
+def getExports():
     exports = Export.query\
                     .filter(Export.status >= 0)\
                     .group_by(Export.id_export, Export.id)\
                     .order_by(Export.id.desc())\
                     .limit(50)\
                     .all()
-    return jsonify([export.as_dict() for export in exports])
+    return [export.as_dict() for export in exports]
 
 
 @blueprint.route('/download/<path:export>')
 # @check_auth_cruved('R', True)
 def getExport(id_role=None, export=None):
-    # print('role', id_role, 'auth', g.auth, 'export', export)
-    # TODO: perms, log
     filename, label, id, extension = fname(export)
     mime = [format_map_mime[k]
             for k, v in format_map_ext.items() if v == extension][0]
@@ -55,6 +79,7 @@ def getExport(id_role=None, export=None):
         return send_from_directory(
             EXPORTS_FOLDER, filename, mimetype=mime, as_attachment=True)
     except Exception as e:
+        logger.error(str(e))
         raise
         return jsonify(error=str(e))
 

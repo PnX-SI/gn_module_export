@@ -22,7 +22,7 @@ import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
 import { CommonService } from "@geonature_common/service/common.service";
 import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component";
 import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service";
-import { Export, ExportService, ExportLabel, StandardMap } from "../services/export.service";
+import { Export, ExportService, ExportLabel } from "../services/export.service";
 
 
 
@@ -112,7 +112,6 @@ export class ExportsListComponent {
     this.barHide = !this.barHide;
     if (this.barHide) {
       const choice = window.document.querySelector('input[name="options"]:checked');
-      // const standard = StandardMap.get(this.chooseStandard.value)
       const extension = this.chooseFormat.value
       this.exports$.switchMap(
         (exports: Export[]) => exports.sort((a, b) => (a.id < b.id) ? 1 : (a.id > b.id) ? -1 : 0)

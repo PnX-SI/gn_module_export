@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import IntEnum
 
 from geonature.utils.env import DB
-# from geonature.utils.utilssqlalchemy import serializable
+from geonature.utils.utilssqlalchemy import serializable
 
 
 class Format(IntEnum):
@@ -41,15 +41,7 @@ standard_map_label = {
 }
 
 
-class Role(DB.Model):
-    __tablename__ = 'cor_role_export'
-    __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
-    id_cor_role_export = DB.Column(DB.Integer,
-                                   primary_key=True, nullable=False)
-    roles = DB.Column(DB.Text, nullable=False)
-
-
-# @serializable
+@serializable
 class ExportType(DB.Model):
     __tablename__ = 't_exports'
     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
@@ -58,11 +50,10 @@ class ExportType(DB.Model):
     selection = DB.Column(DB.Text, nullable=False)
 
 
-# @serializable
+@serializable
 class Export(DB.Model):
     __tablename__ = 't_exports_logs'
     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
-    # __mapper_args__ = {'polymorphic_on': ExportType}
     id = DB.Column(DB.TIMESTAMP(timezone=False),
                    primary_key=True, nullable=False)
     start = DB.Column(DB.DateTime)
@@ -74,29 +65,18 @@ class Export(DB.Model):
                           DB.ForeignKey('gn_exports.t_exports.id'))
     type = DB.relationship('ExportType',
                            foreign_keys='Export.id_export',
-                           backref=DB.backref('ExportType', lazy='dynamic'))
+                           backref=DB.backref('ExportType', lazy='joined'))
     id_role = DB.Column(
-        DB.Integer(),
-        DB.ForeignKey('gn_exports.cor_role_export.id_cor_role_export'))
-    role = DB.relationship('Role', foreign_keys='Export.id_role',
-                           backref=DB.backref('Role', lazy='dynamic'))
+        DB.Integer(), DB.ForeignKey('utilisateurs.t_roles.id_role'))
 
     def __init__(self, label, format, id_role=None):
         self.id = datetime.utcnow()
         self.format = int(format)
         self.type = ExportType.query.filter_by(label=label).first()
-        self.role = Role.query.filter_by(id_cor_role_export=id_role).first()
+        self.selection = str(self.type.selection)
+        self.label = str(self.type.label)
+        self.date = self.start
 
     def __repr__(self):
         return "<Export(id='{}', label='{}', selection='{}', format='{}', extension='{}', date='{}')>".format(  # noqa E501
             self.id, self.type.label, str(self.type.selection), self.format, format_map_ext[self.format], self.start)  # noqa E501
-
-    def as_dict(self):
-        return {
-            'id': self.id.timestamp(),
-            'label': self.type.label,
-            'selection': str(self.type.selection),
-            'format': self.format,
-            'extension': format_map_ext[self.format],
-            'date': self.start
-        }
