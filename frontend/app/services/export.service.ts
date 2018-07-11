@@ -16,12 +16,11 @@ import { AppConfig } from "@geonature_config/app.config";
 
 
 export interface Export {
-  label: string;
   id: string;
-  start: Date;
-  // standard: string;
+  label: string;
   selection: string;
   extension: string;
+  start: Date;
 }
 
 export interface ExportLabel {
@@ -31,15 +30,6 @@ export interface ExportLabel {
 
 const apiEndpoint='http://localhost:8000/exports';
 
-/*
-export const StandardMap = new Map([
-  ['NONE', 'RAW',],
-  ['SINP', 'SINP'],
-  ['DWC',  'DarwinCore'],
-  ['ABCD', 'ABCD Schema'],
-  ['EML',  'EML']
-])
-*/
 
 export const FormatMapMime = new Map([
   ['csv', 'text/csv'],
@@ -62,7 +52,7 @@ export class ExportService {
 
   // QUESTION: loader ?
   getExports() {
-    this._api.get(`${apiEndpoint}/exports`).subscribe(
+    this._api.get(`${apiEndpoint}/all`).subscribe(
       (exports: Export[]) => this.exports.next(exports),
       error => console.error(error),
       () => {

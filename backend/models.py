@@ -3,6 +3,7 @@ from enum import IntEnum
 
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import serializable
+from geonature.core.users.models import TRoles
 
 
 class Format(IntEnum):
@@ -42,41 +43,42 @@ standard_map_label = {
 
 
 @serializable
-class ExportType(DB.Model):
+class Export(DB.Model):
     __tablename__ = 't_exports'
     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
+    # id = DB.Column(DB.TIMESTAMP(timezone=False), primary_key=True,
+    #                nullable=False, default=DB.func.now())
     id = DB.Column(DB.Integer, primary_key=True, nullable=False)
-    label = DB.Column(DB.Text, nullable=False)
+    id_admin = DB.Column(DB.Integer(),
+                         DB.ForeignKey(TRoles.id_role))
+    admin = DB.relationship('TRoles', foreign_keys=[id_admin], lazy='select')
+    label = DB.Column(DB.Text, nullable=False, unique=True)
     selection = DB.Column(DB.Text, nullable=False)
+    start = DB.Column(DB.DateTime)
+    end = DB.Column(DB.DateTime)
+    status = DB.Column(DB.Numeric, default=-2)
+    log = DB.Column(DB.Text)
+
+    def __init__(self, id_role, label, selection):
+        # self.id = datetime.utcnow()
+        self.id_admin = id_role
+        self.label = label
+        self.selection = selection
+
+    # def __repr__(self):
+    #     return "<Export(id='{}', label='{}', selection='{}', start='{}')>".format(  # noqa E501
+    #         self.id, self.label, str(self.selection), self.start or '')
 
 
 @serializable
-class Export(DB.Model):
+class ExportLog(DB.Model):
     __tablename__ = 't_exports_logs'
     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
-    id = DB.Column(DB.TIMESTAMP(timezone=False),
-                   primary_key=True, nullable=False)
-    start = DB.Column(DB.DateTime)
-    end = DB.Column(DB.DateTime)
-    format = DB.Column(DB.Integer, nullable=False)
-    status = DB.Column(DB.Numeric, default=-2)
-    log = DB.Column(DB.UnicodeText)
-    id_export = DB.Column(DB.Integer(),
+    id = DB.Column(DB.Integer, primary_key=True, nullable=False)
+    id_export = DB.Column(DB.TIMESTAMP(timezone=False),
                           DB.ForeignKey('gn_exports.t_exports.id'))
-    type = DB.relationship('ExportType',
-                           foreign_keys='Export.id_export',
-                           backref=DB.backref('ExportType', lazy='joined'))
-    id_role = DB.Column(
+    export = DB.relationship('Export', lazy='joined')
+    id_user = DB.Column(
         DB.Integer(), DB.ForeignKey('utilisateurs.t_roles.id_role'))
-
-    def __init__(self, label, format, id_role=None):
-        self.id = datetime.utcnow()
-        self.format = int(format)
-        self.type = ExportType.query.filter_by(label=label).first()
-        self.selection = str(self.type.selection)
-        self.label = str(self.type.label)
-        self.date = self.start
-
-    def __repr__(self):
-        return "<Export(id='{}', label='{}', selection='{}', format='{}', extension='{}', date='{}')>".format(  # noqa E501
-            self.id, self.type.label, str(self.type.selection), self.format, format_map_ext[self.format], self.start)  # noqa E501
+    user = DB.relationship('TRoles', foreign_keys=[id_user], lazy='joined')
+    format = DB.Column(DB.Integer, nullable=False)
