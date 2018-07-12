@@ -80,3 +80,85 @@ class ExportLog(DB.Model):
     id_user = DB.Column(DB.Integer(), DB.ForeignKey(TRoles.id_role))
     user = DB.relationship('TRoles', foreign_keys=[id_user], lazy='joined')
     ip_addr = DB.Column(DB.String(45))  # ipv4 -> ipv6
+
+
+import sqlalchemy
+from sqlalchemy.schema import DDLElement
+from sqlalchemy.ext.compiler import compiles
+
+
+class CreateView(DDLElement):
+    def __init__(self, name, selectable):
+        self.name = name
+        self.selectable = selectable
+
+
+class DropView(DDLElement):
+    def __init__(self, name):
+        self.name = name
+
+
+@compiles(CreateView)
+def compile(element, compiler, **kw):
+    return "CREATE VIEW %s AS %s" % (element.name, compiler.sql_compiler.process(element.selectable))  # noqa E501
+
+
+@compiles(DropView)  # noqa: W0404
+def compile(element, compiler, **kw):
+    return "DROP VIEW %s" % (element.name)
+
+
+def view(name, metadata, selectable):
+    t = sqlalchemy.sql.table(name)
+
+    for c in selectable.c:
+        c._make_proxy(t)
+
+    CreateView(name, selectable).execute_at('after-create', metadata)
+    DropView(name).execute_at('before-drop', metadata)
+    return t
+
+
+# metadata = DB.MetaData(schema='gn_exports', bind=DB.engine)
+# stuff = DB.Table(
+#     'stuff', metadata,
+#     DB.Column('id', DB.Integer, primary_key=True),
+#     DB.Column('data', DB.String(50)),
+# )
+#
+# # more_stuff = DB.Table(
+# #     'more_stuff', metadata,
+# #     DB.Column('id', DB.Integer, primary_key=True),
+# #     DB.Column('stuff_id', DB.Integer, DB.ForeignKey('gn_exports.stuff.id')),
+# #     DB.Column('data', DB.String(50)),
+# # )
+#
+# stuff_view = view(
+#     'stuff_view', metadata,
+#     sqlalchemy.sql.expression.select([
+#         stuff.c.id,
+#         stuff.c.data])  # , more_stuff.c.data.label('moredata')])
+#     .select_from(stuff)
+#     # .select_from(stuff.join(more_stuff))
+#     # .where(stuff.c.data.like(sqlalchemy.text('"%orange%"')))
+# )
+#
+# assert stuff_view.primary_key == [stuff_view.c.id]
+# metadata.create_all()
+#
+# # stuff.insert().execute(
+# #     {'data': 'apples'},
+# #     {'data': 'pears'},
+# #     {'data': 'oranges'},
+# #     {'data': 'orange julius'},
+# #     {'data': 'apple jacks'},
+# # )
+#
+#
+# class MyStuff(DB.Model):
+#     __table__ = stuff_view
+#     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
+#
+#
+# print('my stuff:', DB.session.query(MyStuff).all())
+# metadata.drop_all()

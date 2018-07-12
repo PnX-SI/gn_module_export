@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 import logging
+from sqlalchemy.exc import IntegrityError
 from flask import (
     Blueprint,
     session,
@@ -41,58 +42,38 @@ except Exception as e:
 blueprint = Blueprint('exports', __name__)
 
 
-# scratch
-@blueprint.route('/queue')
-@json_resp
-def getQueue():
-    exports = Export.query.filter(Export.status == -2, Export.start.is_(None))\
-                          .group_by(Export.label, Export.id)\
-                          .order_by(Export.id.desc())\
-                          .limit(50)\
-                          .all()
-    return [export.as_dict() for export in exports]
-
-
-# scratch
-@blueprint.route('/perform/<int:export_id>')
-@json_resp
-def perform(export_id):
-    Export.query.filter(Export.id == export_id)\
-                .update({'start': DB.func.now()}, synchronize_session=False)
-    DB.session.commit()
-
-    # if not exists view(export.label slug):
-    #     mkview(export.label slug)
-    #     populate view
-    # query(view)
-    # transform(format, view)
-    # save(file) or stream(response)
-    export = Export.query.filter(Export.id == export_id).one()
-    rows = DB.session.execute(export.selection).fetchall()
-    results = [row for row in rows]
-    logger.debug(results)
-    return results
-
-
-@blueprint.route('/add', methods=['GET', 'POST'])
+# garder GET durant le dev/test BE ss auth
+@blueprint.route('/create', methods=['GET', 'POST', 'PUT'])
 # @fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
-@fnauth.check_auth(3)
+# @fnauth.check_auth(3, True)
 @json_resp
-def add(info_role=None):
-    # id_role = info_role.id_role or 1
-    id_role = 1
-    label = request.args.get('label', None)
-    selection = request.args.get('selection', None)
+def create(info_role=None):
+    # FIXME: auth
+    # logger.debug('info_role', info_role)
+    id_role = info_role.id_role if info_role else 1
+
+    payload = request.get_json()
+    label = payload.get('label', None)
+    selection = payload.get('selection', None)
+
     if label and selection:
-        export = Export(id_role, label, selection)
-        DB.session.add(export)
-        DB.session.commit()
-        return export.as_dict()
+        try:
+            export = Export(id_role, label, selection)
+            DB.session.add(export)
+            DB.session.commit()
+            return export.as_dict()
+        except (IntegrityError) as e:
+            DB.session.rollback()
+            logger.warn('%s', str(e))
+            return {'status': 400,
+                    'error': 'Label {} is already registered.'.format(label)}
+
     else:
-        return {'error': 'Missing label or selection parameter.'}
+        return {'status': 400,
+                'error': 'Missing {} parameter.'. format('label' if selection else 'selection')}  # noqa E501
 
 
-@blueprint.route('/all')
+@blueprint.route('/')
 # @fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
 # def getExports(info_role):
 #     user_cruved = get_or_fetch_user_cruved(
@@ -110,29 +91,4 @@ def getExports(info_role=1):
                     .order_by(Export.start.desc())\
                     .limit(50)\
                     .all()
-    return [export.as_dict() for export in exports] or {'error': 'No available export.'}  # noqa E501
-
-
-# @blueprint.route('/download/<format>/<int:export_id>')
-@blueprint.route('/download/<path:export>')
-# @fnauth.check_auth_cruved('R', True)
-# @fnauth.check_auth(3)
-def getExport(id_role=None, export=None):
-
-    filename, label, id, extension = fname(export)
-    mime = [format_map_mime[k]
-            for k, v in format_map_ext.items() if v == extension][0]
-    if os.path.isfile(filename):
-        return send_from_directory(
-            EXPORTS_FOLDER, filename, mimetype=mime, as_attachment=True)
-    else:
-        return jsonify(error='Non existant export.')
-
-
-def fname(export):
-    rest, ext = export.rsplit('.', 1)
-    _, lbl, id = rest.split('_')
-    id = datetime.strftime(
-        datetime.fromtimestamp(float(id)), '%Y-%m-%d %H:%M:%S.%f')
-    return ('export_{lbl}_{id}.{ext}'.format(lbl=lbl, id=id, ext=ext),
-            lbl, id, ext)
+    return [export.as_dict() for export in exports] or {'error': 'No available export.'}, 204  # noqa E501
