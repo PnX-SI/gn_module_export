@@ -1,4 +1,4 @@
-from datetime import datetime
+# from datetime import datetime
 from enum import IntEnum
 
 from geonature.utils.env import DB
@@ -46,12 +46,11 @@ standard_map_label = {
 class Export(DB.Model):
     __tablename__ = 't_exports'
     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
-    # id = DB.Column(DB.TIMESTAMP(timezone=False), primary_key=True,
-    #                nullable=False, default=DB.func.now())
     id = DB.Column(DB.Integer, primary_key=True, nullable=False)
-    id_admin = DB.Column(DB.Integer(),
-                         DB.ForeignKey(TRoles.id_role))
-    admin = DB.relationship('TRoles', foreign_keys=[id_admin], lazy='select')
+    # uid = DB.Column(DB.TIMESTAMP(timezone=False), nullable=False,
+    #                 default=DB.func.now())
+    id_role = DB.Column(DB.Integer(), DB.ForeignKey(TRoles.id_role))
+    role = DB.relationship('TRoles', foreign_keys=[id_role], lazy='select')
     label = DB.Column(DB.Text, nullable=False, unique=True)
     selection = DB.Column(DB.Text, nullable=False)
     start = DB.Column(DB.DateTime)
@@ -60,8 +59,7 @@ class Export(DB.Model):
     log = DB.Column(DB.Text)
 
     def __init__(self, id_role, label, selection):
-        # self.id = datetime.utcnow()
-        self.id_admin = id_role
+        self.id_role = id_role
         self.label = label
         self.selection = selection
 
@@ -75,10 +73,10 @@ class ExportLog(DB.Model):
     __tablename__ = 't_exports_logs'
     __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
     id = DB.Column(DB.Integer, primary_key=True, nullable=False)
-    id_export = DB.Column(DB.TIMESTAMP(timezone=False),
+    id_export = DB.Column(DB.Integer(),
                           DB.ForeignKey('gn_exports.t_exports.id'))
     export = DB.relationship('Export', lazy='joined')
-    id_user = DB.Column(
-        DB.Integer(), DB.ForeignKey('utilisateurs.t_roles.id_role'))
-    user = DB.relationship('TRoles', foreign_keys=[id_user], lazy='joined')
     format = DB.Column(DB.Integer, nullable=False)
+    id_user = DB.Column(DB.Integer(), DB.ForeignKey(TRoles.id_role))
+    user = DB.relationship('TRoles', foreign_keys=[id_user], lazy='joined')
+    ip_addr = DB.Column(DB.String(45))  # ipv4 -> ipv6

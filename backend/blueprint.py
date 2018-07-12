@@ -15,7 +15,7 @@ from geonature.core.users.models import TRoles, UserRigth
 from geonature.utils.utilssqlalchemy import json_resp
 from pypnusershub.db.tools import (
     InsufficientRightsError, get_or_fetch_user_cruved)
-from pypnusershub import routes as auth
+from pypnusershub import routes as fnauth
 
 from .models import (
     Export,
@@ -66,7 +66,7 @@ def perform(export_id):
     #     populate view
     # query(view)
     # transform(format, view)
-    # stream(file or response)
+    # save(file) or stream(response)
     export = Export.query.filter(Export.id == export_id).one()
     rows = DB.session.execute(export.selection).fetchall()
     results = [row for row in rows]
@@ -75,7 +75,8 @@ def perform(export_id):
 
 
 @blueprint.route('/add', methods=['GET', 'POST'])
-# @auth.check_auth_cruved('C', True, id_app=ID_MODULE)
+# @fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
+@fnauth.check_auth(3)
 @json_resp
 def add(info_role=None):
     # id_role = info_role.id_role or 1
@@ -92,7 +93,7 @@ def add(info_role=None):
 
 
 @blueprint.route('/all')
-# @auth.check_auth_cruved('R', True, id_app=ID_MODULE)
+# @fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
 # def getExports(info_role):
 #     user_cruved = get_or_fetch_user_cruved(
 #         session=session,
@@ -112,8 +113,10 @@ def getExports(info_role=1):
     return [export.as_dict() for export in exports] or {'error': 'No available export.'}  # noqa E501
 
 
+# @blueprint.route('/download/<format>/<int:export_id>')
 @blueprint.route('/download/<path:export>')
-# @auth.check_auth_cruved('R', True)
+# @fnauth.check_auth_cruved('R', True)
+# @fnauth.check_auth(3)
 def getExport(id_role=None, export=None):
 
     filename, label, id, extension = fname(export)
