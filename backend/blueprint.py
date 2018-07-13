@@ -14,7 +14,8 @@ from geonature.utils.env import DB, get_module_id
 # from geonature.core.gn_meta.models import TDatasets, CorDatasetsActor
 # from geonature.utils.errors import GeonatureApiError
 from geonature.core.users.models import TRoles, UserRigth
-from geonature.utils.utilssqlalchemy import json_resp
+from geonature.utils.utilssqlalchemy import (
+    GenericQuery, json_resp, to_json_resp, csv_resp)
 from pypnusershub.db.tools import (
     InsufficientRightsError, get_or_fetch_user_cruved)
 from pypnusershub import routes as fnauth
@@ -43,7 +44,35 @@ except Exception as e:
 blueprint = Blueprint('exports', __name__)
 
 
-# DOING NEXT: mv GET -> export format selection -> download
+def get_one_export(id_export=None):
+    data = GenericQuery(
+        DB.session,
+        'mavue',
+        'gn_exports',
+        None,
+        {},
+        10000, 0).return_query()
+    return data, 200
+
+
+@blueprint.route('/export/<int:id_export>/json', methods=['GET'])
+# @json_resp(as_file=True, filename='export.json', indent=4)
+def json_export(id_export=None):
+    info_role = None
+    info_role = info_role.id_role if info_role else 1
+    return to_json_resp(
+        get_one_export(id_export),
+        as_file=True, filename='export.json', indent=4)
+
+
+@blueprint.route('/export/<int:id_export>/csv', methods=['GET'])
+@csv_resp
+def csv_export(id_export=None):
+    info_role = None
+    info_role = info_role.id_role if info_role else 1
+    return get_one_export(id_export)
+
+
 @blueprint.route('/export', defaults={'id_export': None}, methods=['GET', 'POST'])   # noqa E501
 @blueprint.route('/export/<id_export>', methods=['GET', 'POST', 'PUT'])
 # @fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
@@ -71,14 +100,12 @@ def create_or_update_export(id_export=None):
                 export = Export(id_role, label, selection)
                 DB.session.add(export)
                 DB.session.commit()
-                return export.as_dict()
+                return export.as_dict(), 200
             except IntegrityError as e:
                 DB.session.rollback()
                 logger.warn('%s', str(e))
                 if '(label)=({})'.format(label) in str(e):
-                    return {
-                        'error': 'Label {} is already registered.'.format(label)
-                        }, 400
+                    return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
                 else:
                     raise
         else:
@@ -90,6 +117,10 @@ def create_or_update_export(id_export=None):
                 export.selection = selection if selection else export.selection
                 DB.session.commit()
                 return export.as_dict(), 200
+            except NoResultFound as e:
+                DB.session.rollback()
+                logger.warn(str(e))
+                return {'error': 'Unknown export.'}, 404
             except Exception as e:
                 DB.session.rollback()
                 logger.warn(str(e))
