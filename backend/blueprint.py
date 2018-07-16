@@ -36,6 +36,11 @@ except Exception as e:
 blueprint = Blueprint('exports', __name__)
 
 
+def export_filename_pattern(export):
+    return '_'.join(
+        [export.label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
+
+
 def get_one_export(
         view, schema,
         geom_column_header=None,
@@ -52,15 +57,15 @@ def get_one_export(
 
 
 @blueprint.route('/export/<int:id_export>/json', methods=['GET'])
-# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
+# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 def json_export(info_role=None, id_export=None):
     info_role = None
     info_role = info_role.id_role if info_role else 1
 
     export = Export.query.filter(Export.id == id_export).one()
     schema, view = export.selection.split('.', maxsplit=1)
-    fname = '_'.join(
-        [export.label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
+    fname = export_filename_pattern(export)
 
     data = get_one_export(view, schema)
 
@@ -78,10 +83,9 @@ def csv_export(info_role=None, id_export=None):
 
     export = Export.query.filter(Export.id == id_export).one()
     schema, view_name = export.selection.split('.', maxsplit=1)
-    fname = '_'.join(
-        [export.label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
-    geom_column_header = 'geom_4326'  # FIXME
-    srid = 4326  # FIXME
+    fname = export_filename_pattern(export)
+    geom_column_header = 'geom_4326'  # FIXME: geom column config.defaults
+    srid = 4326  # FIXME: srid config.defaults
     columns = None
 
     data = get_one_export(view_name, schema)
@@ -89,16 +93,15 @@ def csv_export(info_role=None, id_export=None):
     view = GenericTable(
         view_name, schema, geom_column_header, srid)
 
-    # logger.debug(dir(view))
     columns = [col.name for col in view.db_cols]
-    logger.debug('columns: %s', columns)
 
     return to_csv_resp(fname, data.get('items', None), columns, ',')
 
 
 @blueprint.route('/export', defaults={'id_export': None}, methods=['POST', 'PUT'])  # noqa E501
-@blueprint.route('/export/<id_export>', methods=['POST', 'PUT'])
-# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
+@blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
+# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE,
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 @json_resp
 def create_or_update_export(info_role=None, id_export=None):
     # logger.debug(info_role)
@@ -109,7 +112,6 @@ def create_or_update_export(info_role=None, id_export=None):
     selection = payload.get('selection', None)
     id_export = payload.get('id_export', None) or id_export
 
-    # TODO: geometry columns config
     # TODO: (drop and re) create view
     if label and selection:
         if not id_export:
@@ -149,10 +151,11 @@ def create_or_update_export(info_role=None, id_export=None):
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
-# @fnauth.check_auth_cruved('D', True, id_app=ID_MODULE)
+# @fnauth.check_auth_cruved('D', True, id_app=ID_MODULE,
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 @json_resp
 def delete_export(info_role=None, id_export=None):
-    # TODO: delete view
+    # TODO: drop view
     try:
         export = Export.query.filter_by(id_export=id_export).one()
     except NoResultFound:
@@ -169,7 +172,8 @@ def delete_export(info_role=None, id_export=None):
 
 
 @blueprint.route('/')
-# @fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
+# @fnauth.check_auth_cruved('R', True, id_app=ID_MODULE,
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 # def getExports(info_role):
 #     user_cruved = get_or_fetch_user_cruved(
 #         session=session,
@@ -181,8 +185,5 @@ def delete_export(info_role=None, id_export=None):
 @json_resp
 def getExports(info_role=1):
 
-    exports = Export.query\
-                    .limit(6)\
-                    .all()
-    logger.info('%d exports', len(exports))
+    exports = Export.query.all()
     return [export.as_dict() for export in exports]
