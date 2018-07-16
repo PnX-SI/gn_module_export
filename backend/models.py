@@ -53,10 +53,8 @@ class Export(DB.Model):
     role = DB.relationship('TRoles', foreign_keys=[id_role], lazy='select')
     label = DB.Column(DB.Text, nullable=False, unique=True)
     selection = DB.Column(DB.Text, nullable=False)
-    start = DB.Column(DB.DateTime)
-    end = DB.Column(DB.DateTime)
-    status = DB.Column(DB.Numeric, default=-2)
-    log = DB.Column(DB.Text)
+    created = DB.Column(DB.DateTime)
+    updated = DB.Column(DB.DateTime)
 
     def __init__(self, id_role, label, selection):
         self.id_role = id_role

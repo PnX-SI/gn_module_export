@@ -1,3 +1,5 @@
+DROP SCHEMA IF EXISTS gn_exports CASCADE;
+
 -- DROP TABLE gn_exports.cor_role_export;
 CREATE TABLE gn_exports.cor_role_export
 (
@@ -11,8 +13,8 @@ CREATE TABLE gn_exports.t_exports
     id SERIAL NOT NULL PRIMARY KEY,
     label text COLLATE pg_catalog."default" NOT NULL,
     selection text COLLATE pg_catalog."default" NOT NULL,
-    start timestamp without time zone,
-    "end" timestamp without time zone,
+    created timestamp without time zone,
+    updated timestamp without time zone,
     status integer NOT NULL DEFAULT '-2'::integer,
     log text COLLATE pg_catalog."default",
     id_role integer NOT NULL,

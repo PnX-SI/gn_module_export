@@ -5,28 +5,20 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
-    session,
+    # session,
     request,
-    current_app,
-    send_from_directory,
-    jsonify)
+    current_app)
 from geonature.utils.env import DB, get_module_id
 # from geonature.core.gn_meta.models import TDatasets, CorDatasetsActor
 # from geonature.utils.errors import GeonatureApiError
-from geonature.core.users.models import TRoles, UserRigth
+# from geonature.core.users.models import TRoles, UserRigth
 from geonature.utils.utilssqlalchemy import (
-    GenericQuery, json_resp, to_json_resp, csv_resp)
-from pypnusershub.db.tools import (
-    InsufficientRightsError, get_or_fetch_user_cruved)
-from pypnusershub import routes as fnauth
+    GenericQuery, GenericTable, json_resp, to_json_resp, to_csv_resp)
+# from pypnusershub.db.tools import (
+#     InsufficientRightsError, get_or_fetch_user_cruved)
+# from pypnusershub import routes as fnauth
 
-from .models import (
-    Export,
-    ExportLog,
-    # Format,
-    format_map_ext,
-    format_map_mime)
-
+from .models import Export
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
@@ -44,56 +36,81 @@ except Exception as e:
 blueprint = Blueprint('exports', __name__)
 
 
-def get_one_export(id_export=None):
+def get_one_export(
+        view, schema,
+        geom_column_header=None,
+        filters={}, limit=10000, paging=0):
+
+    logger.debug('Querying "%s"."%s"', schema, view)
+
     data = GenericQuery(
-        DB.session,
-        'mavue',
-        'gn_exports',
-        None,
-        {},
-        10000, 0).return_query()
-    return data, 200
+        DB.session, view, schema, geom_column_header,
+        filters, limit, paging).return_query()
+
+    logger.debug('Query results: %s', data)
+    return data
 
 
 @blueprint.route('/export/<int:id_export>/json', methods=['GET'])
-# @json_resp(as_file=True, filename='export.json', indent=4)
-def json_export(id_export=None):
+# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
+def json_export(info_role=None, id_export=None):
     info_role = None
     info_role = info_role.id_role if info_role else 1
+
+    export = Export.query.filter(Export.id == id_export).one()
+    schema, view = export.selection.split('.', maxsplit=1)
+    fname = '_'.join(
+        [export.label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
+
+    data = get_one_export(view, schema)
+
     return to_json_resp(
-        get_one_export(id_export),
-        as_file=True, filename='export.json', indent=4)
+        data.get('items', None),
+        as_file=True, filename=fname, indent=4)
 
 
 @blueprint.route('/export/<int:id_export>/csv', methods=['GET'])
-@csv_resp
-def csv_export(id_export=None):
+# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE,
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
+def csv_export(info_role=None, id_export=None):
     info_role = None
     info_role = info_role.id_role if info_role else 1
-    return get_one_export(id_export)
+
+    export = Export.query.filter(Export.id == id_export).one()
+    schema, view_name = export.selection.split('.', maxsplit=1)
+    fname = '_'.join(
+        [export.label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
+    geom_column_header = 'geom_4326'  # FIXME
+    srid = 4326  # FIXME
+    columns = None
+
+    data = get_one_export(view_name, schema)
+
+    view = GenericTable(
+        view_name, schema, geom_column_header, srid)
+
+    # logger.debug(dir(view))
+    columns = [col.name for col in view.db_cols]
+    logger.debug('columns: %s', columns)
+
+    return to_csv_resp(fname, data.get('items', None), columns, ',')
 
 
-@blueprint.route('/export', defaults={'id_export': None}, methods=['GET', 'POST'])   # noqa E501
-@blueprint.route('/export/<id_export>', methods=['GET', 'POST', 'PUT'])
-# @fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
-# @fnauth.check_auth(3, True)
+@blueprint.route('/export', defaults={'id_export': None}, methods=['POST', 'PUT'])  # noqa E501
+@blueprint.route('/export/<id_export>', methods=['POST', 'PUT'])
+# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
 @json_resp
-# def create_or_update_export(info_role=None, id_export=None):
-def create_or_update_export(id_export=None):
+def create_or_update_export(info_role=None, id_export=None):
     # logger.debug(info_role)
-    info_role = None
     id_role = info_role.id_role if info_role else 1
 
-    # payload = request.get_json()
-    # payload.get('label', None)
-    # payload.get('selection', None)  # noqa E501
-    if not id_export:
-        id_export = request.args.get('id_export', None)
-        id_export = int(id_export)
+    payload = request.get_json()
+    label = payload.get('label', None)
+    selection = payload.get('selection', None)
+    id_export = payload.get('id_export', None) or id_export
 
-    label = request.args.get('label', None)
-    selection = request.args.get('selection', None)
-
+    # TODO: geometry columns config
+    # TODO: (drop and re) create view
     if label and selection:
         if not id_export:
             try:
@@ -132,8 +149,10 @@ def create_or_update_export(id_export=None):
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
+# @fnauth.check_auth_cruved('D', True, id_app=ID_MODULE)
 @json_resp
-def delete_export(id_export):
+def delete_export(info_role=None, id_export=None):
+    # TODO: delete view
     try:
         export = Export.query.filter_by(id_export=id_export).one()
     except NoResultFound:
@@ -163,10 +182,7 @@ def delete_export(id_export):
 def getExports(info_role=1):
 
     exports = Export.query\
-                    .filter(Export.status >= 0)\
-                    .group_by(Export.label, Export.id)\
-                    .order_by(Export.start.desc())\
-                    .limit(50)\
+                    .limit(6)\
                     .all()
-    return [export.as_dict() for export in exports] or {
-        'error': 'No available export.'}, 204
+    logger.info('%d exports', len(exports))
+    return [export.as_dict() for export in exports]
