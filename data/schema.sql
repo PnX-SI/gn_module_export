@@ -15,8 +15,6 @@ CREATE TABLE gn_exports.t_exports
     selection text COLLATE pg_catalog."default" NOT NULL,
     created timestamp without time zone,
     updated timestamp without time zone,
-    status integer NOT NULL DEFAULT '-2'::integer,
-    log text COLLATE pg_catalog."default",
     id_role integer NOT NULL,
     CONSTRAINT uniq_label UNIQUE (label),
     CONSTRAINT fk_admin FOREIGN KEY (id_role)
