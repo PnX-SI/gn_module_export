@@ -43,6 +43,7 @@ def get_one_export(
 
     logger.debug('Querying "%s"."%s"', schema, view)
 
+    # public.geometry_columns
     data = GenericQuery(
         DB.session, view, schema, geom_column_header,
         filters, limit, paging).return_query()

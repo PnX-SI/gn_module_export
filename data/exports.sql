@@ -10,6 +10,7 @@ CREATE TABLE gn_exports.t_exports
     "desc" text COLLATE pg_catalog."default",
     created timestamp without time zone,
     updated timestamp without time zone,
+    deleted timestamp without time zone,
     id_role integer NOT NULL,
     CONSTRAINT uniq_label UNIQUE (label),
     CONSTRAINT fk_admin FOREIGN KEY (id_role)
