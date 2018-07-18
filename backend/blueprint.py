@@ -59,10 +59,9 @@ def json_export(info_role=None, id_export=None):
     info_role = info_role.id_role if info_role else 1
 
     export = Export.query.filter(Export.id == id_export).one()
-    schema, view = export.selection.split('.', maxsplit=1)
     fname = export_filename_pattern(export)
 
-    data = get_one_export(view, schema)
+    data = get_one_export(export.view_name, export.schema_name)
 
     # TODO: update t_exports_logs:
     # if 'X-Forwarded-For' in request.headers:
@@ -84,13 +83,12 @@ def csv_export(info_role=None, id_export=None):
     info_role = info_role.id_role if info_role else 1
 
     export = Export.query.filter(Export.id == id_export).one()
-    schema, view_name = export.selection.split('.', maxsplit=1)
     fname = export_filename_pattern(export)
     geom_column_header = 'geom_4326'  # FIXME: geom column config.defaults
     srid = 4326  # FIXME: srid config.defaults
-    view = GenericTable(view_name, schema, geom_column_header, srid)
+    view = GenericTable(export.view_name, export.schema_name, geom_column_header, srid)
     columns = [col.name for col in view.db_cols]
-    data = get_one_export(view_name, schema)
+    data = get_one_export(export.view_name, export.schema_name)
     # TODO: update t_exports_logs: request.headers.get('X-Forwarded-For', request.remote_addr))
     # request.headers.getlist("X-Forwarded-For")[0].rpartition(' ')[-1]
     return to_csv_resp(fname, data.get('items', None), columns, ',')
@@ -107,15 +105,17 @@ def create_or_update_export(info_role=None, id_export=None):
 
     payload = request.get_json()
     label = payload.get('label', None)
-    selection = payload.get('selection', None)
+    view_name = payload.get('view_name', None)
+    schema_name = payload.get('schema_name', None)
+    desc = payload.get('desc', None)
     id_export = payload.get('id_export', None) or id_export
 
     # TODO: (drop and re) create view
-    # TODO: update t_exports
-    if label and selection:
+    # TODO: update t_exports_logs
+    if label and schema_name and view_name:
         if not id_export:
             try:
-                export = Export(id_role, label, selection)
+                export = Export(id_role, label, schema_name, view_name, desc)
                 DB.session.add(export)
                 DB.session.commit()
                 return export.as_dict(), 200
@@ -132,7 +132,9 @@ def create_or_update_export(info_role=None, id_export=None):
                                    .filter(Export.id == id_export)\
                                    .one()
                 export.label = label if label else export.label
-                export.selection = selection if selection else export.selection
+                export.schema_name = schema_name if schema_name else export.schema_name
+                export.view_name = view_name if view_name else export.view_name
+                export.desc = desc if desc else export.desc
                 DB.session.commit()
                 return export.as_dict(), 200
             except NoResultFound as e:
@@ -146,7 +148,7 @@ def create_or_update_export(info_role=None, id_export=None):
     else:
         return {
             'error': 'Missing {} parameter.'. format(
-                'label' if selection else 'selection')}, 400
+                'label' if (schema_name and view_name) else 'schema or view name')}, 400
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
@@ -161,7 +163,7 @@ def delete_export(info_role=None, id_export=None):
         return {'error': 'No result.'}, 404
     else:
         try:
-            DB.session.delete(export)
+            DB.session.delete(export)  # FIXME: update deleted field instead
             DB.session.commit()
             return {'result': 'success'}, 204
         except Exception as e:
@@ -184,5 +186,5 @@ def delete_export(info_role=None, id_export=None):
 @json_resp
 def getExports(info_role=1):
 
-    exports = Export.query.all()
+    exports = Export.query.filter(Export.deleted is None).all()
     return [export.as_dict() for export in exports]

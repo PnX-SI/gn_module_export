@@ -10,19 +10,22 @@ class Export(DB.Model):
     __tablename__ = 't_exports'
     __table_args__ = {'schema': 'gn_exports'}
     id = DB.Column(DB.Integer, primary_key=True, nullable=False)
-    # uid = DB.Column(DB.TIMESTAMP(timezone=False), nullable=False,
-    #                 default=DB.func.now())
-    id_role = DB.Column(DB.Integer(), DB.ForeignKey(TRoles.id_role))
+    id_role = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
     role = DB.relationship('TRoles', foreign_keys=[id_role], lazy='select')
     label = DB.Column(DB.Text, nullable=False, unique=True)
-    selection = DB.Column(DB.Text, nullable=False)
+    schema_name = DB.Column(DB.Text, nullable=False)
+    view_name = DB.Column(DB.Text, nullable=False)
+    desc = DB.Column(DB.Text)
     created = DB.Column(DB.DateTime)
     updated = DB.Column(DB.DateTime)
+    deleted = DB.Column(DB.DateTime)
 
-    def __init__(self, id_role, label, selection):
+    def __init__(self, id_role, label, schema_name, view_name, desc=None):
         self.id_role = id_role
         self.label = label
-        self.selection = selection
+        self.schema_name = schema_name
+        self.view_name = view_name
+        self.desc = desc
 
     # def __repr__(self):
     #     return "<Export(id='{}', label='{}', selection='{}', start='{}')>".format(  # noqa E501
@@ -39,5 +42,5 @@ class ExportLog(DB.Model):
     export = DB.relationship('Export', lazy='joined')
     format = DB.Column(DB.Integer, nullable=False)
     ip_addr = DB.Column(DB.String(45))  # ipv4 -> ipv6
-    id_user = DB.Column(DB.Integer(), DB.ForeignKey(TRoles.id_role))
+    id_user = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
     user = DB.relationship('TRoles', foreign_keys=[id_user], lazy='joined')

@@ -1,18 +1,13 @@
 DROP SCHEMA IF EXISTS gn_exports CASCADE;
 
--- DROP TABLE gn_exports.cor_role_export;
-CREATE TABLE gn_exports.cor_role_export
-(
-    id_cor_role_export SERIAL NOT NULL PRIMARY KEY,
-    roles character(255) COLLATE pg_catalog."default",
-)
-
 -- DROP TABLE gn_exports.t_exports;
 CREATE TABLE gn_exports.t_exports
 (
     id SERIAL NOT NULL PRIMARY KEY,
     label text COLLATE pg_catalog."default" NOT NULL,
-    selection text COLLATE pg_catalog."default" NOT NULL,
+    schema_name text COLLATE pg_catalog."default" NOT NULL,
+    view_name text COLLATE pg_catalog."default" NOT NULL,
+    "desc" text COLLATE pg_catalog."default",
     created timestamp without time zone,
     updated timestamp without time zone,
     id_role integer NOT NULL,
