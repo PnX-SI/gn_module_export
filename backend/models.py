@@ -1,45 +1,8 @@
 # from datetime import datetime
-from enum import IntEnum
 
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import serializable
 from geonature.core.users.models import TRoles
-
-
-class Format(IntEnum):
-    CSV = 1
-    JSON = 2
-    RDF = 4
-
-
-format_map_ext = {
-    Format.CSV: 'csv',
-    Format.JSON: 'json',
-    Format.RDF: 'rdf'
-}
-
-format_map_mime = {
-    Format.CSV: 'text/csv',
-    Format.JSON: 'application/json',
-    Format.RDF: 'application/rdf+xml'
-}
-
-
-class Standard(IntEnum):
-    NONE = 0
-    SINP = 1
-    DWC = 2
-    ABCD = 4
-    EML = 8
-
-
-standard_map_label = {
-    Standard.NONE: 'RAW',
-    Standard.SINP: 'SINP',
-    Standard.DWC: 'DarwinCore',
-    Standard.ABCD: 'ABCD Schema',
-    Standard.EML: 'EML'
-}
 
 
 @serializable

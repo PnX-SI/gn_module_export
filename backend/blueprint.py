@@ -23,19 +23,14 @@ from .models import Export
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
+# FIXME: mv const EXPORTS_FOLDER to conf
 EXPORTS_FOLDER = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_FOLDER, exist_ok=True)
-
-try:
-    ID_MODULE = get_module_id('exports')
-except Exception as e:
-    ID_MODULE = 'Error'
-    logger.log(str(e))
-    raise
 
 blueprint = Blueprint('exports', __name__)
 
 
+# FIXME: mv export file name pattern to conf
 def export_filename_pattern(export):
     return '_'.join(
         [export.label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
@@ -43,8 +38,8 @@ def export_filename_pattern(export):
 
 def get_one_export(
         view, schema,
-        geom_column_header=None,
-        filters={}, limit=10000, paging=0):
+        geom_column_header=None, filters={},
+        limit=10000, paging=0):
 
     logger.debug('Querying "%s"."%s"', schema, view)
 
@@ -57,7 +52,7 @@ def get_one_export(
 
 
 @blueprint.route('/export/<int:id_export>/json', methods=['GET'])
-# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE
+# @fnauth.check_auth_cruved('E', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 def json_export(info_role=None, id_export=None):
     info_role = None
@@ -69,13 +64,20 @@ def json_export(info_role=None, id_export=None):
 
     data = get_one_export(view, schema)
 
+    # TODO: update t_exports_logs:
+    # if 'X-Forwarded-For' in request.headers:
+    #     remote_addr = request.headers.getlist("X-Forwarded-For")[0].rpartition(' ')[-1]
+    # elsif request.environ.get('HTTP_X_REAL_IP', None):
+    #     remote_addr = request.headers.getlist("X-Forwarded-For")[0].rpartition(' ')[-1]
+    # else:
+    #     remote_addr = request.remote_addr
+    # request.environ.get('REMOTE_PORT')
     return to_json_resp(
-        data.get('items', None),
-        as_file=True, filename=fname, indent=4)
+        data.get('items', None), as_file=True, filename=fname, indent=4)
 
 
 @blueprint.route('/export/<int:id_export>/csv', methods=['GET'])
-# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE,
+# @fnauth.check_auth_cruved('E', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 def csv_export(info_role=None, id_export=None):
     info_role = None
@@ -86,21 +88,17 @@ def csv_export(info_role=None, id_export=None):
     fname = export_filename_pattern(export)
     geom_column_header = 'geom_4326'  # FIXME: geom column config.defaults
     srid = 4326  # FIXME: srid config.defaults
-    columns = None
-
-    data = get_one_export(view_name, schema)
-
-    view = GenericTable(
-        view_name, schema, geom_column_header, srid)
-
+    view = GenericTable(view_name, schema, geom_column_header, srid)
     columns = [col.name for col in view.db_cols]
-
+    data = get_one_export(view_name, schema)
+    # TODO: update t_exports_logs: request.headers.get('X-Forwarded-For', request.remote_addr))
+    # request.headers.getlist("X-Forwarded-For")[0].rpartition(' ')[-1]
     return to_csv_resp(fname, data.get('items', None), columns, ',')
 
 
 @blueprint.route('/export', defaults={'id_export': None}, methods=['POST', 'PUT'])  # noqa E501
 @blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
-# @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE,
+# @fnauth.check_auth_cruved('E', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 @json_resp
 def create_or_update_export(info_role=None, id_export=None):
@@ -113,6 +111,7 @@ def create_or_update_export(info_role=None, id_export=None):
     id_export = payload.get('id_export', None) or id_export
 
     # TODO: (drop and re) create view
+    # TODO: update t_exports
     if label and selection:
         if not id_export:
             try:
@@ -151,7 +150,7 @@ def create_or_update_export(info_role=None, id_export=None):
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
-# @fnauth.check_auth_cruved('D', True, id_app=ID_MODULE,
+# @fnauth.check_auth_cruved('D', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 @json_resp
 def delete_export(info_role=None, id_export=None):
@@ -172,13 +171,13 @@ def delete_export(info_role=None, id_export=None):
 
 
 @blueprint.route('/')
-# @fnauth.check_auth_cruved('R', True, id_app=ID_MODULE,
+# @fnauth.check_auth_cruved('R', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 # def getExports(info_role):
 #     user_cruved = get_or_fetch_user_cruved(
 #         session=session,
 #         id_role=info_role.id_role,
-#         id_application=ID_MODULE,
+#        # id_application=ID_MODULE,
 #         id_application_parent=current_app.config['ID_APPLICATION_GEONATURE']
 #     )
 #     logger.debug('cruved_user', user_cruved)
