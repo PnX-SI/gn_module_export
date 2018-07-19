@@ -8,7 +8,7 @@ from flask import (
     # session,
     request,
     current_app)
-from geonature.utils.env import DB, get_module_id
+from geonature.utils.env import DB
 # from geonature.core.gn_meta.models import TDatasets, CorDatasetsActor
 # from geonature.utils.errors import GeonatureApiError
 # from geonature.core.users.models import TRoles, UserRigth
@@ -18,7 +18,7 @@ from geonature.utils.utilssqlalchemy import (
 #     InsufficientRightsError, get_or_fetch_user_cruved)
 # from pypnusershub import routes as fnauth
 
-from .models import Export
+from .models import Export, ExportLog
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
@@ -64,14 +64,31 @@ def json_export(info_role=None, id_export=None):
 
     data = get_one_export(export.view_name, export.schema_name)
 
-    # TODO: update t_exports_logs:
-    # if 'X-Forwarded-For' in request.headers:
-    #     remote_addr = request.headers.getlist("X-Forwarded-For")[0].rpartition(' ')[-1]
-    # elsif request.environ.get('HTTP_X_REAL_IP', None):
-    #     remote_addr = request.headers.getlist("X-Forwarded-For")[0].rpartition(' ')[-1]
-    # else:
-    #     remote_addr = request.remote_addr
-    # request.environ.get('REMOTE_PORT')
+    # Update t_exports_logs
+    if 'X-Forwarded-For' in request.headers:
+        remote_addr = request.headers.getlist('X-Forwarded-For')[0]\
+                                     .rpartition(' ')[-1]
+    elif request.environ.get('HTTP_X_REAL_IP', None):
+        remote_addr = request.headers.getlist('X-Forwarded-For')[0]\
+                                     .rpartition(' ')[-1]
+    else:
+        remote_addr = request.remote_addr
+    remote_addr_port = ':'.join([remote_addr, str(request.environ.get('REMOTE_PORT'))])
+
+    try:
+        export_log = ExportLog(
+            id_export=export.id,
+            format=2,
+            ip_addr_port=remote_addr_port,
+            id_user=info_role,
+            date=DB.func.now())
+        DB.session.add(export_log)
+        DB.session.commit()
+    except Exception as e:
+        DB.session.rollback()
+        logger.warn('%s', str(e))
+        return {'error': 'Echec de journalisation.'}
+
     return to_json_resp(
         data.get('items', None), as_file=True, filename=fname, indent=4)
 
@@ -187,5 +204,5 @@ def delete_export(info_role=None, id_export=None):
 @json_resp
 def getExports(info_role=1):
 
-    exports = Export.query.filter(Export.deleted is None).all()
+    exports = Export.query.filter(Export.deleted.is_(None)).all()
     return [export.as_dict() for export in exports]

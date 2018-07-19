@@ -1,5 +1,5 @@
 # from datetime import datetime
-
+from sqlalchemy.sql import func
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import serializable
 from geonature.core.users.models import TRoles
@@ -16,8 +16,8 @@ class Export(DB.Model):
     schema_name = DB.Column(DB.Text, nullable=False)
     view_name = DB.Column(DB.Text, nullable=False)
     desc = DB.Column(DB.Text)
-    created = DB.Column(DB.DateTime)
-    updated = DB.Column(DB.DateTime)
+    created = DB.Column(DB.DateTime, default=func.now())
+    updated = DB.Column(DB.DateTime, onupdate=func.now())
     deleted = DB.Column(DB.DateTime)
 
     def __init__(self, id_role, label, schema_name, view_name, desc=None):
@@ -40,7 +40,8 @@ class ExportLog(DB.Model):
     id_export = DB.Column(DB.Integer(),
                           DB.ForeignKey('gn_exports.t_exports.id'))
     export = DB.relationship('Export', lazy='joined')
-    format = DB.Column(DB.Integer, nullable=False)
-    ip_addr = DB.Column(DB.String(45))  # ipv4 -> ipv6
+    format = DB.Column(DB.String(4), nullable=False)
+    date = DB.Column(DB.DateTime)
+    ip_addr_port = DB.Column(DB.String(51), nullable=False)  # ipv4 -> ipv6
     id_user = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
     user = DB.relationship('TRoles', foreign_keys=[id_user], lazy='joined')
