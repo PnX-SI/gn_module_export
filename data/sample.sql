@@ -23,8 +23,8 @@ SET row_security = off;
 -- Data for Name: t_exports; Type: TABLE DATA; Schema: gn_exports; Owner: geonatuser
 --
 
-INSERT INTO gn_exports.t_exports (id, label, schema_name, view_name, "desc", created, updated, deleted, id_role) VALUES (1, 'OccTax - Dépôt Légal de Biodiversité', 'pr_occtax', 'export_occtax_dlb', NULL, '2018-07-19 08:10:48.021199', NULL, NULL, 1);
-INSERT INTO gn_exports.t_exports (id, label, schema_name, view_name, "desc", created, updated, deleted, id_role) VALUES (2, 'OccTax - SINP', 'pr_occtax', 'export_occtax_sinp', NULL, '2018-07-19 08:10:48.0212', '2018-07-19 08:10:48.021201', NULL, 1);
+INSERT INTO gn_exports.t_exports (id, label, schema_name, view_name, "desc", created, updated, deleted, id_creator) VALUES (1, 'OccTax - Dépôt Légal de Biodiversité', 'pr_occtax', 'export_occtax_dlb', NULL, '2018-07-19 08:10:48.021199', NULL, NULL, 1);
+INSERT INTO gn_exports.t_exports (id, label, schema_name, view_name, "desc", created, updated, deleted, id_creator) VALUES (2, 'OccTax - SINP', 'pr_occtax', 'export_occtax_sinp', NULL, '2018-07-19 08:10:48.0212', '2018-07-19 08:10:48.021201', NULL, 1);
 
 
 --
@@ -41,4 +41,3 @@ SELECT pg_catalog.setval('gn_exports.t_exports_id_seq', 1, false);
 --
 -- PostgreSQL database dump complete
 --
-

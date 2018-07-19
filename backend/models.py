@@ -15,8 +15,8 @@ class Export(DB.Model):
     __tablename__ = 't_exports'
     __table_args__ = {'schema': 'gn_exports'}
     id = DB.Column(DB.Integer, primary_key=True, nullable=False)
-    id_role = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
-    role = DB.relationship('TRoles', foreign_keys=[id_role], lazy='select')
+    id_creator = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
+    role = DB.relationship('TRoles', foreign_keys=[id_creator], lazy='select')
     label = DB.Column(DB.Text, nullable=False, unique=True)
     schema_name = DB.Column(DB.Text, nullable=False)
     view_name = DB.Column(DB.Text, nullable=False)
@@ -25,8 +25,8 @@ class Export(DB.Model):
     updated = DB.Column(DB.DateTime, onupdate=func.now())
     deleted = DB.Column(DB.DateTime)
 
-    def __init__(self, id_role, label, schema_name, view_name, desc=None):
-        self.id_role = id_role
+    def __init__(self, id_creator, label, schema_name, view_name, desc=None):
+        self.id_creator = id_creator
         self.label = label
         self.schema_name = schema_name
         self.view_name = view_name

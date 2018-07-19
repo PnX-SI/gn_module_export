@@ -1,6 +1,6 @@
-DROP SCHEMA IF EXISTS gn_exports CASCADE;
+CREATE SCHEMA IF NOT EXISTS gn_exports;
 
--- DROP TABLE gn_exports.t_exports;
+DROP TABLE IF EXISTS gn_exports.t_exports;
 CREATE TABLE gn_exports.t_exports
 (
     id SERIAL NOT NULL PRIMARY KEY,
@@ -11,15 +11,15 @@ CREATE TABLE gn_exports.t_exports
     created timestamp without time zone,
     updated timestamp without time zone,
     deleted timestamp without time zone,
-    id_role integer NOT NULL,
+    id_creator integer NOT NULL,
     CONSTRAINT uniq_label UNIQUE (label),
-    CONSTRAINT fk_admin FOREIGN KEY (id_role)
+    CONSTRAINT fk_creator FOREIGN KEY (id_creator)
         REFERENCES utilisateurs.t_roles (id_role) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
-)
+);
 
--- DROP TABLE gn_exports.t_exports_logs;
+DROP TABLE IF EXISTS gn_exports.t_exports_logs;
 CREATE TABLE gn_exports.t_exports_logs
 (
     id SERIAL NOT NULL PRIMARY KEY,

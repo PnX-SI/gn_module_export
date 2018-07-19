@@ -108,7 +108,7 @@ def csv_export(info_role=None, id_export=None):
 @json_resp
 def create_or_update_export(info_role=None, id_export=None):
     # logger.debug(info_role)
-    id_role = info_role.id_role if info_role else 1
+    id_creator = info_role.id_role if info_role else 1
 
     payload = request.get_json()
     label = payload.get('label', None)
@@ -118,10 +118,14 @@ def create_or_update_export(info_role=None, id_export=None):
     id_export = payload.get('id_export', None) or id_export
 
     # TODO: (drop and re) create view
+    # if not id_export and not view_name => creation
+    #    create_view()
+    #    populate_view()
+
     if label and schema_name and view_name:
         if not id_export:
             try:
-                export = Export(id_role, label, schema_name, view_name, desc)
+                export = Export(id_creator, label, schema_name, view_name, desc)
                 DB.session.add(export)
                 DB.session.commit()
                 return export.as_dict(), 200
