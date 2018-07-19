@@ -20,6 +20,7 @@ from geonature.utils.utilssqlalchemy import (
 # from pypnusershub import routes as fnauth
 
 from .models import Export, ExportLog
+from .repositories import ExportRepository
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
@@ -33,9 +34,9 @@ blueprint = Blueprint('exports', __name__)
 
 
 # FIXME: mv export file name pattern to conf
-def export_filename_pattern(export):
+def export_filename_pattern(label):
     return '_'.join(
-        [export.label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
+        [label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
 
 
 def get_one_export(
@@ -62,20 +63,14 @@ def json_export(info_role=None, id_export=None):
     info_role = None
     info_role = info_role.id_role if info_role else 1
 
-    export = Export.query.get(id_export)
-    fname = export_filename_pattern(export)
-
-    data = get_one_export(export.view_name, export.schema_name)
-
+    repo = ExportRepository()
     try:
-        ExportLog.log(id_export=export.id, format='json', id_user=info_role)
-    except Exception as e:
-        DB.session.rollback()
+        export, data = repo.get_one(id_export, info_role)
+        fname = export_filename_pattern(export.get('label'))
+        return to_json_resp(data, as_file=True, filename=fname, indent=4)
+    except NoResultFound as e:
         logger.warn('%s', str(e))
-        return {'error': 'Echec de journalisation.'}
-
-    return to_json_resp(
-        data.get('items', None), as_file=True, filename=fname, indent=4)
+        return to_json_resp({'error': str(e)}, status=404)
 
 
 @blueprint.route('/export/<int:id_export>/csv', methods=['GET'])
@@ -86,21 +81,25 @@ def csv_export(info_role=None, id_export=None):
     info_role = None
     info_role = info_role.id_role if info_role else 1
 
-    export = Export.query.get(id_export)
-    fname = export_filename_pattern(export)
     geom_column_header = 'geom_4326'  # FIXME: geom column config.defaults
     srid = 4326  # FIXME: srid config.defaults
-    view = GenericTable(
-        export.view_name, export.schema_name, geom_column_header, srid)
-    columns = [col.name for col in view.db_cols]
-    data = get_one_export(export.view_name, export.schema_name)
-    try:
-        ExportLog.log(id_export=export.id, format='csv', id_user=info_role)
-    except Exception as e:
-        DB.session.rollback()
-        logger.warn('%s', str(e))
-        return {'error': 'Echec de journalisation.'}
-    return to_csv_resp(fname, data.get('items', None), columns, ',')
+
+    export = Export.query.get(id_export)
+    if export:
+        fname = export_filename_pattern(export)
+        view = GenericTable(
+            export.view_name, export.schema_name, geom_column_header, srid)
+        columns = [col.name for col in view.db_cols]
+        data = get_one_export(export.view_name, export.schema_name)
+        try:
+            ExportLog.log(id_export=export.id, format='csv', id_user=info_role)
+        except Exception as e:
+            DB.session.rollback()
+            logger.warn('%s', str(e))
+            return {'error': 'Echec de journalisation.'}
+        return to_csv_resp(fname, data.get('items', None), columns, ',')
+    else:
+        return {'error': 'Unknown export.'}, 404
 
 
 @blueprint.route(
@@ -128,13 +127,12 @@ def create_or_update_export(info_role=None, id_export=None):
     #    drop_view(view_name)
     #    create_and_populate_view()
 
+    repo = ExportRepository()
     if label and schema_name and view_name:
         if not id_export:
             try:
-                export = Export(
+                export = repo.create(
                     id_creator, label, schema_name, view_name, desc)
-                DB.session.add(export)
-                DB.session.commit()
                 return export.as_dict(), 200
             except IntegrityError as e:
                 DB.session.rollback()
