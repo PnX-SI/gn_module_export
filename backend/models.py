@@ -60,8 +60,9 @@ class ExportLog(DB.Model):
                                          .rpartition(' ')[-1]
         else:
             remote_addr = request.remote_addr
-        remote_addr_port = ':'.join([remote_addr,
-                                     str(request.environ.get('REMOTE_PORT'))])
+
+        remote_addr_port = ':'.join(
+            [remote_addr, str(request.environ.get('REMOTE_PORT'))])
         kwargs['ip_addr_port'] = remote_addr_port
         x = ExportLog(**kwargs)
         DB.session.add(x)

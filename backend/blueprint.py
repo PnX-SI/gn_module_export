@@ -1,3 +1,4 @@
+# flake8: noqa E501
 import os
 from datetime import datetime
 import logging
@@ -86,7 +87,8 @@ def csv_export(info_role=None, id_export=None):
     fname = export_filename_pattern(export)
     geom_column_header = 'geom_4326'  # FIXME: geom column config.defaults
     srid = 4326  # FIXME: srid config.defaults
-    view = GenericTable(export.view_name, export.schema_name, geom_column_header, srid)
+    view = GenericTable(
+        export.view_name, export.schema_name, geom_column_header, srid)
     columns = [col.name for col in view.db_cols]
     data = get_one_export(export.view_name, export.schema_name)
     try:
@@ -98,7 +100,8 @@ def csv_export(info_role=None, id_export=None):
     return to_csv_resp(fname, data.get('items', None), columns, ',')
 
 
-@blueprint.route('/export', defaults={'id_export': None}, methods=['POST', 'PUT'])  # noqa E501
+@blueprint.route(
+    '/export', defaults={'id_export': None}, methods=['POST', 'PUT'])
 @blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
 # @fnauth.check_auth_cruved('E', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
@@ -135,7 +138,8 @@ def create_or_update_export(info_role=None, id_export=None):
                                    .filter(Export.id == id_export)\
                                    .one()
                 export.label = label if label else export.label
-                export.schema_name = schema_name if schema_name else export.schema_name
+                export.schema_name = (
+                    schema_name if schema_name else export.schema_name)
                 export.view_name = view_name if view_name else export.view_name
                 export.desc = desc if desc else export.desc
                 DB.session.commit()
@@ -150,7 +154,8 @@ def create_or_update_export(info_role=None, id_export=None):
                 return {'error': 'Echec mise à jour.'}, 500
 
             try:
-                ExportLog.log(id_export=export.id, format='crea', id_user=info_role)
+                ExportLog.log(
+                    id_export=export.id, format='crea', id_user=info_role)
             except Exception as e:
                 DB.session.rollback()
                 logger.warn('%s', str(e))
@@ -158,7 +163,7 @@ def create_or_update_export(info_role=None, id_export=None):
     else:
         return {
             'error': 'Missing {} parameter.'. format(
-                'label' if (schema_name and view_name) else 'schema or view name')}, 400
+                'label' if (schema_name and view_name) else 'schema or view name')}, 400  # noqa E501
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
@@ -176,18 +181,18 @@ def delete_export(info_role=None, id_export=None):
             export.deleted = datetime.utcnow()
             DB.session.add(export)
             DB.session.commit()
+            try:
+                ExportLog.log(
+                    id_export=export.id, format='dele', id_user=info_role)
+            except Exception as e:
+                DB.session.rollback()
+                logger.critical('%s', str(e))
+                return {'error': 'Echec de journalisation.'}
             return {'result': 'success'}, 204
         except Exception as e:
             DB.session.rollback()
             logger.warn('%s', str(e))
             return {'error': 'Echec de suppression.'}
-
-        try:
-            ExportLog.log(id_export=export.id, format='dele', id_user=info_role)
-        except Exception as e:
-            DB.session.rollback()
-            logger.warn('%s', str(e))
-            return {'error': 'Echec de journalisation.'}
 
 
 @blueprint.route('/')
