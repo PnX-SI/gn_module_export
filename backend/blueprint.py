@@ -115,7 +115,6 @@ def create_or_update_export(info_role=None, id_export=None):
     id_export = payload.get('id_export', None) or id_export
 
     # TODO: (drop and re) create view
-    # TODO: update t_exports_logs
     if label and schema_name and view_name:
         if not id_export:
             try:
@@ -143,12 +142,19 @@ def create_or_update_export(info_role=None, id_export=None):
                 return export.as_dict(), 200
             except NoResultFound as e:
                 DB.session.rollback()
-                logger.warn(str(e))
+                logger.warn('%s', str(e))
                 return {'error': 'Unknown export.'}, 404
             except Exception as e:
                 DB.session.rollback()
-                logger.warn(str(e))
+                logger.warn('%s', str(e))
                 return {'error': 'Echec mise à jour.'}, 500
+
+            try:
+                ExportLog.log(id_export=export.id, format='crea', id_user=info_role)
+            except Exception as e:
+                DB.session.rollback()
+                logger.warn('%s', str(e))
+                return {'error': 'Echec de journalisation.'}
     else:
         return {
             'error': 'Missing {} parameter.'. format(
@@ -167,13 +173,21 @@ def delete_export(info_role=None, id_export=None):
         return {'error': 'No result.'}, 404
     else:
         try:
-            DB.session.delete(export)  # FIXME: update deleted field instead
+            export.deleted = datetime.utcnow()
+            DB.session.add(export)
             DB.session.commit()
             return {'result': 'success'}, 204
         except Exception as e:
             DB.session.rollback()
             logger.warn('%s', str(e))
             return {'error': 'Echec de suppression.'}
+
+        try:
+            ExportLog.log(id_export=export.id, format='dele', id_user=info_role)
+        except Exception as e:
+            DB.session.rollback()
+            logger.warn('%s', str(e))
+            return {'error': 'Echec de journalisation.'}
 
 
 @blueprint.route('/')
