@@ -64,26 +64,8 @@ def json_export(info_role=None, id_export=None):
 
     data = get_one_export(export.view_name, export.schema_name)
 
-    # Update t_exports_logs
-    if 'X-Forwarded-For' in request.headers:
-        remote_addr = request.headers.getlist('X-Forwarded-For')[0]\
-                                     .rpartition(' ')[-1]
-    elif request.environ.get('HTTP_X_REAL_IP', None):
-        remote_addr = request.headers.getlist('X-Forwarded-For')[0]\
-                                     .rpartition(' ')[-1]
-    else:
-        remote_addr = request.remote_addr
-    remote_addr_port = ':'.join([remote_addr, str(request.environ.get('REMOTE_PORT'))])
-
     try:
-        export_log = ExportLog(
-            id_export=export.id,
-            format=2,
-            ip_addr_port=remote_addr_port,
-            id_user=info_role,
-            date=DB.func.now())
-        DB.session.add(export_log)
-        DB.session.commit()
+        ExportLog.log(id_export=export.id, format='json', id_user=info_role)
     except Exception as e:
         DB.session.rollback()
         logger.warn('%s', str(e))
@@ -107,8 +89,12 @@ def csv_export(info_role=None, id_export=None):
     view = GenericTable(export.view_name, export.schema_name, geom_column_header, srid)
     columns = [col.name for col in view.db_cols]
     data = get_one_export(export.view_name, export.schema_name)
-    # TODO: update t_exports_logs: request.headers.get('X-Forwarded-For', request.remote_addr))
-    # request.headers.getlist("X-Forwarded-For")[0].rpartition(' ')[-1]
+    try:
+        ExportLog.log(id_export=export.id, format='csv', id_user=info_role)
+    except Exception as e:
+        DB.session.rollback()
+        logger.warn('%s', str(e))
+        return {'error': 'Echec de journalisation.'}
     return to_csv_resp(fname, data.get('items', None), columns, ',')
 
 
@@ -204,5 +190,6 @@ def delete_export(info_role=None, id_export=None):
 @json_resp
 def getExports(info_role=1):
 
-    exports = Export.query.filter(Export.deleted.is_(None)).all()
+    # exports = Export.query.filter(Export.deleted.is_(None)).all()
+    exports = Export.query.all()
     return [export.as_dict() for export in exports]

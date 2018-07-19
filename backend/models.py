@@ -1,8 +1,13 @@
-# from datetime import datetime
+import logging
+from flask import (current_app, request)
 from sqlalchemy.sql import func
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import serializable
 from geonature.core.users.models import TRoles
+
+
+logger = current_app.logger
+logger.setLevel(logging.DEBUG)
 
 
 @serializable
@@ -41,7 +46,23 @@ class ExportLog(DB.Model):
                           DB.ForeignKey('gn_exports.t_exports.id'))
     export = DB.relationship('Export', lazy='joined')
     format = DB.Column(DB.String(4), nullable=False)
-    date = DB.Column(DB.DateTime)
+    date = DB.Column(DB.DateTime, default=func.now())
     ip_addr_port = DB.Column(DB.String(51), nullable=False)  # ipv4 -> ipv6
     id_user = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
     user = DB.relationship('TRoles', foreign_keys=[id_user], lazy='joined')
+
+    def log(**kwargs):
+        if 'X-Forwarded-For' in request.headers:
+            remote_addr = request.headers.getlist('X-Forwarded-For')[0]\
+                                         .rpartition(' ')[-1]
+        elif request.environ.get('HTTP_X_REAL_IP', None):
+            remote_addr = request.headers.getlist('X-Forwarded-For')[0]\
+                                         .rpartition(' ')[-1]
+        else:
+            remote_addr = request.remote_addr
+        remote_addr_port = ':'.join([remote_addr,
+                                     str(request.environ.get('REMOTE_PORT'))])
+        kwargs['ip_addr_port'] = remote_addr_port
+        x = ExportLog(**kwargs)
+        DB.session.add(x)
+        DB.session.commit()
