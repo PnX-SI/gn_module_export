@@ -24,7 +24,8 @@ from .models import Export, ExportLog
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
-# FIXME: mv const EXPORTS_FOLDER to conf
+# FIXME: mv consts to conf
+DEFAULT_SCHEMA = 'gn_exports'
 EXPORTS_FOLDER = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_FOLDER, exist_ok=True)
 
@@ -107,20 +108,22 @@ def csv_export(info_role=None, id_export=None):
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
 @json_resp
 def create_or_update_export(info_role=None, id_export=None):
-    # logger.debug(info_role)
+    # logger.debug(inf _role)
     id_creator = info_role.id_role if info_role else 1
 
     payload = request.get_json()
     label = payload.get('label', None)
     view_name = payload.get('view_name', None)
-    schema_name = payload.get('schema_name', None)
+    schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
     id_export = payload.get('id_export', None) or id_export
 
     # TODO: (drop and re) create view
     # if not id_export and not view_name => creation
-    #    create_view()
-    #    populate_view()
+    #    create_and_populate_view(schema_def)
+    # if id_export and view_name and schema_def? != export.schema_def
+    #    drop_view(view_name)
+    #    create_and_populate_view()
 
     if label and schema_name and view_name:
         if not id_export:
