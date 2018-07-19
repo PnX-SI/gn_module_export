@@ -55,13 +55,14 @@ def get_one_export(
 
 
 @blueprint.route('/export/<int:id_export>/json', methods=['GET'])
-# @fnauth.check_auth_cruved('E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
+# @fnauth.check_auth_cruved(
+#     'E', True,
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
 def json_export(info_role=None, id_export=None):
     info_role = None
     info_role = info_role.id_role if info_role else 1
 
-    export = Export.query.filter(Export.id == id_export).one()
+    export = Export.query.get(id_export)
     fname = export_filename_pattern(export)
 
     data = get_one_export(export.view_name, export.schema_name)
@@ -78,13 +79,14 @@ def json_export(info_role=None, id_export=None):
 
 
 @blueprint.route('/export/<int:id_export>/csv', methods=['GET'])
-# @fnauth.check_auth_cruved('E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
+# @fnauth.check_auth_cruved(
+#     'E', True,
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
 def csv_export(info_role=None, id_export=None):
     info_role = None
     info_role = info_role.id_role if info_role else 1
 
-    export = Export.query.filter(Export.id == id_export).one()
+    export = Export.query.get(id_export)
     fname = export_filename_pattern(export)
     geom_column_header = 'geom_4326'  # FIXME: geom column config.defaults
     srid = 4326  # FIXME: srid config.defaults
@@ -104,8 +106,9 @@ def csv_export(info_role=None, id_export=None):
 @blueprint.route(
     '/export', defaults={'id_export': None}, methods=['POST', 'PUT'])
 @blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
-# @fnauth.check_auth_cruved('E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
+# @fnauth.check_auth_cruved(
+#     'E', True,
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def create_or_update_export(info_role=None, id_export=None):
     # logger.debug(inf _role)
@@ -128,7 +131,8 @@ def create_or_update_export(info_role=None, id_export=None):
     if label and schema_name and view_name:
         if not id_export:
             try:
-                export = Export(id_creator, label, schema_name, view_name, desc)
+                export = Export(
+                    id_creator, label, schema_name, view_name, desc)
                 DB.session.add(export)
                 DB.session.commit()
                 return export.as_dict(), 200
@@ -141,9 +145,7 @@ def create_or_update_export(info_role=None, id_export=None):
                     raise
         else:
             try:
-                export = DB.session.query(Export)\
-                                   .filter(Export.id == id_export)\
-                                   .one()
+                export = Export.query.get(id_export)
                 export.label = label if label else export.label
                 export.schema_name = (
                     schema_name if schema_name else export.schema_name)
@@ -174,13 +176,14 @@ def create_or_update_export(info_role=None, id_export=None):
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
-# @fnauth.check_auth_cruved('D', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
+# @fnauth.check_auth_cruved(
+#     'D', True,
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def delete_export(info_role=None, id_export=None):
     # TODO: drop view
     try:
-        export = Export.query.filter_by(id_export=id_export).one()
+        export = Export.query.get(id_export)
     except NoResultFound:
         return {'error': 'No result.'}, 404
     else:
@@ -203,8 +206,9 @@ def delete_export(info_role=None, id_export=None):
 
 
 @blueprint.route('/')
-# @fnauth.check_auth_cruved('R', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')
+# @fnauth.check_auth_cruved(
+#     'R', True,
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
 # def getExports(info_role):
 #     user_cruved = get_or_fetch_user_cruved(
 #         session=session,
@@ -216,6 +220,5 @@ def delete_export(info_role=None, id_export=None):
 @json_resp
 def getExports(info_role=1):
 
-    # exports = Export.query.filter(Export.deleted.is_(None)).all()
-    exports = Export.query.all()
+    exports = Export.query.filter(Export.deleted.is_(None)).all()
     return [export.as_dict() for export in exports]
