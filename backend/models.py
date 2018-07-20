@@ -37,6 +37,7 @@ class Export(DB.Model):
     #         self.id, self.label, str(self.selection), self.start or '')
 
 
+# TODO: clearing policy ... 6 month as per cnil recommandation ?
 @serializable
 class ExportLog(DB.Model):
     __tablename__ = 't_exports_logs'
@@ -56,8 +57,7 @@ class ExportLog(DB.Model):
             remote_addr = request.headers.getlist('X-Forwarded-For')[0]\
                                          .rpartition(' ')[-1]
         elif request.environ.get('HTTP_X_REAL_IP', None):
-            remote_addr = request.headers.getlist('X-Forwarded-For')[0]\
-                                         .rpartition(' ')[-1]
+            remote_addr = request.environ.get('HTTP_X_REAL_IP')
         else:
             remote_addr = request.remote_addr
 
