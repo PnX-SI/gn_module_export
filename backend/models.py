@@ -66,4 +66,4 @@ class ExportLog(DB.Model):
         kwargs['ip_addr_port'] = remote_addr_port
         x = ExportLog(**kwargs)
         DB.session.add(x)
-        DB.session.commit()
+        DB.session.flush()

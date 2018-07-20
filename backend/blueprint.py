@@ -60,12 +60,12 @@ def get_one_export(
 #     'E', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
 def json_export(info_role=None, id_export=None):
-    info_role = None
-    info_role = info_role.id_role if info_role else 1
+    id_role = info_role.id_role if info_role else 1
 
     repo = ExportRepository()
     try:
-        export, data = repo.get_one(id_export, info_role)
+        export, data = repo.get_by_id(
+            id_role, id_export, with_data=True, format='json')
         fname = export_filename_pattern(export.get('label'))
         return to_json_resp(data, as_file=True, filename=fname, indent=4)
     except NoResultFound as e:
@@ -86,7 +86,7 @@ def csv_export(info_role=None, id_export=None):
 
     export = Export.query.get(id_export)
     if export:
-        fname = export_filename_pattern(export)
+        fname = export_filename_pattern(export.label)
         view = GenericTable(
             export.view_name, export.schema_name, geom_column_header, srid)
         columns = [col.name for col in view.db_cols]
@@ -120,19 +120,16 @@ def create_or_update_export(info_role=None, id_export=None):
     desc = payload.get('desc', None)
     id_export = payload.get('id_export', None) or id_export
 
-    # TODO: (drop and re) create view
-    # if not id_export and not view_name => creation
-    #    create_and_populate_view(schema_def)
-    # if id_export and view_name and schema_def? != export.schema_def
-    #    drop_view(view_name)
-    #    create_and_populate_view()
-
     repo = ExportRepository()
     if label and schema_name and view_name:
         if not id_export:
             try:
                 export = repo.create(
-                    id_creator, label, schema_name, view_name, desc)
+                    id_creator=id_creator,
+                    label=label,
+                    schema_name=schema_name,
+                    view_name=view_name,
+                    desc=desc)
                 return export.as_dict(), 200
             except IntegrityError as e:
                 DB.session.rollback()
@@ -143,13 +140,13 @@ def create_or_update_export(info_role=None, id_export=None):
                     raise
         else:
             try:
-                export = Export.query.get(id_export)
-                export.label = label if label else export.label
-                export.schema_name = (
-                    schema_name if schema_name else export.schema_name)
-                export.view_name = view_name if view_name else export.view_name
-                export.desc = desc if desc else export.desc
-                DB.session.commit()
+                export = repo.update(
+                    id_creator=id_creator,
+                    id_export=id_export,
+                    label=label,
+                    schema_name=schema_name,
+                    view_name=view_name,
+                    desc=desc)
                 return export.as_dict(), 200
             except NoResultFound as e:
                 DB.session.rollback()
@@ -159,14 +156,6 @@ def create_or_update_export(info_role=None, id_export=None):
                 DB.session.rollback()
                 logger.warn('%s', str(e))
                 return {'error': 'Echec mise à jour.'}, 500
-
-            try:
-                ExportLog.log(
-                    id_export=export.id, format='crea', id_user=info_role)
-            except Exception as e:
-                DB.session.rollback()
-                logger.warn('%s', str(e))
-                return {'error': 'Echec de journalisation.'}
     else:
         return {
             'error': 'Missing {} parameter.'. format(
@@ -179,28 +168,17 @@ def create_or_update_export(info_role=None, id_export=None):
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def delete_export(info_role=None, id_export=None):
-    # TODO: drop view
+    id_role = info_role.id_role if info_role else 1
+    repo = ExportRepository()
     try:
-        export = Export.query.get(id_export)
+        repo.delete(id_role, id_export)
+        return {'result': 'success'}, 204
     except NoResultFound:
         return {'error': 'No result.'}, 404
-    else:
-        try:
-            export.deleted = datetime.utcnow()
-            DB.session.add(export)
-            DB.session.commit()
-            try:
-                ExportLog.log(
-                    id_export=export.id, format='dele', id_user=info_role)
-            except Exception as e:
-                DB.session.rollback()
-                logger.critical('%s', str(e))
-                return {'error': 'Echec de journalisation.'}
-            return {'result': 'success'}, 204
-        except Exception as e:
-            DB.session.rollback()
-            logger.warn('%s', str(e))
-            return {'error': 'Echec de suppression.'}
+    except Exception as e:
+        DB.session.rollback()
+        logger.warn('%s', str(e))
+        return {'error': 'Echec de suppression.'}
 
 
 @blueprint.route('/')
@@ -217,6 +195,6 @@ def delete_export(info_role=None, id_export=None):
 #     logger.debug('cruved_user', user_cruved)
 @json_resp
 def getExports(info_role=1):
-
-    exports = Export.query.filter(Export.deleted.is_(None)).all()
+    repo = ExportRepository()
+    exports = repo.get_all()
     return [export.as_dict() for export in exports]
