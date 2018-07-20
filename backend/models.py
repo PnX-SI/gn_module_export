@@ -32,12 +32,16 @@ class Export(DB.Model):
         self.view_name = view_name
         self.desc = desc
 
-    # def __repr__(self):
-    #     return "<Export(id='{}', label='{}', selection='{}', start='{}')>".format(  # noqa E501
-    #         self.id, self.label, str(self.selection), self.start or '')
+    def __str__(self):
+        return "<Export(id='{}', label='{}')>".format(self.id, self.label)
+
+    __repr__ = __str__
 
 
-# TODO: clearing policy ... 6 month as per cnil recommandation ?
+# TODO: clearing policy ... 6 months as per cnil preconization
+#       https://www.cnil.fr/cnil-direct/attachement/501/517 fiche n°4
+# TODO: Encrypt sensitive data
+#       https://www.cnil.fr/cnil-direct/attachement/501/517 fiche n°17
 @serializable
 class ExportLog(DB.Model):
     __tablename__ = 't_exports_logs'
@@ -64,6 +68,10 @@ class ExportLog(DB.Model):
         remote_addr_port = ':'.join(
             [remote_addr, str(request.environ.get('REMOTE_PORT'))])
         kwargs['ip_addr_port'] = remote_addr_port
-        x = ExportLog(**kwargs)
-        DB.session.add(x)
-        DB.session.flush()
+        try:
+            x = ExportLog(**kwargs)
+            DB.session.add(x)
+            DB.session.flush()
+        except Exception as e:
+            DB.session.rollback()
+            raise e('Echec de journalisation.')

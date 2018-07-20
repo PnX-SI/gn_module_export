@@ -9,6 +9,7 @@ from flask import (
     # session,
     request,
     current_app)
+
 from geonature.utils.env import DB
 # from geonature.core.gn_meta.models import TDatasets, CorDatasetsActor
 # from geonature.utils.errors import GeonatureApiError
@@ -22,13 +23,11 @@ from geonature.utils.utilssqlalchemy import (
 from .models import Export, ExportLog
 from .repositories import ExportRepository
 
+
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
-# FIXME: mv consts to conf
 DEFAULT_SCHEMA = 'gn_exports'
-EXPORTS_FOLDER = os.path.join(current_app.static_folder, 'exports')
-os.makedirs(EXPORTS_FOLDER, exist_ok=True)
 
 blueprint = Blueprint('exports', __name__)
 
@@ -55,51 +54,32 @@ def get_one_export(
     return data
 
 
-@blueprint.route('/export/<int:id_export>/json', methods=['GET'])
+@blueprint.route('/export/<int:id_export>/<format>', methods=['GET'])
 # @fnauth.check_auth_cruved(
 #     'E', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
-def json_export(info_role=None, id_export=None):
+def export_format(id_export, format):
+    info_role = None  # mv to func args
     id_role = info_role.id_role if info_role else 1
+
+    assert format in ['csv', 'json']
 
     repo = ExportRepository()
     try:
-        export, data = repo.get_by_id(
-            id_role, id_export, with_data=True, format='json')
-        fname = export_filename_pattern(export.get('label'))
-        return to_json_resp(data, as_file=True, filename=fname, indent=4)
+        export, data, columns = repo.get_by_id(
+            id_role, id_export, with_data=True, format=format)
+        if export:
+            fname = export_filename_pattern(export.get('label'))
+
+            if format == 'json':
+                return to_json_resp(
+                    data, as_file=True, filename=fname, indent=4)
+            if format == 'csv':
+                return to_csv_resp(fname, data, columns, ',')
+
     except NoResultFound as e:
         logger.warn('%s', str(e))
         return to_json_resp({'error': str(e)}, status=404)
-
-
-@blueprint.route('/export/<int:id_export>/csv', methods=['GET'])
-# @fnauth.check_auth_cruved(
-#     'E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
-def csv_export(info_role=None, id_export=None):
-    info_role = None
-    info_role = info_role.id_role if info_role else 1
-
-    geom_column_header = 'geom_4326'  # FIXME: geom column config.defaults
-    srid = 4326  # FIXME: srid config.defaults
-
-    export = Export.query.get(id_export)
-    if export:
-        fname = export_filename_pattern(export.label)
-        view = GenericTable(
-            export.view_name, export.schema_name, geom_column_header, srid)
-        columns = [col.name for col in view.db_cols]
-        data = get_one_export(export.view_name, export.schema_name)
-        try:
-            ExportLog.log(id_export=export.id, format='csv', id_user=info_role)
-        except Exception as e:
-            DB.session.rollback()
-            logger.warn('%s', str(e))
-            return {'error': 'Echec de journalisation.'}
-        return to_csv_resp(fname, data.get('items', None), columns, ',')
-    else:
-        return {'error': 'Unknown export.'}, 404
 
 
 @blueprint.route(
@@ -132,8 +112,6 @@ def create_or_update_export(info_role=None, id_export=None):
                     desc=desc)
                 return export.as_dict(), 200
             except IntegrityError as e:
-                DB.session.rollback()
-                logger.warn('%s', str(e))
                 if '(label)=({})'.format(label) in str(e):
                     return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
                 else:
@@ -149,7 +127,6 @@ def create_or_update_export(info_role=None, id_export=None):
                     desc=desc)
                 return export.as_dict(), 200
             except NoResultFound as e:
-                DB.session.rollback()
                 logger.warn('%s', str(e))
                 return {'error': 'Unknown export.'}, 404
             except Exception as e:
