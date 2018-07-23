@@ -50,16 +50,18 @@ def export_format(id_export, format):
 
     repo = ExportRepository()
     try:
-        export, data, columns = repo.get_by_id(
+        export, columns, data = repo.get_by_id(
             id_role, id_export, with_data=True, format=format)
         if export:
             fname = export_filename_pattern(export.get('label'))
 
             if format == 'json':
                 return to_json_resp(
-                    data, as_file=True, filename=fname, indent=4)
+                    data.get('items', None),
+                    as_file=True, filename=fname, indent=4)
             if format == 'csv':
-                return to_csv_resp(fname, data, columns, ',')
+                return to_csv_resp(
+                    fname, data.get('items', None), columns, ',')
 
     except NoResultFound as e:
         logger.warn('%s', str(e))

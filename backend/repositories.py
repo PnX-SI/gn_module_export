@@ -23,36 +23,32 @@ class ExportRepository(object):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
-        # public.geometry_columns
-        data = GenericQuery(
-            DB.session, view, schema, geom_column_header,
-            filters, limit, paging).return_query()
+        query = GenericQuery(
+            self.session, view, schema, geom_column_header,
+            filters, limit, paging)
 
+        columns = [col.name for col in query.view.db_cols]
+
+        data = query.return_query()
+
+        logger.debug('Query columns: %s', columns)
         logger.debug('Query results: %s', data)
-        return data
+        return (columns, data)
 
     def get_by_id(self, id_role, id_export, with_data=False, format=None):
         export = Export.query.get(id_export)
         if export:
             if with_data and format:
                 # TODO: filters
-                # https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/GlobalFilter
-                if format == 'csv':
-                    # FIXME: find_geometry_columns
-                    geom_column_header = 'geom_4326'
-                    srid = 4326
+                # FIXME: find_geometry_columns
+                # public.geometry_columns
+                # geom_column_header = 'geom_4326'
+                # srid = 4326
 
-                    view = GenericTable(
-                        export.view_name,
-                        export.schema_name,
-                        geom_column_header, srid)
-                    columns = [col.name for col in view.db_cols]
-
-                else:
-                    columns = {}
-                    view = export.view_name
-
-                data = self._get_data(view, export.schema_name)
+                columns, data = self._get_data(
+                    export.view_name, export.schema_name,
+                    geom_column_header=None, filters={},
+                    limit=10000, paging=0)
                 try:
                     ExportLog.log(
                         id_export=export.id, format=format, id_user=id_role)
@@ -60,9 +56,7 @@ class ExportRepository(object):
                     logger.critical('%s', str(e))
                     return {'error': 'Echec de journalisation.'}
 
-                # FIXME: unify format signature & return direct GenericQuery results  # noqa E501
-                return (
-                    export.as_dict(), data.get('items', None), columns)
+                return (export.as_dict(), columns, data)
             else:
                 return export.as_dict()
         else:
@@ -73,7 +67,6 @@ class ExportRepository(object):
             xs = Export.query.filter(Export.deleted.is_(None)).all()
         else:
             xs = Export.query.all()
-            # TDatasets
         return xs
 
     def create(self, **kwargs):
