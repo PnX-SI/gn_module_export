@@ -38,22 +38,6 @@ def export_filename_pattern(label):
         [label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
 
 
-def get_one_export(
-        view, schema,
-        geom_column_header=None, filters={},
-        limit=10000, paging=0):
-
-    logger.debug('Querying "%s"."%s"', schema, view)
-
-    # public.geometry_columns
-    data = GenericQuery(
-        DB.session, view, schema, geom_column_header,
-        filters, limit, paging).return_query()
-
-    logger.debug('Query results: %s', data)
-    return data
-
-
 @blueprint.route('/export/<int:id_export>/<format>', methods=['GET'])
 # @fnauth.check_auth_cruved(
 #     'E', True,
@@ -130,7 +114,6 @@ def create_or_update_export(info_role=None, id_export=None):
                 logger.warn('%s', str(e))
                 return {'error': 'Unknown export.'}, 404
             except Exception as e:
-                DB.session.rollback()
                 logger.warn('%s', str(e))
                 return {'error': 'Echec mise à jour.'}, 500
     else:
@@ -153,7 +136,6 @@ def delete_export(info_role=None, id_export=None):
     except NoResultFound:
         return {'error': 'No result.'}, 404
     except Exception as e:
-        DB.session.rollback()
         logger.warn('%s', str(e))
         return {'error': 'Echec de suppression.'}
 
@@ -173,5 +155,5 @@ def delete_export(info_role=None, id_export=None):
 @json_resp
 def getExports(info_role=1):
     repo = ExportRepository()
-    exports = repo.get_all()
+    exports = repo.get_list()
     return [export.as_dict() for export in exports]

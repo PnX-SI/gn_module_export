@@ -35,19 +35,24 @@ class ExportRepository(object):
         export = Export.query.get(id_export)
         if export:
             if with_data and format:
-                columns = {}
                 # TODO: filters
                 # https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/GlobalFilter
-                data = self._get_data(export.view_name, export.schema_name)
                 if format == 'csv':
-                    # FIXME: geom column config.defaults
+                    # FIXME: find_geometry_columns
                     geom_column_header = 'geom_4326'
-                    # FIXME: srid config.defaults
                     srid = 4326
+
                     view = GenericTable(
-                        export.view_name, export.schema_name,
+                        export.view_name,
+                        export.schema_name,
                         geom_column_header, srid)
                     columns = [col.name for col in view.db_cols]
+
+                else:
+                    columns = {}
+                    view = export.view_name
+
+                data = self._get_data(view, export.schema_name)
                 try:
                     ExportLog.log(
                         id_export=export.id, format=format, id_user=id_role)
@@ -55,6 +60,7 @@ class ExportRepository(object):
                     logger.critical('%s', str(e))
                     return {'error': 'Echec de journalisation.'}
 
+                # FIXME: unify format signature & return direct GenericQuery results  # noqa E501
                 return (
                     export.as_dict(), data.get('items', None), columns)
             else:
@@ -62,15 +68,16 @@ class ExportRepository(object):
         else:
             raise NoResultFound('Unknown export id {}.'.format(id_export))
 
-    def get_all(self, all=False):
+    def get_list(self, all=False):
         if not all:
             xs = Export.query.filter(Export.deleted.is_(None)).all()
         else:
             xs = Export.query.all()
+            # TDatasets
         return xs
 
     def create(self, **kwargs):
-        # TODO: create view000
+        # TODO: create view
         try:
             x = Export(**kwargs)
             self.session.add(x)
@@ -82,9 +89,8 @@ class ExportRepository(object):
             logger.warn('%s', str(e))
             raise e
         except Exception as e:
-            self.session.rollback()
             logger.warn('%s', str(e))
-            raise e('Echec de journalisation.')
+            raise e
         return x
 
     def update(self, **kwargs):
@@ -96,15 +102,16 @@ class ExportRepository(object):
                     (k, v) for k, v in kwargs.items() if k in x.__dict__)
                 self.session.add(x)
                 self.session.flush()
-                ExportLog.log(
-                    id_export=x.id, format='upda', id_user=kwargs['id_role'])
             except Exception as e:
                 self.session.rollback()
                 logger.warn('%s', str(e))
-                raise e('Echec de journalisation.')
+                raise e
+            ExportLog.log(
+                id_export=x.id, format='upda', id_user=kwargs['id_role'])
             return x
         else:
-            raise NoResultFound('Unknown export id {}'.format(kwargs['id_export']))  # noqa E501
+            raise NoResultFound(
+                'Unknown export id {}'.format(kwargs['id_export']))
 
     def delete(self, id_role, id_export):
         # TODO: drop view
@@ -114,7 +121,6 @@ class ExportRepository(object):
             ExportLog.log(
                 id_export=x.id, format='dele', id_user=id_role)
         except Exception as e:
-            self.session.rollback()
             logger.critical('%s', str(e))
             raise e('Echec de journalisation.')
         # self.session.flush()  # session is flushed in ExportLog.log()
