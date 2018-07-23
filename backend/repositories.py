@@ -2,10 +2,14 @@ from datetime import datetime
 import logging
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
+# from sqlalchemy import or_
+
 from flask import current_app
+# from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
+from geonature.utils.utilssqlalchemy import GenericQuery
+
 from .models import (Export, ExportLog)
-from geonature.utils.utilssqlalchemy import (GenericQuery, GenericTable)
 
 
 logger = current_app.logger
@@ -17,8 +21,8 @@ class ExportRepository(object):
         self.session = session
 
     def _get_data(
-            self, view, schema,
-            geom_column_header=None, filters={}, limit=10000, paging=0):
+            self, info_role, view, schema,
+            geom_column_header=None, filters={}, limit=100000, paging=0):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
@@ -28,6 +32,23 @@ class ExportRepository(object):
 
         columns = [col.name for col in query.view.db_cols]
 
+        # if info_role.tag_object_code == '2':
+        #     allowed_datasets = TDatasets.get_user_datasets(info_role)
+        #     query = query.filter(
+        #         or_(
+        #             view.id_dataset.in_(tuple(allowed_datasets)),
+        #             view.observers.any(id_role=info_role.id_role),
+        #             view.id_digitiser == info_role.id_role
+        #         )
+        #     )
+        # elif info_role.tag_object_code == '1':
+        #     query = query.filter(
+        #         or_(
+        #             view.observers.any(id_role=info_role.id_role),
+        #             view.id_digitiser == info_role.id_role
+        #         )
+        #     )
+
         data = query.return_query()
 
         logger.debug('Query columns: %s', columns)
@@ -35,7 +56,7 @@ class ExportRepository(object):
         return (columns, data)
 
     def get_by_id(
-            self, id_role, id_export,
+            self, info_role, id_export,
             with_data=False,
             geom_column_header=None,
             filters={},
@@ -52,14 +73,15 @@ class ExportRepository(object):
                 # srid = 4326
 
                 columns, data = self._get_data(
-                    export.view_name, export.schema_name,
+                    info_role, export.view_name, export.schema_name,
                     geom_column_header=geom_column_header,
                     filters=filters,
                     limit=limit,
                     paging=paging)
                 try:
                     ExportLog.log(
-                        id_export=export.id, format=format, id_user=id_role)
+                        id_export=export.id, format=format,
+                        id_user=info_role.id_role)
                 except Exception as e:
                     logger.critical('%s', str(e))
                     return {'error': 'Echec de journalisation.'}

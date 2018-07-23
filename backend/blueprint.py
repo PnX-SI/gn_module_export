@@ -1,5 +1,4 @@
 # flake8: noqa E501
-import os
 from datetime import datetime
 import logging
 from sqlalchemy.exc import IntegrityError
@@ -10,17 +9,12 @@ from flask import (
     request,
     current_app)
 
-from geonature.utils.env import DB
-# from geonature.core.gn_meta.models import TDatasets, CorDatasetsActor
-# from geonature.utils.errors import GeonatureApiError
-# from geonature.core.users.models import TRoles, UserRigth
 from geonature.utils.utilssqlalchemy import (
-    GenericQuery, GenericTable, json_resp, to_json_resp, to_csv_resp)
+    json_resp, to_json_resp, to_csv_resp)
 # from pypnusershub.db.tools import (
 #     InsufficientRightsError, get_or_fetch_user_cruved)
 # from pypnusershub import routes as fnauth
 
-from .models import Export, ExportLog
 from .repositories import ExportRepository
 
 
@@ -43,15 +37,14 @@ def export_filename_pattern(label):
 #     'E', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
 def export_format(id_export, format):
-    info_role = None  # mv to func args
-    id_role = info_role.id_role if info_role else 1
 
     assert format in ['csv', 'json']
 
     repo = ExportRepository()
     try:
         export, columns, data = repo.get_by_id(
-            id_role, id_export, with_data=True, format=format)
+            # info_role, id_export, with_data=True, format=format)
+            id_export, with_data=True, format=format)
         if export:
             fname = export_filename_pattern(export.get('label'))
 
