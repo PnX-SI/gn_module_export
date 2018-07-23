@@ -18,8 +18,7 @@ class ExportRepository(object):
 
     def _get_data(
             self, view, schema,
-            geom_column_header=None, filters={},
-            limit=10000, paging=0):
+            geom_column_header=None, filters={}, limit=10000, paging=0):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
@@ -35,7 +34,14 @@ class ExportRepository(object):
         logger.debug('Query results: %s', data)
         return (columns, data)
 
-    def get_by_id(self, id_role, id_export, with_data=False, format=None):
+    def get_by_id(
+            self, id_role, id_export,
+            with_data=False,
+            geom_column_header=None,
+            filters={},
+            limit=10000,
+            paging=0,
+            format=None):
         export = Export.query.get(id_export)
         if export:
             if with_data and format:
@@ -47,8 +53,10 @@ class ExportRepository(object):
 
                 columns, data = self._get_data(
                     export.view_name, export.schema_name,
-                    geom_column_header=None, filters={},
-                    limit=10000, paging=0)
+                    geom_column_header=geom_column_header,
+                    filters=filters,
+                    limit=limit,
+                    paging=paging)
                 try:
                     ExportLog.log(
                         id_export=export.id, format=format, id_user=id_role)

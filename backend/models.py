@@ -39,9 +39,9 @@ class Export(DB.Model):
 
 
 # TODO: clearing policy ... 6 months as per cnil preconization
-#       https://www.cnil.fr/cnil-direct/attachement/501/517 fiche n°4
+# https://www.cnil.fr/cnil-direct/attachement/501/517 fiche n°4
 # TODO: Encrypt sensitive data
-#       https://www.cnil.fr/cnil-direct/attachement/501/517 fiche n°17
+# https://www.cnil.fr/cnil-direct/attachement/501/517 fiche n°17
 @serializable
 class ExportLog(DB.Model):
     __tablename__ = 't_exports_logs'
