@@ -32,6 +32,7 @@ class AuthorizedGenericQuery(GenericQuery):
             tableName, schemaName, geometry_field,
             filters, limit=50000, offset=0):
 
+        # mocked info_role
         self.user = UserMock(id_role=3, tag_object_code='2')
 
         super().__init__(
@@ -50,15 +51,16 @@ class AuthorizedGenericQuery(GenericQuery):
                 auth_filters.append(
                     self.view.tableDef.columns.observers.any(id_role=self.user.id_role))  # noqa E501
 
-            if 'id_digitizer' in self.view.tableDef.columns:
+            if 'id_digitiser' in self.view.tableDef.columns:
                 auth_filters.append(
-                    self.view.tableDef.columns.id_digitiser == self.user.id_role)   # noqa E501
+                    self.view.tableDef.columns.id_digitiser == self.user.id_role)  # noqa E501
 
             if ('id_dataset' in self.view.tableDef.columns and (self.user.tag_object_code in ('2', 'E'))):  # noqa E501
                 allowed_datasets = TDatasets.get_user_datasets(self.user)
                 auth_filters.append(self.view.tableDef.columns.id_dataset.in_(tuple(allowed_datasets)))  # noqa E501
 
             query = query.filter(or_(*auth_filters))
+            logger.debug('Prepared query: %s', query)
 
         else:
             raise InsufficientRightsError
@@ -100,19 +102,11 @@ class ExportRepository(object):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
-        columns = {}
-        data = None
-
         query = AuthorizedGenericQuery(
             self.session, view, schema, geom_column_header,
             filters, limit, paging)
-
         columns = [col.name for col in query.view.db_cols]
-
         data = query.return_query()
-
-        # logger.debug('Query columns: %s', columns)
-        # logger.debug('Query results: %s', data)
         return (columns, data)
 
     def get_by_id(
