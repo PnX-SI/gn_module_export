@@ -36,15 +36,15 @@ def export_filename_pattern(label):
 #     'E', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
-def export_format(id_export, format):
+def export_format(id_export, format, info_role=None):
 
+    assert id_export >= 1
     assert format in ['csv', 'json']
 
     repo = ExportRepository()
     try:
         export, columns, data = repo.get_by_id(
-            # info_role, id_export, with_data=True, format=format)
-            id_export, with_data=True, format=format)
+            info_role, id_export, with_data=True, format=format)
         if export:
             fname = export_filename_pattern(export.get('label'))
 
@@ -124,7 +124,7 @@ def create_or_update_export(info_role=None, id_export=None):
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
-def delete_export(info_role=None, id_export=None):
+def delete_export(id_export, info_role=None):
     id_role = info_role.id_role if info_role else 1
     repo = ExportRepository()
     try:

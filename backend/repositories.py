@@ -9,6 +9,7 @@ from geonature.utils.env import DB
 from geonature.core.gn_meta.models import TDatasets
 # from geonature.core.users.models import TRoles, UserRigth
 from geonature.utils.utilssqlalchemy import GenericQuery
+from pypnusershub.db.tools import InsufficientRightsError
 
 from .models import (Export, ExportLog)
 
@@ -29,38 +30,38 @@ class AuthorizedGenericQuery(GenericQuery):
             self,
             db_session,
             tableName, schemaName, geometry_field,
-            filters, limit=100, offset=0):
+            filters, limit=50000, offset=0):
+
         self.user = UserMock(id_role=3, tag_object_code='2')
+
         super().__init__(
             db_session,
             tableName, schemaName, geometry_field,
-            filters, limit=100, offset=0)
+            filters, limit, offset)
 
     def return_query(self):
-        query = self.db_session.query(self.view.tableDef)
-        nb_result_without_filter = query.count()
+        if self.user.tag_object_code in ('1', '2', 'E'):
+            query = self.db_session.query(self.view.tableDef)
+            nb_result_without_filter = query.count()
 
-        # SINP: detId -> id_digitizer ?
+            auth_filters = []
 
-        # if self.user.tag_object_code == '2':
-        #     allowed_datasets = TDatasets.get_user_datasets(self.user)
-        #     logger.debug('allowed datasets: %s', allowed_datasets)
-        #     # logger.debug('dataset columns: %s', self.view.tableDef.columns)
-        #     logger.debug('dataset columns contain id_dataset: %s', 'export_occtax.id_dataset' in self.view.tableDef.columns)  # noqa E501
-        #     query = query.filter(
-        #         or_(
-        #             self.view.tableDef.columns.id_dataset.in_(tuple(allowed_datasets)),  # noqa E501
-        #             self.view.tableDef.columns.observers.any(id_role=self.user.id_role),  # noqa E501
-        #             self.view.tableDef.columns.id_digitiser == self.user.id_role  # noqa E501
-        #         )
-        #     )
-        # elif self.user.tag_object_code == '1':
-        #     query = query.filter(
-        #         or_(
-        #             self.view.tableDef.columns.observers.any(id_role=self.user.id_role),  # noqa E501
-        #             self.view.tableDef.columns.id_digitiser == self.user.id_role  # noqa E501
-        #         )
-        #     )
+            if 'observers' in self.view.tableDef.columns:
+                auth_filters.append(
+                    self.view.tableDef.columns.observers.any(id_role=self.user.id_role))  # noqa E501
+
+            if 'id_digitizer' in self.view.tableDef.columns:
+                auth_filters.append(
+                    self.view.tableDef.columns.id_digitiser == self.user.id_role)   # noqa E501
+
+            if ((self.user.tag_object_code == '2' or self.user.tag_object_code == 'E') and 'id_dataset' in self.view.tableDef.columns):  # noqa E501
+                allowed_datasets = TDatasets.get_user_datasets(self.user)
+                auth_filters.append(self.view.tableDef.columns.id_dataset.in_(tuple(allowed_datasets)))  # noqa E501
+
+            query = query.filter(or_(*auth_filters))
+
+        else:
+            raise InsufficientRightsError
 
         if self.filters:
             query = self.build_query_filters(query, self.filters)
@@ -108,23 +109,6 @@ class ExportRepository(object):
 
         columns = [col.name for col in query.view.db_cols]
 
-        # if info_role.tag_object_code == '2':
-        #     allowed_datasets = TDatasets.get_user_datasets(info_role)
-        #     query = query.filter(
-        #         or_(
-        #             view.id_dataset.in_(tuple(allowed_datasets)),
-        #             view.observers.any(id_role=info_role.id_role),
-        #             view.id_digitiser == info_role.id_role
-        #         )
-        #     )
-        # elif info_role.tag_object_code == '1':
-        #     query = query.filter(
-        #         or_(
-        #             view.observers.any(id_role=info_role.id_role),
-        #             view.id_digitiser == info_role.id_role
-        #         )
-        #     )
-
         data = query.return_query()
 
         # logger.debug('Query columns: %s', columns)
@@ -132,17 +116,21 @@ class ExportRepository(object):
         return (columns, data)
 
     def get_by_id(
-            self, info_role, id_export,
+            self,
+            info_role,
+            id_export,
             with_data=False,
             geom_column_header=None,
             filters={},
             limit=10000,
             paging=0,
             format=None):
+
+        info_role = UserMock()  # TODO: rm mocked user
+
         export = Export.query.get(id_export)
         if export:
             if with_data and format:
-                # TODO: filters
                 # FIXME: find_geometry_columns
                 # public.geometry_columns
                 # geom_column_header = 'geom_4326'
