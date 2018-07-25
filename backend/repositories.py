@@ -54,7 +54,7 @@ class AuthorizedGenericQuery(GenericQuery):
                 auth_filters.append(
                     self.view.tableDef.columns.id_digitiser == self.user.id_role)   # noqa E501
 
-            if ((self.user.tag_object_code == '2' or self.user.tag_object_code == 'E') and 'id_dataset' in self.view.tableDef.columns):  # noqa E501
+            if ('id_dataset' in self.view.tableDef.columns and (self.user.tag_object_code in ('2', 'E'))):  # noqa E501
                 allowed_datasets = TDatasets.get_user_datasets(self.user)
                 auth_filters.append(self.view.tableDef.columns.id_dataset.in_(tuple(allowed_datasets)))  # noqa E501
 
