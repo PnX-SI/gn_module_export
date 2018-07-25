@@ -1,15 +1,90 @@
-from datetime import datetime
 import logging
+from datetime import datetime
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from flask import current_app
+from geojson import FeatureCollection
 from geonature.utils.env import DB
+from geonature.core.gn_meta.models import TDatasets
+# from geonature.core.users.models import TRoles, UserRigth
+from geonature.utils.utilssqlalchemy import GenericQuery
+
 from .models import (Export, ExportLog)
-from geonature.utils.utilssqlalchemy import (GenericQuery, GenericTable)
 
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
+
+
+class UserMock(object):
+    def __init__(self, id_role=1, tag_object_code=1):
+        self.id_role = id_role
+        self.tag_object_code = tag_object_code
+        self.id_organisme = '-1'
+
+
+class AuthorizedGenericQuery(GenericQuery):
+    def __init__(
+            self,
+            db_session,
+            tableName, schemaName, geometry_field,
+            filters, limit=100, offset=0):
+        self.user = UserMock(id_role=3, tag_object_code='2')
+        super().__init__(
+            db_session,
+            tableName, schemaName, geometry_field,
+            filters, limit=100, offset=0)
+
+    def return_query(self):
+        query = self.db_session.query(self.view.tableDef)
+        nb_result_without_filter = query.count()
+
+        # if self.user.tag_object_code == '2':
+        #     allowed_datasets = TDatasets.get_user_datasets(self.user)
+        #     logger.debug('allowed datasets: %s', allowed_datasets)
+        #     # logger.debug('dataset columns: %s', self.view.tableDef.columns)
+        #     logger.debug('dataset columns contain id_dataset: %s', 'export_occtax.id_dataset' in self.view.tableDef.columns)
+        #     query = query.filter(
+        #         or_(
+        #             self.view.tableDef.columns.id_dataset.in_(tuple(allowed_datasets)),  # noqa E501
+        #             self.view.tableDef.columns.observers.any(id_role=self.user.id_role),  # noqa E501
+        #             self.view.tableDef.columns.id_digitiser == self.user.id_role  # noqa E501
+        #         )
+        #     )
+        # elif self.user.tag_object_code == '1':
+        #     query = query.filter(
+        #         or_(
+        #             self.view.tableDef.columns.observers.any(id_role=self.user.id_role),  # noqa E501
+        #             self.view.tableDef.columns.id_digitiser == self.user.id_role  # noqa E501
+        #         )
+        #     )
+
+        if self.filters:
+            query = self.build_query_filters(query, self.filters)
+            query = self.build_query_order(query, self.filters)
+
+        data = query.limit(self.limit).offset(self.offset * self.limit).all()
+        nb_results = query.count()
+
+        if self.geometry_field:
+            results = FeatureCollection(
+                [
+                    self.view.as_geofeature(d)
+                    for d in data
+                    if getattr(d, self.geometry_field) is not None
+                ]
+            )
+        else:
+            results = [self.view.as_dict(d) for d in data]
+
+        return {
+            'total': nb_result_without_filter,
+            'total_filtered': nb_results,
+            'page': self.offset,
+            'limit': self.limit,
+            'items': results
+        }
 
 
 class ExportRepository(object):
@@ -22,7 +97,10 @@ class ExportRepository(object):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
-        query = GenericQuery(
+        columns = {}
+        data = None
+
+        query = AuthorizedGenericQuery(
             self.session, view, schema, geom_column_header,
             filters, limit, paging)
 
@@ -30,8 +108,8 @@ class ExportRepository(object):
 
         data = query.return_query()
 
-        logger.debug('Query columns: %s', columns)
-        logger.debug('Query results: %s', data)
+        # logger.debug('Query columns: %s', columns)
+        # logger.debug('Query results: %s', data)
         return (columns, data)
 
     def get_by_id(
