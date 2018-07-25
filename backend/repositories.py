@@ -40,11 +40,13 @@ class AuthorizedGenericQuery(GenericQuery):
         query = self.db_session.query(self.view.tableDef)
         nb_result_without_filter = query.count()
 
+        # SINP: detId -> id_digitizer ?
+
         # if self.user.tag_object_code == '2':
         #     allowed_datasets = TDatasets.get_user_datasets(self.user)
         #     logger.debug('allowed datasets: %s', allowed_datasets)
         #     # logger.debug('dataset columns: %s', self.view.tableDef.columns)
-        #     logger.debug('dataset columns contain id_dataset: %s', 'export_occtax.id_dataset' in self.view.tableDef.columns)
+        #     logger.debug('dataset columns contain id_dataset: %s', 'export_occtax.id_dataset' in self.view.tableDef.columns)  # noqa E501
         #     query = query.filter(
         #         or_(
         #             self.view.tableDef.columns.id_dataset.in_(tuple(allowed_datasets)),  # noqa E501

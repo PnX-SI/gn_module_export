@@ -26,7 +26,6 @@ DEFAULT_SCHEMA = 'gn_exports'
 blueprint = Blueprint('exports', __name__)
 
 
-# FIXME: mv export file name pattern to conf
 def export_filename_pattern(label):
     return '_'.join(
         [label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
@@ -35,7 +34,7 @@ def export_filename_pattern(label):
 @blueprint.route('/export/<int:id_export>/<format>', methods=['GET'])
 # @fnauth.check_auth_cruved(
 #     'E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 def export_format(id_export, format):
     info_role = None  # mv to func args
@@ -68,7 +67,8 @@ def export_format(id_export, format):
 @blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
 # @fnauth.check_auth_cruved(
 #     'E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
+#     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def create_or_update_export(info_role=None, id_export=None):
     # logger.debug(inf _role)
@@ -122,7 +122,8 @@ def create_or_update_export(info_role=None, id_export=None):
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
 # @fnauth.check_auth_cruved(
 #     'D', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
+#     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def delete_export(info_role=None, id_export=None):
     id_role = info_role.id_role if info_role else 1
@@ -140,7 +141,8 @@ def delete_export(info_role=None, id_export=None):
 @blueprint.route('/')
 # @fnauth.check_auth_cruved(
 #     'R', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'))
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
+#     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 # def getExports(info_role):
 #     user_cruved = get_or_fetch_user_cruved(
 #         session=session,
