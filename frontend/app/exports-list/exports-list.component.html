@@ -61,7 +61,7 @@
                     <br>
                     <ul> <li> Choisir un format </li> </ul>
                     <select class="form-control" id="chooseFormat" formControlName="chooseFormat" required autocomplete="off">
-                            <option value="csv" selected>CSV</option>
+                            <option value="csv" [selected]="true">CSV</option>
                             <option value="json">JSON</option>
                             <option value="rdf" disabled>RDF</option>
                     </select>
