@@ -44,20 +44,22 @@ class AuthorizedGenericQuery(GenericQuery):
         if self.user.tag_object_code in ('1', '2', 'E'):
             query = self.db_session.query(self.view.tableDef)
             nb_result_without_filter = query.count()
-
+            _columns = self.view.tableDef.columns
             auth_filters = []
 
-            if 'observers' in self.view.tableDef.columns:
+            if 'observers' in _columns:
                 auth_filters.append(
-                    self.view.tableDef.columns.observers.any(id_role=self.user.id_role))  # noqa E501
+                    _columns.observers.any(id_role=self.user.id_role))
 
-            if 'id_digitiser' in self.view.tableDef.columns:
+            if 'id_digitiser' in _columns:
                 auth_filters.append(
-                    self.view.tableDef.columns.id_digitiser == self.user.id_role)  # noqa E501
+                    _columns.id_digitiser == self.user.id_role)
 
-            if ('id_dataset' in self.view.tableDef.columns and (self.user.tag_object_code in ('2', 'E'))):  # noqa E501
+            if ('id_dataset' in _columns
+                    and (self.user.tag_object_code in ('2', 'E'))):
                 allowed_datasets = TDatasets.get_user_datasets(self.user)
-                auth_filters.append(self.view.tableDef.columns.id_dataset.in_(tuple(allowed_datasets)))  # noqa E501
+                auth_filters.append(
+                    _columns.id_dataset.in_(tuple(allowed_datasets)))
 
             query = query.filter(or_(*auth_filters))
             logger.debug('Prepared query: %s', query)
