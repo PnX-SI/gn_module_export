@@ -16,16 +16,15 @@ import { AppConfig } from "@geonature_config/app.config";
 
 
 export interface Export {
-  id: string;
+  id: number;
+  id_creator: number;
   label: string;
-  selection: string;
-  extension: string;
-  start: Date;
-}
-
-export interface ExportLabel {
-  label: string;
-  start: Date;
+  schema: string;
+  view: string;
+  desc: string;
+  created: Date;
+  updated: Date;
+  deleted: Date;
 }
 
 const apiEndpoint='http://localhost:8000/exports';
@@ -40,50 +39,41 @@ export const FormatMapMime = new Map([
 @Injectable()
 export class ExportService {
   exports: BehaviorSubject<Export[]>
-  labels: BehaviorSubject<ExportLabel[]>
   downloadProgress: BehaviorSubject<number>
   private _blob: Blob
 
   constructor(private _api: HttpClient) {
     this.exports = <BehaviorSubject<Export[]>>new BehaviorSubject([]);
-    this.labels = <BehaviorSubject<ExportLabel[]>>new BehaviorSubject([]);
     this.downloadProgress = <BehaviorSubject<number>>new BehaviorSubject(0.0);
   }
 
-  // QUESTION: loader ?
   getExports() {
-    this._api.get(`${apiEndpoint}/all`).subscribe(
+    this._api.get(`${apiEndpoint}/`).subscribe(
       (exports: Export[]) => this.exports.next(exports),
       error => console.error(error),
       () => {
         console.info(`export service: ${this.exports.value.length} exports`)
         console.debug('exports:',  this.exports.value)
-        this.getLabels()
       }
     )
   }
 
   getLabels() {
-
-    function byLabel (a, b) {
-      const labelA = a.label.toUpperCase()
-      const labelB = b.label.toUpperCase()
-      return (labelA < labelB) ? -1 : (labelA > labelB) ? 1 : 0
-    }
-
     let labels = []
-    this.exports.subscribe(xs => xs.map((x) => labels.push({label: x.label, start: x.start})))
-    let seen = new Set()
-    let uniqueLabels = labels.filter((item: ExportLabel) => {
-                                let k = item.label
-                                return seen.has(k) ? false : seen.add(k)
-                              })
-    this.labels.next(uniqueLabels.sort(byLabel))
+    let subscription = this.exports.subscribe(
+      xs => xs.map((x) => labels.push({
+        label: x.label,
+        date: x.updated ? x.updated : x.created,
+        description: x.desc,
+        creator: x.id_creator
+      })),
+      error => console.error(error),
+      () => subscription.unsubscribe())
+    return labels
   }
 
-  downloadExport(ts: number, label: string, extension: string) {
-
-    const downloadExportURL = `${apiEndpoint}/download/export_${label}_${ts}.${extension}`
+  downloadExport(xport: Export, extension: string) {
+    let downloadExportURL = `${apiEndpoint}/export/${xport.id}/${extension}`
 
     let source = this._api.get(downloadExportURL, {
       headers: new HttpHeaders().set('Content-Type', `${FormatMapMime.get(extension)}`),
@@ -113,9 +103,8 @@ export class ExportService {
       console.error(e.status);
     },
     () => {
-      let date = new Date(0)
-      date.setUTCSeconds(ts)
-      this.saveBlob(this._blob, `export_${label}_${date.toISOString()}.${extension}`)
+      let date = new Date(xport.updated ? xport.updated : xport.created)
+      this.saveBlob(this._blob, `export_${xport.label}_${date.toISOString()}.${extension}`)
       subscription.unsubscribe()
     }
   )}

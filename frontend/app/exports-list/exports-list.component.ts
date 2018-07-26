@@ -20,9 +20,9 @@ import { Observable } from "rxjs/Observable";
 import { TranslateService } from "@ngx-translate/core";
 import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
 import { CommonService } from "@geonature_common/service/common.service";
-import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component";
-import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service";
-import { Export, ExportService, ExportLabel } from "../services/export.service";
+// import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component";
+// import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service";
+import { Export, ExportService } from "../services/export.service";
 
 
 
@@ -57,7 +57,6 @@ export class NgPBar {
 })
 export class ExportsListComponent {
   exports$: Observable<Export[]>
-  exportLabels$: Observable<ExportLabel[]>
   public modalForm : FormGroup;
   public buttonDisabled: boolean = false;
   public barHide: boolean = false;
@@ -70,7 +69,8 @@ export class ExportsListComponent {
     private _router: Router,
     private modalService: NgbModal,
     private _fb: FormBuilder,
-    private _dynformService: DynamicFormService) {
+    // private _dynformService: DynamicFormService
+  ) {
 
     this.modalForm = this._fb.group({
       chooseFormat:['', Validators.required],
@@ -78,7 +78,6 @@ export class ExportsListComponent {
 
     this._exportService.getExports();
     this.exports$ = this._exportService.exports;
-    this.exportLabels$ = this._exportService.labels
   }
 
   get chooseFormat() {
@@ -114,11 +113,9 @@ export class ExportsListComponent {
       const choice = window.document.querySelector('input[name="options"]:checked');
       const extension = this.chooseFormat.value
       this.exports$.switchMap(
-        (exports: Export[]) => exports.sort((a, b) => (a.id < b.id) ? 1 : (a.id > b.id) ? -1 : 0)
-                                      .filter(
-          (x: Export) => (x.label == choice.id && x.extension == extension))
+        (exports: Export[]) => exports.filter((x: Export) => (x.label == choice.id))
       ).take(1).subscribe(
-        x => this._exportService.downloadExport(x.id, x.label, extension),
+        x => this._exportService.downloadExport(x, extension),
         e => console.error(e.message)
       )
     }

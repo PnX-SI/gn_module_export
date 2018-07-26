@@ -13,8 +13,8 @@
             </div>
                 <!-- Liste des exports disponibles au téléchargement -->
             <div class="btn-group btn-group-vertical" data-toggle="buttons" id="button-export">
-              <label *ngFor='let export of exportLabels$ | async; let i = index;' class="btn btn-primary">
-                <input type="radio" name="options" [checked]="i==0" [id]="export.label">Export {{ export.label }} - {{ export.start | date: 'dd/MM/yyyy' }}
+              <label *ngFor='let export of exports$ | async; let i = index;' class="btn btn-primary">
+                <input type="radio" name="options" [checked]="i==0" [id]="export.label">Export {{ export.label }} - {{ (export.updated ? export.updated : export.created) | date: 'dd/MM/yyyy' }}
               </label>
             </div>
 
