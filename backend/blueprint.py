@@ -13,7 +13,7 @@ from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 # from pypnusershub.db.tools import (
 #     InsufficientRightsError, get_or_fetch_user_cruved)
-# from pypnusershub import routes as fnauth
+from pypnusershub import routes as fnauth
 
 from .repositories import ExportRepository
 
@@ -34,7 +34,7 @@ def export_filename_pattern(label):
 @blueprint.route('/export/<int:id_export>/<format>', methods=['GET'])
 # @fnauth.check_auth_cruved(
 #     'E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 def export_format(id_export, format, info_role=None):
 
@@ -66,11 +66,11 @@ def export_format(id_export, format, info_role=None):
 @blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
 # @fnauth.check_auth_cruved(
 #     'E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def create_or_update_export(info_role=None, id_export=None):
-    # logger.debug(inf _role)
+    # logger.debug(info_role)
     id_creator = info_role.id_role if info_role else 1
 
     payload = request.get_json()
@@ -121,7 +121,7 @@ def create_or_update_export(info_role=None, id_export=None):
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
 # @fnauth.check_auth_cruved(
 #     'D', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def delete_export(id_export, info_role=None):
@@ -140,18 +140,17 @@ def delete_export(id_export, info_role=None):
 @blueprint.route('/')
 # @fnauth.check_auth_cruved(
 #     'R', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION')),
+#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
-# def getExports(info_role):
-#     user_cruved = get_or_fetch_user_cruved(
-#         session=session,
-#         id_role=info_role.id_role,
-#        # id_application=ID_MODULE,
-#         id_application_parent=current_app.config['ID_APPLICATION_GEONATURE']
-#     )
-#     logger.debug('cruved_user', user_cruved)
 @json_resp
 def getExports(info_role=1):
+    # user_cruved = get_or_fetch_user_cruved(
+    #     session=session,
+    #     id_role=info_role.id_role,
+    #    # id_application=ID_MODULE,
+    #     id_application_parent=current_app.config['ID_APPLICATION_GEONATURE']
+    # )
+    # logger.debug('cruved_user', user_cruved)
     repo = ExportRepository()
     exports = repo.get_list()
     return [export.as_dict() for export in exports]

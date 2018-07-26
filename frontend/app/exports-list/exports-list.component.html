@@ -61,9 +61,9 @@
                     <br>
                     <ul> <li> Choisir un format </li> </ul>
                     <select class="form-control" id="chooseFormat" formControlName="chooseFormat" required autocomplete="off">
-                            <option value="csv" [selected]="true">CSV</option>
-                            <option value="json">JSON</option>
-                            <option value="rdf" disabled>RDF</option>
+                            <option [value]="csv" [selected]="true">CSV</option>
+                            <option [value]="json">JSON</option>
+                            <option [value]="rdf" [disabled]="true">RDF</option>
                     </select>
                     <!-- Affichage d'une barre de progression lors du téléchargement du fichier -->
                     <div *ngIf="barHide">

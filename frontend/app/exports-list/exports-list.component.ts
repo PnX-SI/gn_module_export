@@ -24,8 +24,6 @@ import { CommonService } from "@geonature_common/service/common.service";
 // import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service";
 import { Export, ExportService } from "../services/export.service";
 
-
-
 @Component({
   selector: 'ng-pbar',
   template: `<div class="telechargement">{{message}}</div>
