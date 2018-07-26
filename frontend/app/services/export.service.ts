@@ -88,8 +88,8 @@ export class ExportService {
             const percentage = Math.round((100 / event.total) * event.loaded);
             this.downloadProgress.next(percentage)
           } else {
-            const kb = (parseFloat(event.loaded) / 1024).toFixed(2);
-             this.downloadProgress.next(kb)
+            const kb = (event.loaded / 1024).toFixed(2);
+             this.downloadProgress.next(parseFloat(kb))
           }
       }
       if (event.type === HttpEventType.Response) {
