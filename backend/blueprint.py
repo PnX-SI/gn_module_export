@@ -5,14 +5,15 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
-    # session,
+    session,
     request,
     current_app)
 
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
-# from pypnusershub.db.tools import (
-#     InsufficientRightsError, get_or_fetch_user_cruved)
+from pypnusershub.db.tools import (
+    # InsufficientRightsError,
+    get_or_fetch_user_cruved)
 from pypnusershub import routes as fnauth
 
 from .repositories import ExportRepository
@@ -138,16 +139,12 @@ def delete_export(id_export, info_role=None):
 
 
 @blueprint.route('/')
-# @fnauth.check_auth_cruved(
-#     'R', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
-#     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
+# @fnauth.check_auth_cruved('R', True)
 @json_resp
 def getExports(info_role=1):
     # user_cruved = get_or_fetch_user_cruved(
     #     session=session,
     #     id_role=info_role.id_role,
-    #    # id_application=ID_MODULE,
     #     id_application_parent=current_app.config['ID_APPLICATION_GEONATURE']
     # )
     # logger.debug('cruved_user', user_cruved)

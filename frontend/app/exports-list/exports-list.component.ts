@@ -37,7 +37,7 @@ export class NgPBar {
 
   constructor(private _exportService: ExportService) {
     this.progress$ = this._exportService.downloadProgress
-    this.progress$.subscribe(state => (state === 100) ? this.fini(): null)
+    this.progress$.subscribe(state => (state === 100) ? this.fini() : null)
   }
 
   fini() {
