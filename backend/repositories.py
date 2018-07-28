@@ -26,13 +26,14 @@ class AuthorizedGenericQuery(GenericQuery):
             tableName, schemaName, geometry_field,
             filters, limit=50000, offset=0):
         self.user = info_role
-        logger.debug('query user: %s', self.user)
-        logger.debug('query user perm code: %s', self.user.tag_object_code)
 
         super().__init__(
             db_session,
             tableName, schemaName, geometry_field,
             filters, limit, offset)
+
+        logger.debug('query user: %s', self.user)
+        logger.debug('query user perm code: %s', self.user.tag_object_code)
 
     def return_query(self):
         if self.user.tag_object_code in ('1', '2', 'E'):
@@ -57,7 +58,7 @@ class AuthorizedGenericQuery(GenericQuery):
                 # if len(allowed_datasets) < 1:
                 #     raise InsufficientRightsError
                 # auth_filters.append(
-                #     _columns.id_dataset.in_(tuple(allowed_datasets)))
+                #     columns.id_dataset.in_(tuple(allowed_datasets)))
 
             query = query.filter(or_(*auth_filters))
             logger.debug('Prepared query: %s', query)
