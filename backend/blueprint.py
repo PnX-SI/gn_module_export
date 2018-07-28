@@ -8,7 +8,6 @@ from flask import (
     session,
     request,
     current_app)
-
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 from pypnusershub.db.tools import (
@@ -34,9 +33,9 @@ class UserMock(object):
         self.id_organisme = '-1'
 
 
-def export_filename_pattern(label):
+def export_filename_pattern(export):
     return '_'.join(
-        [label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
+        [export.label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
 
 
 @blueprint.route('/export/<int:id_export>/<format>', methods=['GET'])
@@ -56,7 +55,7 @@ def export_format(id_export, format, info_role=None):
         export, columns, data = repo.get_by_id(
             info_role, id_export, with_data=True, format=format)
         if export:
-            fname = export_filename_pattern(export.get('label'))
+            fname = export_filename_pattern(export)
 
             if format == 'json':
                 return to_json_resp(
@@ -85,7 +84,6 @@ def export_format(id_export, format, info_role=None):
 def create_or_update_export(info_role=None, id_export=None):
     # logger.debug(info_role)
     info_role = info_role if info_role else UserMock()
-    id_creator = info_role.id_role
 
     payload = request.get_json()
     label = payload.get('label', None)
@@ -93,6 +91,8 @@ def create_or_update_export(info_role=None, id_export=None):
     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
     id_export = payload.get('id_export', None) or id_export
+
+    id_creator = info_role.id_role
 
     repo = ExportRepository()
     if label and schema_name and view_name:
@@ -104,7 +104,7 @@ def create_or_update_export(info_role=None, id_export=None):
                     schema_name=schema_name,
                     view_name=view_name,
                     desc=desc)
-                return export.as_dict(), 200
+                return export.as_dict(), 201
             except IntegrityError as e:
                 if '(label)=({})'.format(label) in str(e):
                     return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
@@ -119,13 +119,13 @@ def create_or_update_export(info_role=None, id_export=None):
                     schema_name=schema_name,
                     view_name=view_name,
                     desc=desc)
-                return export.as_dict(), 200
+                return export.as_dict(), 201
             except NoResultFound as e:
                 logger.warn('%s', str(e))
                 return {'error': 'Unknown export.'}, 404
             except Exception as e:
                 logger.warn('%s', str(e))
-                return {'error': 'Echec mise à jour.'}, 500
+                return {'error': 'Echec mise à jour.'}, 400
     else:
         return {
             'error': 'Missing {} parameter.'. format(
@@ -139,7 +139,7 @@ def create_or_update_export(info_role=None, id_export=None):
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def delete_export(id_export, info_role=None):
-    id_role = info_role.id_role if info_role else 1
+    id_role = info_role.id_role if info_role else UserMock()
     repo = ExportRepository()
     try:
         repo.delete(id_role, id_export)
