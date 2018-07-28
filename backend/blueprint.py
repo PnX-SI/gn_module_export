@@ -35,7 +35,7 @@ class UserMock(object):
 
 def export_filename_pattern(export):
     return '_'.join(
-        [export.label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
+        [export.get('label'), datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
 
 
 @blueprint.route('/export/<int:id_export>/<format>', methods=['GET'])
