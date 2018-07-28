@@ -18,23 +18,16 @@ logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
 
-class UserMock(object):
-    def __init__(self, id_role=1, tag_object_code=1):
-        self.id_role = id_role
-        self.tag_object_code = tag_object_code
-        self.id_organisme = '-1'
-
-
 class AuthorizedGenericQuery(GenericQuery):
     def __init__(
             self,
+            info_role,
             db_session,
             tableName, schemaName, geometry_field,
             filters, limit=50000, offset=0):
-
-        # mocked info_role
-        self.user = UserMock(id_role=3, tag_object_code='2')
-
+        self.user = info_role
+        logger.debug('query user: %s', self.user)
+        logger.debug('query user perm code: %s', self.user.tag_object_code)
         super().__init__(
             db_session,
             tableName, schemaName, geometry_field,
@@ -105,7 +98,7 @@ class ExportRepository(object):
         logger.debug('Querying "%s"."%s"', schema, view)
 
         query = AuthorizedGenericQuery(
-            self.session, view, schema, geom_column_header,
+            info_role, self.session, view, schema, geom_column_header,
             filters, limit, paging)
         columns = [col.name for col in query.view.db_cols]
         data = query.return_query()
@@ -121,9 +114,6 @@ class ExportRepository(object):
             limit=10000,
             paging=0,
             format=None):
-
-        info_role = UserMock()  # TODO: rm mocked user
-
         export = Export.query.get(id_export)
         if export:
             if with_data and format:
@@ -132,16 +122,19 @@ class ExportRepository(object):
                 # geom_column_header = 'geom_4326'
                 # srid = 4326
 
-                columns, data = self._get_data(
-                    info_role, export.view_name, export.schema_name,
-                    geom_column_header=geom_column_header,
-                    filters=filters,
-                    limit=limit,
-                    paging=paging)
                 try:
+                    columns, data = self._get_data(
+                        info_role, export.view_name, export.schema_name,
+                        geom_column_header=geom_column_header,
+                        filters=filters,
+                        limit=limit,
+                        paging=paging)
                     ExportLog.log(
                         id_export=export.id, format=format,
                         id_user=info_role.id_role)
+                except InsufficientRightsError as e:
+                    logger.warn('InsufficientRightsError')
+                    raise e
                 except Exception as e:
                     logger.critical('%s', str(e))
                     return {'error': 'Echec de journalisation.'}

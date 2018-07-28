@@ -12,7 +12,7 @@ from flask import (
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 from pypnusershub.db.tools import (
-    # InsufficientRightsError,
+    InsufficientRightsError,
     get_or_fetch_user_cruved)
 from pypnusershub import routes as fnauth
 
@@ -27,6 +27,13 @@ DEFAULT_SCHEMA = 'gn_exports'
 blueprint = Blueprint('exports', __name__)
 
 
+class UserMock(object):
+    def __init__(self, id_role=1, tag_object_code='2'):
+        self.id_role = id_role
+        self.tag_object_code = tag_object_code
+        self.id_organisme = '-1'
+
+
 def export_filename_pattern(label):
     return '_'.join(
         [label, datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
@@ -38,6 +45,8 @@ def export_filename_pattern(label):
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 def export_format(id_export, format, info_role=None):
+    info_role = info_role if info_role else UserMock()
+    logger.debug('info_role: %s', info_role)
 
     assert id_export >= 1
     assert format in ['csv', 'json']
@@ -60,6 +69,9 @@ def export_format(id_export, format, info_role=None):
     except NoResultFound as e:
         logger.warn('%s', str(e))
         return to_json_resp({'error': str(e)}, status=404)
+    except InsufficientRightsError:
+        logger.warn('InsufficientRightsError')
+        return to_json_resp({'error': 'InsufficientRightsError'}, status=404)
 
 
 @blueprint.route(
@@ -72,7 +84,8 @@ def export_format(id_export, format, info_role=None):
 @json_resp
 def create_or_update_export(info_role=None, id_export=None):
     # logger.debug(info_role)
-    id_creator = info_role.id_role if info_role else 1
+    info_role = info_role if info_role else UserMock()
+    id_creator = info_role.id_role
 
     payload = request.get_json()
     label = payload.get('label', None)
@@ -141,7 +154,7 @@ def delete_export(id_export, info_role=None):
 @blueprint.route('/')
 # @fnauth.check_auth_cruved('R', True)
 @json_resp
-def getExports(info_role=1):
+def getExports(info_role=None):
     # user_cruved = get_or_fetch_user_cruved(
     #     session=session,
     #     id_role=info_role.id_role,
