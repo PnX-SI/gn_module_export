@@ -37,3 +37,13 @@ CREATE TABLE gn_exports.t_exports_logs
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
 )
+
+CREATE OR REPLACE FUNCTION gn_exports.logs_delete_function()
+    RETURNS void
+    LANGUAGE sql
+AS $body$
+
+DELETE FROM gn_exports.t_exports_logs
+WHERE date < now() - interval '6 months';
+
+$body$;
