@@ -28,6 +28,7 @@ class AuthorizedGenericQuery(GenericQuery):
         self.user = info_role
         logger.debug('query user: %s', self.user)
         logger.debug('query user perm code: %s', self.user.tag_object_code)
+
         super().__init__(
             db_session,
             tableName, schemaName, geometry_field,
@@ -37,28 +38,29 @@ class AuthorizedGenericQuery(GenericQuery):
         if self.user.tag_object_code in ('1', '2', 'E'):
             query = self.db_session.query(self.view.tableDef)
             nb_result_without_filter = query.count()
-            _columns = self.view.tableDef.columns
+            columns = self.view.tableDef.columns
+            column_names = [column.name for column in self.view.db_cols]
             auth_filters = []
 
-            if 'observers' in _columns:
+            if 'observers' in column_names:
                 auth_filters.append(
-                    _columns.observers.any(id_role=self.user.id_role))
+                        columns.observers.any(id_role=self.user.id_role))
 
-            if 'id_digitiser' in _columns:
+            if'id_digitiser' in column_names:
                 auth_filters.append(
-                    _columns.id_digitiser == self.user.id_role)
+                    columns.id_digitiser == self.user.id_role)
 
-            if ('id_dataset' in _columns
+            if ('id_dataset' in column_names
                     and (self.user.tag_object_code in ('2', 'E'))):
                 allowed_datasets = TDatasets.get_user_datasets(self.user)
-                auth_filters.append(
-                    _columns.id_dataset.in_(tuple(allowed_datasets)))
+                logger.debug('Allowed datasets: %s', allowed_datasets)
+                # if len(allowed_datasets) < 1:
+                #     raise InsufficientRightsError
+                # auth_filters.append(
+                #     _columns.id_dataset.in_(tuple(allowed_datasets)))
 
             query = query.filter(or_(*auth_filters))
             logger.debug('Prepared query: %s', query)
-
-        else:
-            raise InsufficientRightsError
 
         if self.filters:
             query = self.build_query_filters(query, self.filters)
