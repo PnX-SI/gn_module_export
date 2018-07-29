@@ -18,7 +18,7 @@ logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
 
-class AuthorizedGenericQuery(GenericQuery):
+class AuthorizedExportQuery(GenericQuery):
     def __init__(
             self,
             info_role,
@@ -103,7 +103,7 @@ class ExportRepository(object):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
-        query = AuthorizedGenericQuery(
+        query = AuthorizedExportQuery(
             info_role, self.session, view, schema, geom_column_header,
             filters, limit, paging)
         columns = [col.name for col in query.view.db_cols]
