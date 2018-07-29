@@ -43,11 +43,12 @@ def export_filename_pattern(export):
 #     'E', True,
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
-def export_format(id_export, format, info_role=None):
-    info_role = info_role if info_role else UserMock()
+def export_format(id_export, format, info_role=UserMock()):
     logger.debug('info_role: %s', info_role)
 
-    assert id_export >= 1
+    if id_export < 1:
+        return to_json_resp({'error': 'Invalid export id'}, status=404)
+
     assert format in ['csv', 'json']
 
     repo = ExportRepository()
@@ -61,6 +62,7 @@ def export_format(id_export, format, info_role=None):
                 return to_json_resp(
                     data.get('items', None),
                     as_file=True, filename=fname, indent=4)
+
             if format == 'csv':
                 return to_csv_resp(
                     fname, data.get('items', None), columns, ',')
@@ -70,7 +72,10 @@ def export_format(id_export, format, info_role=None):
         return to_json_resp({'error': str(e)}, status=404)
     except InsufficientRightsError:
         logger.warn('InsufficientRightsError')
-        return to_json_resp({'error': 'InsufficientRightsError'}, status=404)
+        return to_json_resp({'error': 'InsufficientRightsError'}, status=403)
+    except Exception as e:
+        logger.critical('%s', str(e))
+        return to_json_resp({'error': 'LoggedError'}, status=400)
 
 
 @blueprint.route(
@@ -81,9 +86,8 @@ def export_format(id_export, format, info_role=None):
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
-def create_or_update_export(info_role=None, id_export=None):
+def create_or_update_export(info_role=UserMock(), id_export=None):
     # logger.debug(info_role)
-    info_role = info_role if info_role else UserMock()
 
     payload = request.get_json()
     label = payload.get('label', None)
@@ -94,42 +98,42 @@ def create_or_update_export(info_role=None, id_export=None):
 
     id_creator = info_role.id_role
 
-    repo = ExportRepository()
-    if label and schema_name and view_name:
-        if not id_export:
-            try:
-                export = repo.create(
-                    id_creator=id_creator,
-                    label=label,
-                    schema_name=schema_name,
-                    view_name=view_name,
-                    desc=desc)
-                return export.as_dict(), 201
-            except IntegrityError as e:
-                if '(label)=({})'.format(label) in str(e):
-                    return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
-                else:
-                    raise
-        else:
-            try:
-                export = repo.update(
-                    id_creator=id_creator,
-                    id_export=id_export,
-                    label=label,
-                    schema_name=schema_name,
-                    view_name=view_name,
-                    desc=desc)
-                return export.as_dict(), 201
-            except NoResultFound as e:
-                logger.warn('%s', str(e))
-                return {'error': 'Unknown export.'}, 404
-            except Exception as e:
-                logger.warn('%s', str(e))
-                return {'error': 'Echec mise à jour.'}, 400
-    else:
+    if not(label and schema_name and view_name):
         return {
             'error': 'Missing {} parameter.'. format(
                 'label' if (schema_name and view_name) else 'schema or view name')}, 400  # noqa E501
+
+    repo = ExportRepository()
+    if not id_export:
+        try:
+            export = repo.create(
+                id_creator=id_creator,
+                label=label,
+                schema_name=schema_name,
+                view_name=view_name,
+                desc=desc)
+            return export.as_dict(), 201
+        except IntegrityError as e:
+            if '(label)=({})'.format(label) in str(e):
+                return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
+            else:
+                raise
+    else:
+        try:
+            export = repo.update(
+                id_creator=id_creator,
+                id_export=id_export,
+                label=label,
+                schema_name=schema_name,
+                view_name=view_name,
+                desc=desc)
+            return export.as_dict(), 201
+        except NoResultFound as e:
+            logger.warn('%s', str(e))
+            return {'error': str(e)}, 404
+        except Exception as e:
+            logger.critical('%s', str(e))
+            return {'error': 'LoggedError'}, 400
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
@@ -138,23 +142,23 @@ def create_or_update_export(info_role=None, id_export=None):
 #     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
 #     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
-def delete_export(id_export, info_role=None):
-    id_role = info_role.id_role if info_role else UserMock()
+def delete_export(id_export, info_role=UserMock()):
     repo = ExportRepository()
     try:
-        repo.delete(id_role, id_export)
+        repo.delete(info_role.id_role, id_export)
         return {'result': 'success'}, 204
-    except NoResultFound:
-        return {'error': 'No result.'}, 404
-    except Exception as e:
+    except NoResultFound as e:
         logger.warn('%s', str(e))
-        return {'error': 'Echec de suppression.'}
+        return {'error': str(e)}, 404
+    except Exception as e:
+        logger.critical('%s', str(e))
+        return {'error': 'LoggedError'}, 400
 
 
 @blueprint.route('/')
 # @fnauth.check_auth_cruved('R', True)
 @json_resp
-def getExports(info_role=None):
+def getExports(info_role=UserMock()):
     # user_cruved = get_or_fetch_user_cruved(
     #     session=session,
     #     id_role=info_role.id_role,
