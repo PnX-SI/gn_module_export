@@ -1,13 +1,8 @@
-import logging
-from flask import (current_app, request)
+from flask import request
 from sqlalchemy.sql import func
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import serializable
 from geonature.core.users.models import TRoles
-
-
-logger = current_app.logger
-logger.setLevel(logging.DEBUG)
 
 
 @serializable
@@ -56,6 +51,7 @@ class ExportLog(DB.Model):
     id_user = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
     user = DB.relationship('TRoles', foreign_keys=[id_user], lazy='joined')
 
+    @staticmethod
     def log(**kwargs):
         if 'X-Forwarded-For' in request.headers:
             remote_addr = request.headers.getlist('X-Forwarded-For')[0]\
