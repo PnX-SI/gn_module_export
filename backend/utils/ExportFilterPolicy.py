@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 from flask import current_app
 from sqlalchemy import or_, and_
 from geonature.core.gn_meta.models import TDatasets
@@ -10,38 +11,48 @@ logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
 
-class AbstractFilterPolicy():
-    def __init__(self, container):
-        self.container = container
+class Operator(Enum):
+    greater_than = '>'
+    less_than = '<'
+    equal_to = '=='
+    not_equal_to = '!='
 
-    def apply(self, query):
+
+class AbstractFilterPolicy():
+    @staticmethod
+    def apply(context, query, filter):
         raise NotImplementedError
 
 
 class AbstractCompositeFilter(AbstractFilterPolicy):
-    def apply(self, query, *filters):
+    @staticmethod
+    def apply(context, query, filters):
         raise NotImplementedError
 
 
 class OrCompositeFilter(AbstractCompositeFilter):
-    def apply(self, query, *filters):
+    @staticmethod
+    def apply(context, query, filters):
         return query.filter(or_(*filters))
 
 
 class AndCompositeFilter(AbstractCompositeFilter):
-    def apply(self, query, *filters):
+    @staticmethod
+    def apply(context, query, filters):
         return query.filter(and_(*filters))
 
 
 class DatasetActorFilterPolicy(AbstractFilterPolicy):
-    ''' dataset actor should be able to access its own data. '''
+    ''' dataset actor can access its own data. '''
 
-    def apply(self, query):
-        columns = self.container.view.tableDef.columns
-        column_names = [column.name for column in columns.values()]
-        user = self.container.user
-        auth_filters = []
+    @staticmethod
+    def apply(context, query, filter=None):
+        user = context.user
         if user.tag_object_code in ('1', '2', 'E'):
+            columns = context.view.tableDef.columns
+            column_names = [column.name for column in columns.values()]
+            auth_filters = []
+
             if ('id_dataset' in column_names and (user.tag_object_code in ('2', 'E'))):  # noqa E501
                 allowed_datasets = TDatasets.get_user_datasets(user)
                 if len(allowed_datasets) >= 1:
@@ -57,7 +68,7 @@ class DatasetActorFilterPolicy(AbstractFilterPolicy):
             if 'id_digitiser' in column_names:
                 auth_filters.append(columns.id_digitiser == user.id_role)
 
-            CompositeFilter = OrCompositeFilter(self)
-            query = CompositeFilter.apply(query, *auth_filters)
+            CompositeFilter = OrCompositeFilter()
+            query = CompositeFilter.apply(context, query, auth_filters)
             logger.debug('SQL query: %s', query)
             return query

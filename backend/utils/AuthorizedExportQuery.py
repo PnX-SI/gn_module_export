@@ -35,8 +35,8 @@ class AuthorizedExportQuery(GenericQuery):
             query = self.build_query_filters(query, self.filters)
             query = self.build_query_order(query, self.filters)
 
-        DefaultExportFilterPolicy = DatasetActorFilterPolicy(self)
-        query = DefaultExportFilterPolicy.apply(query)
+        DefaultExportFilterPolicy = DatasetActorFilterPolicy()
+        query = DefaultExportFilterPolicy.apply(self, query, None)
 
         data = query.limit(self.limit).offset(self.offset * self.limit).all()
         nb_results = query.count()
