@@ -1,21 +1,10 @@
 import logging
-from enum import Enum
 from flask import current_app
 from sqlalchemy import or_, and_
-from geonature.core.gn_meta.models import TDatasets
-# from pypnusershub.db.tools import InsufficientRightsError
-# from geonature.core.users.models import TRoles, UserRigth
 
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
-
-
-class Operator(Enum):
-    greater_than = '>'
-    less_than = '<'
-    equal_to = '=='
-    not_equal_to = '!='
 
 
 class AbstractFilterPolicy():
@@ -46,29 +35,30 @@ class DatasetActorFilterPolicy(AbstractFilterPolicy):
     ''' dataset actor can access its own data. '''
 
     @staticmethod
-    def apply(context, query, filter=None):
+    def apply(context, query, filter):
         user = context.user
         if user.tag_object_code in ('1', '2', 'E'):
             columns = context.view.tableDef.columns
             column_names = [column.name for column in columns.values()]
-            auth_filters = []
+            filters = []
 
             if ('id_dataset' in column_names and (user.tag_object_code in ('2', 'E'))):  # noqa E501
+                from geonature.core.gn_meta.models import TDatasets
                 allowed_datasets = TDatasets.get_user_datasets(user)
                 if len(allowed_datasets) >= 1:
-                    auth_filters.append(columns.id_dataset.in_(tuple(allowed_datasets)))  # noqa E501
+                    filters.append(columns.id_dataset.in_(tuple(allowed_datasets)))  # noqa E501
                 # else:
+                #     from pypnusershub.db.tools import InsufficientRightsError
                 #     raise InsufficientRightsError
                 logger.debug('Allowed datasets: %s', allowed_datasets)
 
             if 'observers' in column_names:
-                auth_filters.append(
-                    columns.observers.any(id_role=user.id_role))
+                filters.append(columns.observers.any(id_role=user.id_role))
 
             if 'id_digitiser' in column_names:
-                auth_filters.append(columns.id_digitiser == user.id_role)
+                filters.append(columns.id_digitiser == user.id_role)
 
             CompositeFilter = OrCompositeFilter()
-            query = CompositeFilter.apply(context, query, auth_filters)
+            query = CompositeFilter.apply(context, query, filters)
             logger.debug('SQL query: %s', query)
             return query

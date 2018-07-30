@@ -24,8 +24,7 @@ class AuthorizedExportQuery(GenericQuery):
             tableName, schemaName, geometry_field,
             filters, limit, offset)
 
-        logger.debug('query user: %s', self.user)
-        logger.debug('query user perm code: %s', self.user.tag_object_code)
+        logger.debug('User perm: %s', self.user.tag_object_code)
 
     def return_query(self):
         query = self.db_session.query(self.view.tableDef)
