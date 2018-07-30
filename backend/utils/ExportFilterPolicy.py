@@ -32,7 +32,7 @@ class AndCompositeFilter(AbstractCompositeFilter):
 
 
 class DatasetActorFilterPolicy(AbstractFilterPolicy):
-    ''' dataset actor can access its own data. '''
+    ''' dataset actor data. '''
 
     @staticmethod
     def apply(context, query, filter):
@@ -58,7 +58,6 @@ class DatasetActorFilterPolicy(AbstractFilterPolicy):
             if 'id_digitiser' in column_names:
                 filters.append(columns.id_digitiser == user.id_role)
 
-            CompositeFilter = OrCompositeFilter()
-            query = CompositeFilter.apply(context, query, filters)
+            query = OrCompositeFilter.apply(context, query, filters)
             logger.debug('SQL query: %s', query)
             return query
