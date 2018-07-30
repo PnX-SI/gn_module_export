@@ -5,15 +5,16 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
-    session,
+    # session,
     request,
     current_app)
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 from pypnusershub.db.tools import (
     InsufficientRightsError,
-    get_or_fetch_user_cruved)
-from pypnusershub import routes as fnauth
+    # get_or_fetch_user_cruved
+)
+# from pypnusershub import routes as fnauth
 
 from .repositories import ExportRepository
 
@@ -26,7 +27,7 @@ DEFAULT_SCHEMA = 'gn_exports'
 blueprint = Blueprint('exports', __name__)
 
 
-class UserMock(object):
+class UserMock():
     def __init__(self, id_role=1, tag_object_code='2'):
         self.id_role = id_role
         self.tag_object_code = tag_object_code
@@ -156,7 +157,7 @@ def delete_export(id_export, info_role=UserMock()):
 
 
 @blueprint.route('/')
-# @fnauth.check_auth_cruved('R', True)
+# @fnauth.check_auth_cruved('R', True, id_app=17)
 @json_resp
 def getExports(info_role=UserMock()):
     # user_cruved = get_or_fetch_user_cruved(
