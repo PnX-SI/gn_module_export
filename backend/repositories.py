@@ -1,96 +1,17 @@
 import logging
 from datetime import datetime
-from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from flask import current_app
-from geojson import FeatureCollection
 from geonature.utils.env import DB
-from geonature.core.gn_meta.models import TDatasets
-# from geonature.core.users.models import TRoles, UserRigth
-from geonature.utils.utilssqlalchemy import GenericQuery
 from pypnusershub.db.tools import InsufficientRightsError
 
 from .models import (Export, ExportLog)
+from .utils.AuthorizedExportQuery import AuthorizedExportQuery
 
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
-
-
-class AuthorizedExportQuery(GenericQuery):
-    def __init__(
-            self,
-            info_role,
-            db_session,
-            tableName, schemaName, geometry_field,
-            filters, limit, offset=0):
-        self.user = info_role
-
-        super().__init__(
-            db_session,
-            tableName, schemaName, geometry_field,
-            filters, limit, offset)
-
-        logger.debug('query user: %s', self.user)
-        logger.debug('query user perm code: %s', self.user.tag_object_code)
-
-    def return_query(self):
-        query = self.db_session.query(self.view.tableDef)
-        nb_result_without_filter = query.count()
-
-        if self.filters:
-            query = self.build_query_filters(query, self.filters)
-            query = self.build_query_order(query, self.filters)
-
-        # FIXME: mv to repo
-        columns = self.view.tableDef.columns
-        column_names = [column.name for column in columns.values()]
-        auth_filters = []
-        # dataset actor
-        if self.user.tag_object_code in ('1', '2', 'E'):
-            if ('id_dataset' in column_names
-                    and (self.user.tag_object_code in ('2', 'E'))):
-                allowed_datasets = TDatasets.get_user_datasets(self.user)
-                if len(allowed_datasets) >= 1:
-                    auth_filters.append(
-                        columns.id_dataset.in_(tuple(allowed_datasets)))
-                # else:
-                #     raise InsufficientRightsError
-                logger.debug('Allowed datasets: %s', allowed_datasets)
-
-            if 'observers' in column_names:
-                auth_filters.append(
-                        columns.observers.any(id_role=self.user.id_role))
-
-            if 'id_digitiser' in column_names:
-                auth_filters.append(
-                    columns.id_digitiser == self.user.id_role)
-
-            query = query.filter(or_(*auth_filters))
-            logger.debug('SQL query: %s', query)
-
-        data = query.limit(self.limit).offset(self.offset * self.limit).all()
-        nb_results = query.count()
-
-        if self.geometry_field:
-            results = FeatureCollection(
-                [
-                    self.view.as_geofeature(d)
-                    for d in data
-                    if getattr(d, self.geometry_field) is not None
-                ]
-            )
-        else:
-            results = [self.view.as_dict(d) for d in data]
-
-        return {
-            'total': nb_result_without_filter,
-            'total_filtered': nb_results,
-            'page': self.offset,
-            'limit': self.limit,
-            'items': results
-        }
 
 
 class ExportRepository(object):
@@ -106,7 +27,9 @@ class ExportRepository(object):
         query = AuthorizedExportQuery(
             info_role, self.session, view, schema, geom_column_header,
             filters, limit, paging)
+
         columns = [col.name for col in query.view.db_cols]
+
         data = query.return_query()
         return (columns, data)
 
