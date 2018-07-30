@@ -36,9 +36,8 @@ class AuthorizedExportQuery(GenericQuery):
         logger.debug('query user perm code: %s', self.user.tag_object_code)
 
     def return_query(self):
-        if self.user.tag_object_code in ('1', '2', 'E'):
-            query = self.db_session.query(self.view.tableDef)
-            nb_result_without_filter = query.count()
+        query = self.db_session.query(self.view.tableDef)
+        nb_result_without_filter = query.count()
 
         if self.filters:
             query = self.build_query_filters(query, self.filters)
@@ -48,27 +47,28 @@ class AuthorizedExportQuery(GenericQuery):
         columns = self.view.tableDef.columns
         column_names = [column.name for column in columns.values()]
         auth_filters = []
-
         # dataset actor
-        if ('id_dataset' in column_names
-                and (self.user.tag_object_code in ('2', 'E'))):
-            allowed_datasets = TDatasets.get_user_datasets(self.user)
-            logger.debug('Allowed datasets: %s', allowed_datasets)
-            # if len(allowed_datasets) < 1:
-            #     raise InsufficientRightsError
-            # auth_filters.append(
-            #     columns.id_dataset.in_(tuple(allowed_datasets)))
+        if self.user.tag_object_code in ('1', '2', 'E'):
+            if ('id_dataset' in column_names
+                    and (self.user.tag_object_code in ('2', 'E'))):
+                allowed_datasets = TDatasets.get_user_datasets(self.user)
+                if len(allowed_datasets) >= 1:
+                    auth_filters.append(
+                        columns.id_dataset.in_(tuple(allowed_datasets)))
+                # else:
+                #     raise InsufficientRightsError
+                logger.debug('Allowed datasets: %s', allowed_datasets)
 
-        if 'observers' in column_names:
-            auth_filters.append(
-                    columns.observers.any(id_role=self.user.id_role))
+            if 'observers' in column_names:
+                auth_filters.append(
+                        columns.observers.any(id_role=self.user.id_role))
 
-        if 'id_digitiser' in column_names:
-            auth_filters.append(
-                columns.id_digitiser == self.user.id_role)
+            if 'id_digitiser' in column_names:
+                auth_filters.append(
+                    columns.id_digitiser == self.user.id_role)
 
-        query = query.filter(or_(*auth_filters))
-        logger.debug('SQL query: %s', query)
+            query = query.filter(or_(*auth_filters))
+            logger.debug('SQL query: %s', query)
 
         data = query.limit(self.limit).offset(self.offset * self.limit).all()
         nb_results = query.count()
