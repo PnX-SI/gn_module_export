@@ -9,7 +9,7 @@ logger.setLevel(logging.DEBUG)
 
 class AbstractFilterPolicy():
     @staticmethod
-    def apply(context, query, filter):
+    def apply(context, query):
         raise NotImplementedError
 
 
@@ -35,7 +35,7 @@ class DatasetActorFilterPolicy(AbstractFilterPolicy):
     ''' dataset actor data. '''
 
     @staticmethod
-    def apply(context, query, filter):
+    def apply(context, query):
         user = context.user
         if user.tag_object_code in ('1', '2', 'E'):
             columns = context.view.tableDef.columns
@@ -60,4 +60,5 @@ class DatasetActorFilterPolicy(AbstractFilterPolicy):
 
             query = OrCompositeFilter.apply(context, query, filters)
             logger.debug('SQL query: %s', query)
-            return query
+
+        return query

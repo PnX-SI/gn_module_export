@@ -18,6 +18,7 @@ class AuthorizedExportQuery(GenericQuery):
             tableName, schemaName, geometry_field,
             filters, limit, offset=0):
         self.user = info_role
+        self.default_export_filter_policy = DatasetActorFilterPolicy
 
         super().__init__(
             db_session,
@@ -26,7 +27,7 @@ class AuthorizedExportQuery(GenericQuery):
 
         logger.debug('User perm: %s', self.user.tag_object_code)
 
-    def return_query(self):
+    def return_query(self, policy=None):
         query = self.db_session.query(self.view.tableDef)
         nb_result_without_filter = query.count()
 
@@ -34,8 +35,10 @@ class AuthorizedExportQuery(GenericQuery):
             query = self.build_query_filters(query, self.filters)
             query = self.build_query_order(query, self.filters)
 
-        DefaultExportFilterPolicy = DatasetActorFilterPolicy()
-        query = DefaultExportFilterPolicy.apply(self, query, None)
+        if not policy:
+            query = self.default_export_filter_policy.apply(self, query)
+        else:
+            query = policy.apply(self, query)
 
         data = query.limit(self.limit).offset(self.offset * self.limit).all()
         nb_results = query.count()
