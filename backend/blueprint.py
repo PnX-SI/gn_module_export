@@ -1,4 +1,3 @@
-# flake8: noqa E501
 from datetime import datetime
 import logging
 from sqlalchemy.exc import IntegrityError
@@ -76,7 +75,6 @@ def create(info_role):
     view_name = payload.get('view_name', None)
     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
-    id_export = payload.get('id_export', None)
 
     id_creator = info_role.id_role
 
@@ -86,20 +84,20 @@ def create(info_role):
                 'label' if (schema_name and view_name) else 'schema or view name')}, 400  # noqa E501
 
     repo = ExportRepository()
-    if not id_export:
-        try:
-            export = repo.create(
-                id_creator=id_creator,
-                label=label,
-                schema_name=schema_name,
-                view_name=view_name,
-                desc=desc)
-            return export.as_dict(), 201
-        except IntegrityError as e:
-            if '(label)=({})'.format(label) in str(e):
-                return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
-            else:
-                raise
+    try:
+        export = repo.create(
+            id_creator=id_creator,
+            label=label,
+            schema_name=schema_name,
+            view_name=view_name,
+            desc=desc)
+    except IntegrityError as e:
+        if '(label)=({})'.format(label) in str(e):
+            return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
+        else:
+            raise
+    else:
+        return export.as_dict(), 201
 
 
 @blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
@@ -110,14 +108,13 @@ def update(id_export, info_role):
     view_name = payload.get('view_name', None)
     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
-    id_export = payload.get('id_export', None) or id_export
 
     id_creator = info_role.id_role
 
-    if not(label and schema_name and view_name):
+    if not all(label, schema_name, view_name, desc):
         return {
-            'error': 'Missing {} parameter.'. format(
-                'label' if (schema_name and view_name) else 'schema or view name')}, 400  # noqa E501
+            'error': 'Missing parameter.'. format(
+                'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa E501
 
     repo = ExportRepository()
     try:
@@ -128,13 +125,14 @@ def update(id_export, info_role):
             schema_name=schema_name,
             view_name=view_name,
             desc=desc)
-        return export.as_dict(), 201
     except NoResultFound as e:
         logger.warn('%s', str(e))
         return {'error': str(e)}, 404
     except Exception as e:
         logger.critical('%s', str(e))
         return {'error': 'LoggedError'}, 400
+    else:
+        return export.as_dict(), 201
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
@@ -144,13 +142,14 @@ def delete_export(id_export, info_role):
     repo = ExportRepository()
     try:
         repo.delete(info_role.id_role, id_export)
-        return {'result': 'success'}, 204
     except NoResultFound as e:
         logger.warn('%s', str(e))
         return {'error': str(e)}, 404
     except Exception as e:
         logger.critical('%s', str(e))
         return {'error': 'LoggedError'}, 400
+    else:
+        return {'result': 'success'}, 204
 
 
 @blueprint.route('/')

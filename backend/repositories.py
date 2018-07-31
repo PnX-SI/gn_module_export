@@ -47,11 +47,7 @@ class ExportRepository(object):
         if not export:
             raise NoResultFound('Unknown export id {}.'.format(id_export))
         if with_data and format:
-            # FIXME: find_geometry_columns
-            # public.geometry_columns
-            # geom_column_header = 'geom_4326'
-            # srid = 4326
-
+            # FIXME: find_geometry_columns: public.geometry_columns ?
             try:
                 columns, data = self._get_data(
                     info_role, export.view_name, export.schema_name,
@@ -100,7 +96,7 @@ class ExportRepository(object):
             return x
 
     def update(self, **kwargs):
-        # TODO: drop and recreate/refresh view
+        # TODO: drop/recreate/refresh view
         x = self.get_by_id(kwargs['id_export'])
         if not x:
             raise NoResultFound(
@@ -124,9 +120,11 @@ class ExportRepository(object):
         x = self.get_by_id(id_export)
         x.deleted = datetime.utcnow()
         try:
-            ExportLog.log(
-                id_export=x.id, format='dele', id_user=id_role)
+            self.session.add(x)
+            self.session.flush()
         except Exception as e:
             logger.critical('%s', str(e))
             raise e('Echec de journalisation.')
-        # self.session.flush()  # session is flushed in ExportLog.log()
+        else:
+            ExportLog.log(
+                id_export=x.id, format='dele', id_user=id_role)
