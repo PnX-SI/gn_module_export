@@ -23,7 +23,7 @@ class DatasetActorFilterPolicy(AbstractCompositeFilterPolicy):
     ''' dataset actor data. '''
 
     @staticmethod
-    def apply(context, query):
+    def apply(context, query, filters=None):
         user = context.user
         if user.tag_object_code in ('1', '2', 'E'):
             columns = context.view.tableDef.columns

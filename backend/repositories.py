@@ -20,7 +20,7 @@ class ExportRepository(object):
 
     def _get_data(
             self, info_role, view, schema,
-            geom_column_header=None, filters={}, limit=10000, paging=0):
+            geom_column_header=None, filters=None, limit=10000, paging=0):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
@@ -39,7 +39,7 @@ class ExportRepository(object):
             id_export,
             with_data=False,
             geom_column_header=None,
-            filters={},
+            filters=None,
             limit=10000,
             paging=0,
             format=None):
@@ -59,16 +59,17 @@ class ExportRepository(object):
                     filters=filters,
                     limit=limit,
                     paging=paging)
-                ExportLog.log(
-                    id_export=export.id, format=format,
-                    id_user=info_role.id_role)
             except InsufficientRightsError as e:
                 logger.warn('InsufficientRightsError')
                 raise e
             except Exception as e:
                 logger.critical('%s', str(e))
                 raise e
-            return (export.as_dict(), columns, data)
+            else:
+                ExportLog.log(
+                    id_export=export.id, format=format,
+                    id_user=info_role.id_role)
+                return (export.as_dict(), columns, data)
         else:
             return export.as_dict()
 
@@ -85,16 +86,18 @@ class ExportRepository(object):
             x = Export(**kwargs)
             self.session.add(x)
             self.session.flush()
-            ExportLog.log(
-                id_export=x.id, format='crea', id_user=x.id_creator)
         except IntegrityError as e:
             self.session.rollback()
             logger.warn('%s', str(e))
             raise e
         except Exception as e:
+            self.session.rollback()
             logger.warn('%s', str(e))
             raise e
-        return x
+        else:
+            ExportLog.log(
+                id_export=x.id, format='crea', id_user=x.id_creator)
+            return x
 
     def update(self, **kwargs):
         # TODO: drop and recreate/refresh view
@@ -111,9 +114,10 @@ class ExportRepository(object):
             self.session.rollback()
             logger.warn('%s', str(e))
             raise e
-        ExportLog.log(
-            id_export=x.id, format='upda', id_user=kwargs['id_role'])
-        return x
+        else:
+            ExportLog.log(
+                id_export=x.id, format='upda', id_user=kwargs['id_role'])
+            return x
 
     def delete(self, id_role, id_export):
         # TODO: drop view

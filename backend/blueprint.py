@@ -5,16 +5,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
-    session,
     request,
     current_app)
 from geonature.utils.env import get_module_id
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
-from pypnusershub.db.tools import (
-    InsufficientRightsError,
-    get_or_fetch_user_cruved
-)
+from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub import routes as fnauth
 
 from .repositories import ExportRepository
@@ -36,7 +32,7 @@ def export_filename_pattern(export):
 
 @blueprint.route('/export/<int:id_export>/<format>', methods=['GET'])
 @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
-def export_format(id_export, format, info_role):
+def export(id_export, format, info_role):
     logger.debug('info_role: %s', info_role)
 
     if id_export < 1:
@@ -71,19 +67,16 @@ def export_format(id_export, format, info_role):
         return to_json_resp({'error': 'LoggedError'}, status=400)
 
 
-# TODO: endpoint separation
-@blueprint.route(
-    '/export', defaults={'id_export': None}, methods=['POST', 'PUT'])
-@blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
-@fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
+@blueprint.route('/export', methods=['POST', 'PUT'])  # noqa E501
+@fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
 @json_resp
-def create_or_update_export(id_export, info_role):
+def create(info_role):
     payload = request.get_json()
     label = payload.get('label', None)
     view_name = payload.get('view_name', None)
     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
-    id_export = payload.get('id_export', None) or id_export
+    id_export = payload.get('id_export', None)
 
     id_creator = info_role.id_role
 
@@ -107,22 +100,41 @@ def create_or_update_export(id_export, info_role):
                 return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
             else:
                 raise
-    else:
-        try:
-            export = repo.update(
-                id_creator=id_creator,
-                id_export=id_export,
-                label=label,
-                schema_name=schema_name,
-                view_name=view_name,
-                desc=desc)
-            return export.as_dict(), 201
-        except NoResultFound as e:
-            logger.warn('%s', str(e))
-            return {'error': str(e)}, 404
-        except Exception as e:
-            logger.critical('%s', str(e))
-            return {'error': 'LoggedError'}, 400
+
+
+@blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
+@fnauth.check_auth_cruved('U', True, id_app=ID_MODULE)
+def update(id_export, info_role):
+    payload = request.get_json()
+    label = payload.get('label', None)
+    view_name = payload.get('view_name', None)
+    schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
+    desc = payload.get('desc', None)
+    id_export = payload.get('id_export', None) or id_export
+
+    id_creator = info_role.id_role
+
+    if not(label and schema_name and view_name):
+        return {
+            'error': 'Missing {} parameter.'. format(
+                'label' if (schema_name and view_name) else 'schema or view name')}, 400  # noqa E501
+
+    repo = ExportRepository()
+    try:
+        export = repo.update(
+            id_creator=id_creator,
+            id_export=id_export,
+            label=label,
+            schema_name=schema_name,
+            view_name=view_name,
+            desc=desc)
+        return export.as_dict(), 201
+    except NoResultFound as e:
+        logger.warn('%s', str(e))
+        return {'error': str(e)}, 404
+    except Exception as e:
+        logger.critical('%s', str(e))
+        return {'error': 'LoggedError'}, 400
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
@@ -145,14 +157,11 @@ def delete_export(id_export, info_role):
 @fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
 @json_resp
 def getExports(info_role):
-    user_cruved = get_or_fetch_user_cruved(
-        session=session,
-        id_role=info_role.id_role,
-        id_application_parent=current_app.config['ID_APPLICATION_GEONATURE']
-    )
-    logger.debug('cruved_user: %s', user_cruved)
-    # logger.debug(current_app.config)
-
     repo = ExportRepository()
-    exports = repo.get_list()
-    return [export.as_dict() for export in exports]
+    try:
+        exports = repo.get_list()
+    except NoResultFound as e:
+        logger.warn('%s', str(e))
+        return {'error': str(e)}, 204
+    else:
+        return [export.as_dict() for export in exports]
