@@ -1,7 +1,11 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Routes, RouterModule } from "@angular/router";
-import { HttpClientModule } from "@angular/common/http";
+import {
+  HttpClientModule,
+  HttpClientXsrfModule,
+  HTTP_INTERCEPTORS
+} from "@angular/common/http";
 import { GN2CommonModule } from "@geonature_common/GN2Common.module";
 import { TranslateHttpLoader } from "@ngx-translate/http-loader";
 import { ExportsListComponent, NgPBar } from "./exports-list/exports-list.component";
@@ -13,7 +17,10 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    HttpClientModule,
+    HttpClientXsrfModule.withOptions({
+      cookieName: 'token',
+      headerName: 'token'
+    }),
     CommonModule,
     GN2CommonModule,
     RouterModule.forChild(routes)
@@ -23,7 +30,7 @@ const routes: Routes = [
     NgPBar
   ],
   providers: [
-    ExportService, 
+    ExportService,
   ],
   bootstrap: []
 })
