@@ -27,8 +27,7 @@ export interface Export {
   deleted: Date;
 }
 
-const apiEndpoint='http://localhost:8000/exports';
-
+const apiEndpoint='http://localhost/geonature/api/exports';
 
 export const FormatMapMime = new Map([
   ['csv', 'text/csv'],

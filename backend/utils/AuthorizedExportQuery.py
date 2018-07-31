@@ -44,13 +44,11 @@ class AuthorizedExportQuery(GenericQuery):
         nb_results = query.count()
 
         if self.geometry_field:
-            results = FeatureCollection(
-                [
-                    self.view.as_geofeature(d)
-                    for d in data
-                    if getattr(d, self.geometry_field) is not None
-                ]
-            )
+            results = FeatureCollection([
+                self.view.as_geofeature(d)
+                for d in data
+                if getattr(d, self.geometry_field) is not None
+            ])
         else:
             results = [self.view.as_dict(d) for d in data]
 

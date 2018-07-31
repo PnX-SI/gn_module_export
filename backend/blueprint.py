@@ -12,9 +12,9 @@ from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 from pypnusershub.db.tools import (
     InsufficientRightsError,
-    # get_or_fetch_user_cruved
+    get_or_fetch_user_cruved
 )
-# from pypnusershub import routes as fnauth
+from pypnusershub import routes as fnauth
 
 from .repositories import ExportRepository
 
@@ -157,9 +157,9 @@ def delete_export(id_export, info_role=UserMock()):
 
 
 @blueprint.route('/')
-# @fnauth.check_auth_cruved('R', True, id_app=17)
+@fnauth.check_auth_cruved('R', True, id_app=17)
 @json_resp
-def getExports(info_role=UserMock()):
+def getExports(info_role):
     # user_cruved = get_or_fetch_user_cruved(
     #     session=session,
     #     id_role=info_role.id_role,

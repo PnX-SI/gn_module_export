@@ -9,7 +9,7 @@ logger.setLevel(logging.DEBUG)
 
 class AbstractFilterPolicy():
     @staticmethod
-    def apply(context, query):
+    def apply(context, query, filter=None):
         raise NotImplementedError
 
 
