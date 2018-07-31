@@ -1,6 +1,6 @@
 import logging
 from flask import current_app
-from sqlalchemy import or_, and_
+from sqlalchemy import or_
 
 
 logger = current_app.logger
@@ -13,25 +13,13 @@ class AbstractFilterPolicy():
         raise NotImplementedError
 
 
-class AbstractCompositeFilter(AbstractFilterPolicy):
+class AbstractCompositeFilterPolicy(AbstractFilterPolicy):
     @staticmethod
-    def apply(context, query, filters):
+    def apply(context, query, filters=None):
         raise NotImplementedError
 
 
-class OrCompositeFilter(AbstractCompositeFilter):
-    @staticmethod
-    def apply(context, query, filters):
-        return query.filter(or_(*filters))
-
-
-class AndCompositeFilter(AbstractCompositeFilter):
-    @staticmethod
-    def apply(context, query, filters):
-        return query.filter(and_(*filters))
-
-
-class DatasetActorFilterPolicy(AbstractFilterPolicy):
+class DatasetActorFilterPolicy(AbstractCompositeFilterPolicy):
     ''' dataset actor data. '''
 
     @staticmethod
@@ -58,7 +46,6 @@ class DatasetActorFilterPolicy(AbstractFilterPolicy):
             if 'id_digitiser' in column_names:
                 filters.append(columns.id_digitiser == user.id_role)
 
-            query = OrCompositeFilter.apply(context, query, filters)
-            logger.debug('SQL query: %s', query)
+            query = query.filter(or_(*filters))
 
         return query

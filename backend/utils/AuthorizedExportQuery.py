@@ -39,6 +39,7 @@ class AuthorizedExportQuery(GenericQuery):
             query = self.default_export_filter_policy.apply(self, query)
         else:
             query = policy.apply(self, query)
+        logger.debug('SQL query: %s', query)
 
         data = query.limit(self.limit).offset(self.offset * self.limit).all()
         nb_results = query.count()
