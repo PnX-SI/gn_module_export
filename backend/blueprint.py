@@ -5,9 +5,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
-    # session,
+    session,
     request,
     current_app)
+from geonature.utils.env import get_module_id
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 from pypnusershub.db.tools import (
@@ -22,16 +23,10 @@ from .repositories import ExportRepository
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
+ID_MODULE = get_module_id('exports')
 DEFAULT_SCHEMA = 'gn_exports'
 
 blueprint = Blueprint('exports', __name__)
-
-
-class UserMock():
-    def __init__(self, id_role=1, tag_object_code='2'):
-        self.id_role = id_role
-        self.tag_object_code = tag_object_code
-        self.id_organisme = '-1'
 
 
 def export_filename_pattern(export):
@@ -40,11 +35,8 @@ def export_filename_pattern(export):
 
 
 @blueprint.route('/export/<int:id_export>/<format>', methods=['GET'])
-# @fnauth.check_auth_cruved(
-#     'E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
-#     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
-def export_format(id_export, format, info_role=UserMock()):
+@fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
+def export_format(id_export, format, info_role):
     logger.debug('info_role: %s', info_role)
 
     if id_export < 1:
@@ -79,17 +71,13 @@ def export_format(id_export, format, info_role=UserMock()):
         return to_json_resp({'error': 'LoggedError'}, status=400)
 
 
+# TODO: endpoint separation
 @blueprint.route(
     '/export', defaults={'id_export': None}, methods=['POST', 'PUT'])
 @blueprint.route('/export/<int:id_export>', methods=['POST', 'PUT'])
-# @fnauth.check_auth_cruved(
-#     'E', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
-#     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
+@fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
 @json_resp
-def create_or_update_export(info_role=UserMock(), id_export=None):
-    # logger.debug(info_role)
-
+def create_or_update_export(id_export, info_role):
     payload = request.get_json()
     label = payload.get('label', None)
     view_name = payload.get('view_name', None)
@@ -138,12 +126,9 @@ def create_or_update_export(info_role=UserMock(), id_export=None):
 
 
 @blueprint.route('/export/<id_export>', methods=['DELETE'])
-# @fnauth.check_auth_cruved(
-#     'D', True,
-#     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
-#     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
+@fnauth.check_auth_cruved('D', True, id_app=ID_MODULE)
 @json_resp
-def delete_export(id_export, info_role=UserMock()):
+def delete_export(id_export, info_role):
     repo = ExportRepository()
     try:
         repo.delete(info_role.id_role, id_export)
@@ -157,15 +142,17 @@ def delete_export(id_export, info_role=UserMock()):
 
 
 @blueprint.route('/')
-@fnauth.check_auth_cruved('R', True, id_app=17)
+@fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
 @json_resp
 def getExports(info_role):
-    # user_cruved = get_or_fetch_user_cruved(
-    #     session=session,
-    #     id_role=info_role.id_role,
-    #     id_application_parent=current_app.config['ID_APPLICATION_GEONATURE']
-    # )
-    # logger.debug('cruved_user', user_cruved)
+    user_cruved = get_or_fetch_user_cruved(
+        session=session,
+        id_role=info_role.id_role,
+        id_application_parent=current_app.config['ID_APPLICATION_GEONATURE']
+    )
+    logger.debug('cruved_user: %s', user_cruved)
+    # logger.debug(current_app.config)
+
     repo = ExportRepository()
     exports = repo.get_list()
     return [export.as_dict() for export in exports]
