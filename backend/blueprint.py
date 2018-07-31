@@ -95,6 +95,7 @@ def create(info_role):
         if '(label)=({})'.format(label) in str(e):
             return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
         else:
+            logger.critical('%s', str(e))
             raise
     else:
         return export.as_dict(), 201

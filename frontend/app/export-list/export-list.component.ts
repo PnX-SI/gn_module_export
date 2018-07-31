@@ -48,12 +48,12 @@ export class NgPBar {
 }
 
 @Component({
-  selector: "pnx-exports-list",
-  templateUrl: "exports-list.component.html",
-  styleUrls: ["./exports-list.component.scss"],
+  selector: "pnx-export-list",
+  templateUrl: "export-list.component.html",
+  styleUrls: ["./export-list.component.scss"],
   providers: []
 })
-export class ExportsListComponent {
+export class ExportListComponent {
   exports$: Observable<Export[]>
   public modalForm : FormGroup;
   public buttonDisabled: boolean = false;

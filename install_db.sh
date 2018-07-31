@@ -13,8 +13,6 @@ mkdir -p /tmp/geonature
 
 echo "Create exports schema..."
 echo "--------------------" &> /var/log/geonature/install_exports_schema.log
-echo "Create exports schema" &>> /var/log/geonature/install_exports_schema.log
-echo "--------------------" &>> /var/log/geonature/install_exports_schema.log
 echo "" &>> /var/log/geonature/install_exports_schema.log
 cp data/exports.sql /tmp/geonature/exports.sql
 sudo sed -i "s/MYLOCALSRID/$srid_local/g" /tmp/geonature/exports.sql

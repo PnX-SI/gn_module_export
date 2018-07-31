@@ -100,7 +100,7 @@ class ExportRepository(object):
         x = self.get_by_id(kwargs['id_export'])
         if not x:
             raise NoResultFound(
-                'Unknown export id {}'.format(kwargs['id_export']))
+                'Unknown export id: {}'.format(kwargs['id_export']))
         try:
             x.__dict__.update(
                 (k, v) for k, v in kwargs.items() if k in x.__dict__)
