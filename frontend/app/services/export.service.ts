@@ -72,7 +72,7 @@ export class ExportService {
   }
 
   downloadExport(xport: Export, extension: string) {
-    let downloadExportURL = `${apiEndpoint}/export/${xport.id}/${extension}`
+    let downloadExportURL = `${apiEndpoint}/${xport.id}/${extension}`
 
     let source = this._api.get(downloadExportURL, {
       headers: new HttpHeaders().set('Content-Type', `${FormatMapMime.get(extension)}`),
