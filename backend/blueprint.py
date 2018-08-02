@@ -29,6 +29,7 @@ def export_filename_pattern(export):
         [export.get('label'), datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
 
 
+# TODO: use UUIDs
 @blueprint.route('/export/<int:id_export>/<format>', methods=['GET'])
 @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
 def export(id_export, format, info_role):
@@ -37,7 +38,7 @@ def export(id_export, format, info_role):
     if id_export < 1:
         return to_json_resp({'error': 'Invalid export id'}, status=404)
 
-    assert format in ['csv', 'json']
+    assert format in ('csv', 'json')
 
     repo = ExportRepository()
     try:
@@ -57,7 +58,8 @@ def export(id_export, format, info_role):
 
     except NoResultFound as e:
         logger.warn('%s', str(e))
-        return to_json_resp({'error': str(e)}, status=404)
+        return to_json_resp({'error': 'NoResultFound',
+                             'message': str(e)}, status=404)
     except InsufficientRightsError:
         logger.warn('InsufficientRightsError')
         return to_json_resp({'error': 'InsufficientRightsError'}, status=403)
@@ -80,7 +82,8 @@ def create(info_role):
 
     if not(label and schema_name and view_name):
         return {
-            'error': 'Missing {} parameter.'. format(
+            'error': 'MissingParameter',
+            'message': 'Missing {} parameter.'. format(
                 'label' if (schema_name and view_name) else 'schema or view name')}, 400  # noqa E501
 
     repo = ExportRepository()
@@ -93,7 +96,8 @@ def create(info_role):
             desc=desc)
     except IntegrityError as e:
         if '(label)=({})'.format(label) in str(e):
-            return {'error': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
+            return {'error': 'RegisteredLabel',
+                    'message': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
         else:
             logger.critical('%s', str(e))
             raise
