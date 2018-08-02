@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 import logging
 from sqlalchemy.exc import IntegrityError
@@ -5,7 +6,8 @@ from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
     request,
-    current_app)
+    current_app,
+    send_from_directory)
 from geonature.utils.env import get_module_id
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
@@ -20,11 +22,32 @@ logger.setLevel(logging.DEBUG)
 
 ID_MODULE = get_module_id('exports')
 DEFAULT_SCHEMA = 'gn_exports'
+ASSETS = 'assets'
+SWAGGER_UI_DIST_DIR = 'swagger-ui-dist'  # extracted from npm install
+SWAGGER_API_YML = 'api.yaml'
 
 blueprint = Blueprint('exports', __name__)
 
 
-def export_filename_pattern(export):
+@blueprint.route('/swagger-ui/')
+def swagger_ui():
+    return send_from_directory(os.path.join(
+        blueprint.root_path, ASSETS, SWAGGER_UI_DIST_DIR), 'index.html')
+
+
+@blueprint.route('/swagger-ui/<asset>')
+def swagger_assets(asset):
+    return send_from_directory(os.path.join(
+        blueprint.root_path, ASSETS, SWAGGER_UI_DIST_DIR), asset)
+
+
+@blueprint.route('/api.yml')
+def swagger_api_yml():
+    return send_from_directory(os.path.join(
+        blueprint.root_path, ASSETS), SWAGGER_API_YML)
+
+
+def export_filename(export):
     return '_'.join(
         [export.get('label'), datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
 
@@ -45,7 +68,7 @@ def export(id_export, format, info_role):
         export, columns, data = repo.get_by_id(
             info_role, id_export, with_data=True, format=format)
         if export:
-            fname = export_filename_pattern(export)
+            fname = export_filename(export)
 
             if format == 'json':
                 return to_json_resp(
