@@ -12,6 +12,7 @@ class Export(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True, nullable=False)
     id_creator = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
     role = DB.relationship('TRoles', foreign_keys=[id_creator], lazy='select')
+    # contributors?
     label = DB.Column(DB.Text, nullable=False, unique=True)
     schema_name = DB.Column(DB.Text, nullable=False)
     view_name = DB.Column(DB.Text, nullable=False)

@@ -46,8 +46,7 @@ class AuthorizedExportQuery(GenericQuery):
             results = FeatureCollection([
                 self.view.as_geofeature(d)
                 for d in data
-                if getattr(d, self.geometry_field) is not None
-            ])
+                if getattr(d, self.geometry_field) is not None])
         else:
             results = [self.view.as_dict(d) for d in data]
 
@@ -56,5 +55,4 @@ class AuthorizedExportQuery(GenericQuery):
             'total_filtered': nb_results,
             'page': self.offset,
             'limit': self.limit,
-            'items': results
-        }
+            'items': results}
