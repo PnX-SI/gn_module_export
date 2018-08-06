@@ -1,83 +1,396 @@
 <div id="all">
-    <div class="row row-m">
-        <div class="container card">
-            <div id="title">
-            <h2>EXPORTS</h2>
-            <hr align="left" width="75%">
+        <div class="row row-m">
+            <div class="container card">
+                <div id="title">
+                <h2>EXPORTS</h2>
+                <hr align="left" width="75%">
+                </div>
+                <div id="textPresentation">
+                    <p>Voici la liste des exports disponibles. Ces exports ont été programmés par l'administration Géonature.</p>
+                </div>
+                <div id="textPresentation">
+                    <p>Pour modifier cette liste ou avoir un export supplémentaire, veuillez contacter le service admin.</p>
+                </div>
+                    <!-- Liste des exports disponibles au téléchargement -->
+                <div class="btn-group btn-group-vertical" data-toggle="buttons" id="button-export">
+                  <label *ngFor='let export of exports$ | async; let i = index;' class="btn btn-primary">
+                    <input type="radio" name="options" [checked]="i==0" [id]="export.label">Export {{ export.label }} - {{ (export.updated ? export.updated : export.created) | date: 'dd/MM/yyyy' }}
+                  </label>
+                </div>
+    
+                <div id="checkLicence">
+    
+                    <label for="licence">Acceptez la licence</label>
+                    <input type="checkbox" class="form-control" id="licence" (click)="follow()" ngModel required/>
+    
+                </div>
+    
+                <div id="readlicence">
+                  <a href="external_assets/exports/licence.pdf" download="licence.pdf" type="application/octet-stream">
+                    <input type="button" class="btn btn-outline-secondary btn-sm pull-right" value="Lire la licence">
+                  </a>
+                </div>
+    
+    
+            <hr align="right" width="75%">
+    
+            <div id="globalChoice">
+                <div id="choice">
+                        <a routerLink=""><button type="submit" id="AccueilButton" class="btn btn-danger">Fermer</button></a>
+                        <button [disabled]="!buttonDisabled" type="submit" id="AccueilButton" class="btn btn-success" ngbTooltip="Accepter la licence" (click)="open(content)"> Télécharger </button>
+                </div>
+                <div id="choiceAdmin">
+                        <button [disabled]="!buttonDisabled" type="submit" id="AccueilButtonAdmin" class="btn btn-warning" ngbTooltip="Accepter la licence" (click)="open(contentApi)"> Accès API </button>
+                </div>
             </div>
-            <div id="textPresentation">
-                <p>Voici la liste des exports disponibles. Ces exports ont été programmés par l'administration Géonature.</p>
-            </div>
-            <div id="textPresentation">
-                <p>Pour modifier cette liste ou avoir un export supplémentaire, veuillez contacter le service admin.</p>
-            </div>
-                <!-- Liste des exports disponibles au téléchargement -->
-            <div class="btn-group btn-group-vertical" data-toggle="buttons" id="button-export">
-              <label *ngFor='let export of exports$ | async; let i = index;' class="btn btn-primary">
-                <input type="radio" name="options" [checked]="i==0" [id]="export.label">Export {{ export.label }} - {{ (export.updated ? export.updated : export.created) | date: 'dd/MM/yyyy' }}
-              </label>
-            </div>
-
-            <div id="checkLicence">
-
-                <label for="licence">Acceptez la licence</label>
-                <input type="checkbox" class="form-control" id="licence" (click)="follow()" ngModel required/>
-
-            </div>
-
-            <div id="readlicence">
-              <a href="external_assets/exports/licence.pdf" download="licence.pdf" type="application/octet-stream">
-                <input type="button" class="btn btn-outline-secondary btn-sm pull-right" value="Lire la licence">
-              </a>
-            </div>
-
-
-        <hr align="right" width="75%">
-
-        <div id="globalChoice">
-            <div id="choice">
-                    <a routerLink=""><button type="submit" id="AccueilButton" class="btn btn-danger">Fermer</button></a>
-                    <button [disabled]="!buttonDisabled" type="submit" id="AccueilButton" class="btn btn-success" ngbTooltip="Accepter la licence" (click)="open(content)"> Télécharger </button>
-            </div>
-            <div id="choiceAdmin">
-                    <button [disabled]="!buttonDisabled" type="submit" id="AccueilButtonAdmin" class="btn btn-warning" ngbTooltip="Accepter la licence"> Accès API </button>
+    
             </div>
         </div>
-
-        </div>
-    </div>
-
-    <!-- Modal Téléchargement Popup-->
-    <ng-template #content let-c="close" let-d="dismiss">
-
-        <!-- Modal content-->
-        <form [formGroup]="modalForm" class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">Configuration de l'export</h4>
-            </div>
-
-            <div class="modal-body">
-                    <!-- Formulaire pour le choix des standards et des formats de téléchargement des fichiers -->
+    
+        <!-- Modal Choix API - Interface graphique -->
+        <ng-template #contentApi let-c="close" let-d="dismiss">
+    
+            <!-- Modal content-->
+            <form [formGroup]="modalForm" class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" style="text-indent: 25px;"> - INTERFACE API INTEROPERABILITE - </h4>
+                </div>
+    
+                <div class="modal-body">
+                    <!-- Sélection des champs API -->
+                    <!-- Classification -->
                     <br>
-                    <ul> <li> Choisir un format </li> </ul>
-                    <select class="form-control" id="chooseFormat" formControlName="chooseFormat" required autocomplete="off">
-                            <option value="csv">CSV</option>
-                            <option value="json">JSON</option>
-                            <option value="rdf" [disabled]="true">RDF</option>
-                    </select>
-                    <!-- Affichage d'une barre de progression lors du téléchargement du fichier -->
-                    <div *ngIf="barHide">
-                        <ng-pbar></ng-pbar>
+                    <div class="classification">
+                        <a class="btn btn-outline-primary btn-block" href="#classificationCollapse" data-toggle="collapse" aria-expanded="false" aria-controls="classificationCollapse"> Classification </a>
+                        <section id="classificationCollapse" class="collapse">
+                        
+                        <br>
+                        <!-- cdRef -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkCdRef"/></div>
+                            <div class="col-sm-4"><p>cdRef</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkCdRef">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkCdRef"></div>
+                        </div>
+    
+                        <br>
+                        <!-- cdNom -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkCdNom"/></div>
+                            <div class="col-sm-4"><p>cdNom</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkCdNom">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+    
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkCdNom"></div>
+                        </div>
+    
+                        <br>
+                        <!-- Regne -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkRegne"/></div>
+                            <div class="col-sm-4"><p>regne</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkRegne">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkRegne"></div>
+                        </div>
+    
+                        <br>
+                        <!-- Famille -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkFamille"/></div>
+                            <div class="col-sm-4"><p>famille</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkFamille">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkFamille"></div>
+                        </div>
+    
+                        <br>
+                        <!-- Groupe -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkGroupe"/></div>
+                            <div class="col-sm-4"><p>groupe</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkGroupe">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkGroupe"></div>
+                        </div>
+                         </section>
                     </div>
+    
+                    <!-- Reconnaissance -->
+                    <div class="Reconnaissance">
+                        <br>
+                        <a class="btn btn-outline-primary btn-block" href="#reconnaissanceCollapse" data-toggle="collapse" aria-expanded="false" aria-controls="reconnaissanceCollapse"> Reconnaissance </a>
+                        <section id="reconnaissanceCollapse" class="collapse">
+                        
+                        <br>
+                        <!-- obsTechnique -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkObsTechnique"/></div>
+                            <div class="col-sm-4"><p>obsTechnique</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkObsTechnique">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkObsTechnique"></div>
+                        </div>
+    
+                        <br>
+                        <!-- bioStatus -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkBioStatus"/></div>
+                            <div class="col-sm-4"><p>bioStatus</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkBioStatus">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkBioStatus"></div>
+                        </div>
+    
+                        <br>
+                        <!-- bioCondition -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkBiocondition"/></div>
+                            <div class="col-sm-4"><p>bioCondition</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkBiocondition">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkBiocondition"></div>
+                        </div>
+    
+                        <br>
+                        <!-- sex -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkSex"/></div>
+                            <div class="col-sm-4"><p>sex</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkSex">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkSex"></div>
+                        </div>
+    
+                        <br>
+                        <!-- blurring -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkblurring"/></div>
+                            <div class="col-sm-4"><p>blurring</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkblurring">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkblurring"></div>
+                        </div>
+    
+                        <br>
+                        <!-- existProof -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkExistProof"/></div>
+                            <div class="col-sm-4"><p>existProof</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkExistProof">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkExistProof"></div>
+                        </div>
+    
+                        </section>
+                    </div>
+    
                     <br>
-            </div>
-
-            <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
-            <div class="modal-footer" id="choicePopup">
-                    <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Fermer</button>
-                    <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="showme()">OK</button>
-            </div>
-        </form>
-    </ng-template>
-
-</div>
+                    <!-- Geo-localisation -->
+                    <div class="localisation">
+                        <a class="btn btn-outline-primary btn-block" href="#localisationCollapse" data-toggle="collapse" aria-expanded="false" aria-controls="localisationCollapse"> Geo-localisation </a>
+                        <section id="localisationCollapse" class="collapse">
+                        
+                        <br>
+                        <!-- altitudeMin -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkAltitudeMin"/></div>
+                            <div class="col-sm-4"><p>altitudeMin</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkAltitudeMin">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                                <option value="sup">></option>
+                                <option value="inf"><</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkAltitudeMin"></div>
+                        </div>
+    
+                        <br>
+                        <!-- altitudeMax -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkAltitudeMax"/></div>
+                            <div class="col-sm-4"><p>altitudeMax</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkAltitudeMax">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                                <option value="sup">></option>
+                                <option value="inf"><</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkAltitudeMax"></div>
+                        </div>
+    
+                        <br>
+                        <!-- municipality -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkMunicipality"/></div>
+                            <div class="col-sm-4"><p>municipality</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkMunicipality">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkMunicipality"></div>
+                        </div>
+    
+                        <br>
+                        <!-- dateMin -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkDateMin"/></div>
+                            <div class="col-sm-4"><p>dateMin</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkDateMin">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                                <option value="sup">></option>
+                                <option value="inf"><</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkDateMin"></div>
+                        </div>
+    
+                        <br>
+                        <!-- dateMax -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkDateMax"/></div>
+                            <div class="col-sm-4"><p>dateMax</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkDateMax">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                                <option value="sup">></option>
+                                <option value="inf"><</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkDateMax"></div>
+                        </div>
+    
+                        <br>
+                        <!-- hourMin -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkHourMin"/></div>
+                            <div class="col-sm-4"><p>hourMin</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkHourMin">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                                <option value="sup">></option>
+                                <option value="inf"><</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkHourMin"></div>
+                        </div>
+    
+                        <br>
+                        <!-- hourMax -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkHourMax"/></div>
+                            <div class="col-sm-4"><p>hourMax</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkHourMax">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                                <option value="sup">></option>
+                                <option value="inf"><</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkHourMax"></div>
+                        </div>
+                        </section>
+                    </div>
+    
+                    <br>
+                    <!-- Observateur -->
+                    <div class="observateur">
+                        <a class="btn btn-outline-primary btn-block" href="#observateurCollapse" data-toggle="collapse" aria-expanded="false" aria-controls="observateurCollapse"> Observateur </a>
+                        <section id="observateurCollapse" class="collapse">
+                        
+                        <br>
+                        <!-- observers -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkObservers"/></div>
+                            <div class="col-sm-4"><p>observers</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkObservers">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkObservers"></div>
+                        </div>
+    
+                        <br>
+                        <!-- determiner -->
+                        <div class="row">
+                            <div class="col-sm-1"><input type="checkbox" id="checkDeterminer"/></div>
+                            <div class="col-sm-4"><p>determiner</p></div>
+                            <select class="col-sm-1" class="custom-select" style="width:80px;" name="checkDeterminer">
+                                <option value="eq">=</option>
+                                <option value="noteq">!=</option>
+                            </select>
+                            <div class="col-sm-5"><input type="text" id="textareaApi" name="checkDeterminer"></div>
+                        </div>
+                        </section>
+                    </div>
+    
+                    <!-- Lien vers la documentation API -->
+                    <br><br>
+                    <a href="#" class="btn btn-outline-secondary">Documentation</a>
+    
+                </div>
+    
+                <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
+                <div class="modal-footer" id="choicePopup">
+                        <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Fermer</button>
+                        <button id="widthButton" type="submit" class="btn btn-success">OK</button>
+                </div>
+            </form>
+        </ng-template>
+    
+        <!-- Modal Téléchargement Popup-->
+        <ng-template #content let-c="close" let-d="dismiss">
+    
+            <!-- Modal content-->
+            <form [formGroup]="modalForm" class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Configuration de l'export</h4>
+                </div>
+    
+                <div class="modal-body">
+                        <!-- Formulaire pour le choix des standards et des formats de téléchargement des fichiers -->
+                        <br>
+                        <ul> <li> Choisir un format </li> </ul>
+                        <select class="form-control" id="chooseFormat" formControlName="chooseFormat" required autocomplete="off">
+                                <option value="csv">CSV</option>
+                                <option value="json">JSON</option>
+                                <option value="shp">SHP</option>
+                                <option value="rdf" [disabled]="true">RDF</option>
+                        </select>
+                        <!-- Affichage d'une barre de progression lors du téléchargement du fichier -->
+                        <div *ngIf="barHide">
+                            <ng-pbar></ng-pbar>
+                        </div>
+                        <br>
+                </div>
+    
+                <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
+                <div class="modal-footer" id="choicePopup">
+                        <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Fermer</button>
+                        <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="showme()">OK</button>
+                </div>
+            </form>
+        </ng-template>
+    
+    </div>
+    
