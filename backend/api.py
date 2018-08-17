@@ -4,18 +4,22 @@ class Node:
 
 
 class Collection(Node):
-    def __init__(self, id, ruleset):
-        self.ruleset = ruleset
+    def __init__(self, id, label, rules):
+        self.label = label
+        self.ruleset = rules
         super.__init__(self, id)
 
+    def items(self):
+        pass
 
-class RuleSet:
+
+class CollectionRuleSet:
     def __init__(self, rules):
         self.rules = rules
 
 
-class Rule:
-    def __init__(self, column_header, operator, value):
-        self.header = column_header
-        self.op = operator
-        self.val = value
+class CollectionRule:
+    def __init__(self, column, relation=None, condition=None):
+        self.header = column
+        self.op = relation
+        self.val = condition
