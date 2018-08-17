@@ -13,7 +13,22 @@ class Collection(Node):
         super.__init__(self, id)
 
     def items(self):
-        pass
+        raise NotImplementedError
+
+    def has_item(ID):  # boolean
+        raise NotImplementedError
+
+    def addItems(items):
+        raise NotImplementedError
+
+    def removeItems(items):
+        raise NotImplementedError
+
+    def publish(self):
+        self._public = True
+
+    def unpublish(self):
+        self._public = False
 
 
 class CollectionRuleSet:
@@ -22,10 +37,10 @@ class CollectionRuleSet:
 
 
 class CollectionRule:
-    def __init__(self, column, relation=None, condition=None):
-        self.header = column
-        self.op = relation
-        self.val = condition
+    def __init__(self, field, relation=None, condition=None):
+        self.field = field          # criterion, column
+        self.relation = relation    # op
+        self.condition = condition  # value
 
 
 class CollectionRuleField(Enum):
