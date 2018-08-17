@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class Node:
     def __init__(self, id):
         self.ID = id
@@ -23,3 +26,15 @@ class CollectionRule:
         self.header = column
         self.op = relation
         self.val = condition
+
+
+class CollectionRuleField(Enum):
+    pass
+
+
+CollectionRelation = Enum(
+    'EQUALS', 'NOT_EQUALS',
+    'CONTAINS', 'NOT_CONTAINS',
+    'GREATER_THAN', 'LESS_THAN',
+    'STARTS_WITH', 'ENDS_WITH',
+    module=__name__)
