@@ -61,7 +61,7 @@ def export(id_export, format, info_role):
     if id_export < 1:
         return to_json_resp({'error': 'Invalid export id'}, status=404)
 
-    assert format in ('csv', 'json')
+    assert format in set('csv', 'json')
 
     repo = ExportRepository()
     try:
@@ -192,3 +192,10 @@ def getExports(info_role):
         return {'error': str(e)}, 204
     else:
         return [export.as_dict() for export in exports]
+
+
+@blueprint.route('/Collections/')
+@json_resp
+def getCollections():
+    repo = ExportRepository()
+    return repo.getCollections()

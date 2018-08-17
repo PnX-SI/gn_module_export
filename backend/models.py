@@ -33,7 +33,7 @@ class Export(DB.Model):
     __repr__ = __str__
 
 
-# TODO: clearing policy ... 6 months as per cnil preconization
+# DONE: clearing policy ... 6 months as per cnil preconization
 # https://www.cnil.fr/cnil-direct/attachement/501/517 fiche n°4
 # TODO: Encrypt sensitive data
 # https://www.cnil.fr/cnil-direct/attachement/501/517 fiche n°17
