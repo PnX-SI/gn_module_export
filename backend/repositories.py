@@ -47,7 +47,7 @@ class ExportRepository(object):
         if not export:
             raise NoResultFound('Unknown export id {}.'.format(id_export))
         if with_data and format:
-            # FIXME: find_geometry_columns
+            # FIXME: geometry_columns = {col for col in Model.__mapper__.c if col.type.__class__.__name__ == 'Geometry'}  # noqa E501
             try:
                 columns, data = self._get_data(
                     info_role, export.view_name, export.schema_name,

@@ -6,10 +6,22 @@ from sqlalchemy import or_
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
+FilterOpsMap = {
+    'EQUALS': '__eq__',
+    'NOT_EQUALS': '__ne__',
+    'GREATER_THAN': '__gt__',
+    'LESS_THAN': '__lt__'
+}
+
 
 class AbstractFilterPolicy():
     @staticmethod
     def apply(context, query, filter=None):
+        # if filter:
+        #     field, relation, condition = filter
+        #     column = field  # FIXME: map field to actual column
+        #     return query.filter(
+        #         getattr(column, FilterOpsMap[relation])(condition))
         raise NotImplementedError
 
 
