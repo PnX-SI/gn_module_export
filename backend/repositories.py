@@ -130,6 +130,9 @@ class ExportRepository(object):
                 id_export=x.id, format='dele', id_user=id_role)
 
     def getCollections(self):
+        # all tables and views
+        # and filter out unwanted (spatial_ref_sys & co)
+        # or walk bib_tables_location ?
         from sqlalchemy.engine import reflection
 
         inspection = reflection.Inspector.from_engine(DB.engine)
@@ -138,15 +141,10 @@ class ExportRepository(object):
         # schema_names = ['gn_synthese']
         for schema in schema_names:
             tables = {}
-            # logger.debug('schemas: %s', inspection.get_sorted_table_and_fkc_names(schema=schema))  # noqa E501
             mapped_tables = inspection.get_table_names(schema=schema)
             logger.debug('schema: %s %s', schema, mapped_tables)
             for table in mapped_tables:
                 columns = {}
-                # pk = inspection.get_pk_constraint(table, schema=schema)
-                # logger.debug('table %s primary key: %s', table, pk)
-                # fk = inspection.get_foreign_keys(table, schema=schema)
-                # logger.debug('table %s foreign key: %s', table, fk)
                 mapped_columns = inspection.get_columns(table, schema=schema)
                 for c in mapped_columns:
                     c['type'] = str(c['type'])

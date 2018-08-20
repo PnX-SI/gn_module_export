@@ -19,9 +19,9 @@ class AbstractFilterPolicy():
     def apply(context, query, filter=None):
         # if filter:
         #     field, relation, condition = filter
-        #     column = field  # FIXME: map field to actual column
+        #     assert field.type
         #     return query.filter(
-        #         getattr(column, FilterOpsMap[relation])(condition))
+        #         getattr(field, FilterOpsMap[relation])(condition))
         raise NotImplementedError
 
 
