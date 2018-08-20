@@ -6,6 +6,8 @@ from sqlalchemy import or_
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
+# Map our filter encodings to sqlalchemy column operators.
+# Catalog at http://docs.sqlalchemy.org/en/latest/core/metadata.html#sqlalchemy.schema.Column  # noqa E501
 FilterOpsMap = {
     'EQUALS': '__eq__',
     'NOT_EQUALS': '__ne__',
@@ -19,7 +21,7 @@ class AbstractFilterPolicy():
     def apply(context, query, filter=None):
         # if filter:
         #     field, relation, condition = filter
-        #     assert field.type
+        #     assert field.type  # isinstance(field, DB.Column)
         #     return query.filter(
         #         getattr(field, FilterOpsMap[relation])(condition))
         raise NotImplementedError
@@ -28,6 +30,9 @@ class AbstractFilterPolicy():
 class AbstractCompositeFilterPolicy(AbstractFilterPolicy):
     @staticmethod
     def apply(context, query, filters=None):
+        # for f in filters:
+        #     query = f.apply(context, query, filter)
+        # return query
         raise NotImplementedError
 
 

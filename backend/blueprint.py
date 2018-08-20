@@ -11,6 +11,7 @@ from flask import (
 from geonature.utils.env import get_module_id
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
+from geonature.utils.utilsgeometry import to_shape_fn
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub import routes as fnauth
 
@@ -25,6 +26,7 @@ DEFAULT_SCHEMA = 'gn_exports'
 ASSETS = 'assets'
 SWAGGER_UI_DIST_DIR = 'swagger-ui-dist'  # extracted from npm install
 SWAGGER_API_YML = 'api.yaml'
+SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 
 blueprint = Blueprint('exports', __name__)
 
@@ -78,6 +80,18 @@ def export(id_export, format, info_role):
             if format == 'csv':
                 return to_csv_resp(
                     fname, data.get('items', None), columns, ',')
+
+            if (format == 'shp' and set(columns).intersection(set(col for col in columns if col.type.__class__.__name__ == 'Geometry')) == set(columns)):  # noqa E501
+                # FIXME: Not clear whereas we're getting a list of geometries or a single column  # noqa E501
+                dir_path = SHAPEFILES_DIR
+                to_shape_fn(
+                    geom_col=columns[0],
+                    srid=2150,
+                    data=data.get('items', None),
+                    dir_path=dir_path,
+                    file_name=fname,
+                    columns=columns)
+                return send_from_directory(dir_path, fname + '.zip', as_attachment=True)  # noqa E501
 
     except NoResultFound as e:
         logger.warn('%s', str(e))
