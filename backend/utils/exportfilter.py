@@ -16,6 +16,12 @@ FilterOpMap = {
 }  # noqa E503
 
 
+# rule_set = [
+#     (User.name, 'EQUALS', new_person.name),
+# ]
+# q = session.query(User.name, Address.email).join(Address)
+# print(Filter.apply(None, q, filter=(Address.user_id, 'EQUALS', 1)))
+# print(CompositeFilter.apply(None, q, filters=rule_set))
 class Filter():
     @staticmethod
     def apply(context, query, filter=None):
