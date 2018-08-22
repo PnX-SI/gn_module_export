@@ -87,7 +87,8 @@ def export(id_export, format, info_role):
             #         data=data.get('items', None),
             #         dir_path=SHAPEFILES_DIR,
             #         file_name=fname,
-            #         geom_col=columns[0],
+            #         geom_col=[c for c in data.columns
+            #                   if isinstance(c.type, Geometry)][0]
             #     )
             #     return send_from_directory(dir_path, fname + '.zip', as_attachment=True)  # noqa E501
 
