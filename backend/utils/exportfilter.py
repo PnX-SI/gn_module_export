@@ -8,35 +8,33 @@ logger.setLevel(logging.DEBUG)
 
 # Map our filter encodings to sqlalchemy column operators.
 # Catalog at http://docs.sqlalchemy.org/en/latest/core/metadata.html#sqlalchemy.schema.Column  # noqa E501
-FilterOpsMap = {
+FilterOpMap = {
     'EQUALS': '__eq__',
     'NOT_EQUALS': '__ne__',
     'GREATER_THAN': '__gt__',
     'LESS_THAN': '__lt__'
-}
+}  # noqa E503
 
 
-class AbstractFilterPolicy():
+class Filter():
     @staticmethod
     def apply(context, query, filter=None):
-        # if filter:
-        #     field, relation, condition = filter
-        #     assert field.type  # isinstance(field, DB.Column)
-        #     return query.filter(
-        #         getattr(field, FilterOpsMap[relation])(condition))
-        raise NotImplementedError
+        if filter:
+            field, relation, condition = filter
+            # FIXME: preprocess str -> selectable
+            return query.filter(
+                getattr(field, FilterOpMap[relation])(condition))
 
 
-class AbstractCompositeFilterPolicy(AbstractFilterPolicy):
+class CompositeFilter(Filter):
     @staticmethod
     def apply(context, query, filters=None):
-        # for f in filters:
-        #     query = f.apply(context, query, filter)
-        # return query
-        raise NotImplementedError
+        for f in filters:
+            query = Filter.apply(context, query, f)
+        return query
 
 
-class DatasetActorFilterPolicy(AbstractCompositeFilterPolicy):
+class DatasetActorFilterPolicy(CompositeFilter):
     ''' dataset actor data. '''
 
     @staticmethod
