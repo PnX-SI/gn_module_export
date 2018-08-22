@@ -10,15 +10,15 @@ class Export(DB.Model):
     __tablename__ = 't_exports'
     __table_args__ = {'schema': 'gn_exports'}
     id = DB.Column(DB.Integer, primary_key=True, nullable=False)
-    id_creator = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
+    id_creator = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role), index=True)  # noqa E501
     role = DB.relationship('TRoles', foreign_keys=[id_creator], lazy='select')
-    label = DB.Column(DB.Text, nullable=False, unique=True)
+    label = DB.Column(DB.Text, nullable=False, unique=True, index=True)
     schema_name = DB.Column(DB.Text, nullable=False)
     view_name = DB.Column(DB.Text, nullable=False)
     desc = DB.Column(DB.Text)
     created = DB.Column(DB.DateTime, default=func.now())
     updated = DB.Column(DB.DateTime, onupdate=func.now())
-    deleted = DB.Column(DB.DateTime)
+    deleted = DB.Column(DB.DateTime, index=True)
 
     def __init__(self, id_creator, label, schema_name, view_name, desc=None):
         self.id_creator = id_creator

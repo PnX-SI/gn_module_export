@@ -7,7 +7,7 @@ from geonature.utils.env import DB
 from pypnusershub.db.tools import InsufficientRightsError
 
 from .models import (Export, ExportLog)
-from .utils.AuthorizedExportQuery import AuthorizedExportQuery
+from .utils.exportquery import ExportQuery
 
 
 logger = current_app.logger
@@ -18,13 +18,16 @@ class ExportRepository(object):
     def __init__(self, session=DB.session):
         self.session = session
 
+    # TODO: get_formats()
+    # suggested output format list for current selection to export to.
+
     def _get_data(
             self, info_role, view, schema,
             geom_column_header=None, filters=None, limit=10000, paging=0):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
-        query = AuthorizedExportQuery(
+        query = ExportQuery(
             info_role, self.session, view, schema, geom_column_header,
             filters, limit, paging)
 
@@ -64,6 +67,7 @@ class ExportRepository(object):
                 ExportLog.log(
                     id_export=export.id, format=format,
                     id_user=info_role.id_role)
+
                 return (export.as_dict(), columns, data)
         else:
             return export.as_dict()
