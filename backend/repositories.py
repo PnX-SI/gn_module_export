@@ -33,6 +33,7 @@ class ExportRepository(object):
 
         columns = [col.name for col in query.view.db_cols]
 
+        # data = query.return_query(policy=None)
         data = query.return_query()
         return (columns, data)
 

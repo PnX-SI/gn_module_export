@@ -20,13 +20,13 @@ from .repositories import ExportRepository
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
-ID_MODULE = get_module_id('exports')
-DEFAULT_SCHEMA = 'gn_exports'
 ASSETS = 'assets'
-SWAGGER_UI_DIST_DIR = 'swagger-ui-dist'  # extracted from npm install
+SWAGGER_UI_DIST_DIR = 'swagger-ui-dist'  # extracted from dummy npm install
 SWAGGER_API_YML = 'api.yaml'
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 
+DEFAULT_SCHEMA = 'gn_exports'
+ID_MODULE = get_module_id('exports')
 blueprint = Blueprint('exports', __name__)
 
 
@@ -53,7 +53,7 @@ def export_filename(export):
         [export.get('label'), datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
 
 
-# TODO: use UUIDs
+# TODO: UUIDs
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
 @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
 def export(id_export, format, info_role):
@@ -108,6 +108,7 @@ def export(id_export, format, info_role):
 
 @blueprint.route('/<int:id_export>', methods=['POST', 'PUT'])
 @fnauth.check_auth_cruved('U', True, id_app=ID_MODULE)
+@json_resp
 def update(id_export, info_role):
     payload = request.get_json()
     label = payload.get('label', None)
@@ -119,7 +120,8 @@ def update(id_export, info_role):
 
     if not all(label, schema_name, view_name, desc):
         return {
-            'error': 'Missing parameter.'. format(
+            'error': 'MissingParameter',
+            'message': 'Missing parameter: {}'. format(
                 'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa E501
 
     repo = ExportRepository()
@@ -133,7 +135,8 @@ def update(id_export, info_role):
             desc=desc)
     except NoResultFound as e:
         logger.warn('%s', str(e))
-        return {'error': str(e)}, 404
+        return {'error': 'NoResultFound',
+                'message': str(e)}, 404
     except Exception as e:
         logger.critical('%s', str(e))
         return {'error': 'LoggedError'}, 400
@@ -150,7 +153,8 @@ def delete_export(id_export, info_role):
         repo.delete(info_role.id_role, id_export)
     except NoResultFound as e:
         logger.warn('%s', str(e))
-        return {'error': str(e)}, 404
+        return {'error': 'NoResultFound',
+                'message': str(e)}, 404
     except Exception as e:
         logger.critical('%s', str(e))
         return {'error': 'LoggedError'}, 400
@@ -173,8 +177,8 @@ def create(info_role):
     if not(label and schema_name and view_name):
         return {
             'error': 'MissingParameter',
-            'message': 'Missing {} parameter.'. format(
-                'label' if (schema_name and view_name) else 'schema or view name')}, 400  # noqa E501
+            'message': 'Missing parameter: {}'. format(
+                'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa E501
 
     repo = ExportRepository()
     try:
@@ -204,7 +208,8 @@ def getExports(info_role):
         exports = repo.get_list()
     except NoResultFound as e:
         logger.warn('%s', str(e))
-        return {'error': str(e)}, 204
+        return {'error': 'NoResultFound',
+                'message': str(e)}, 204
     else:
         return [export.as_dict() for export in exports]
 
