@@ -16,7 +16,11 @@ FilterOpMap = {
     # "%" and "_" that are present inside the condition
     # will behave like wildcards as well.
     'CONTAINS': 'contains'
-}  # noqa E133
+}
+
+FilterBooleanOpMap = {
+    'OR': or_
+}
 
 
 def model_by_name(name):
@@ -26,29 +30,47 @@ def model_by_name(name):
 
 
 class Filter():
+    # rule_set = [
+    #     ((User.name, 'EQUALS', new_person2.name), 'OR', (User.name, 'EQUALS', new_person1.name)),  # noqa E501
+    #     (User.name, 'CONTAINS', 'user%2'),
+    #     ('Country.zone', 'EQUALS', 'Oceania'),
+    # ]
+    # q = session.query(User)
+    # # print(Filter.apply(None, q, filter=('Address.user_id', 'EQUALS', 1)), end='\n' * 2)  # noqa E501
+    # stmt = CompositeFilter.apply(None, q, filters=rule_set)
+    # print(stmt)
+    # assert stmt.all()[0] == new_person2
     @staticmethod
     def apply(context, query, filter=None):
-
-        def processed(field):
-            # TODO: db schema prefix
-            if isinstance(field, str):
-                _items = field.split('.')
-                assert len(_items) == 2
-                return getattr(model_by_name(_items[0]), _items[1])
-            return field
-
         if filter:
             field, relation, condition = filter
-            field = processed(field)
 
-            if relation == 'OR':
+            if Filter.is_boolean(filter):
+                return Filter.apply_boolean(context, query, filter)
+
+            else:
+                field = Filter.process(field)
                 return query.filter(
-                    or_(*list([
-                        getattr(field, FilterOpMap[relation])(condition)
-                        for field, relation, condition in [field, condition]])))  # noqa E501
+                    getattr(field, FilterOpMap[relation])(condition))
 
-            return query.filter(
-                getattr(field, FilterOpMap[relation])(condition))
+    @staticmethod
+    def process(field):
+            if isinstance(field, str):
+                _item = field.split('.')
+                assert len(_item) == 2
+                return getattr(model_by_name(_item[0]), _item[1])
+            return field
+
+    @staticmethod
+    def is_boolean(filter):
+        return filter[1] in FilterBooleanOpMap
+
+    @staticmethod
+    def apply_boolean(context, query, filter):
+        expr1, bool_op, expr2 = filter
+        return query.filter(FilterBooleanOpMap[bool_op](
+            *list([getattr(Filter.process(expr1_), FilterOpMap[relation])(expr2_)  # noqa E501
+                   for expr1_, relation, expr2_ in [expr1, expr2]])))
 
 
 class CompositeFilter(Filter):
@@ -57,19 +79,6 @@ class CompositeFilter(Filter):
         for f in filters:
             query = Filter.apply(context, query, f)
         return query
-
-
-# rule_set = [
-#     ((User.name, 'EQUALS', new_person2.name), 'OR', (User.name, 'EQUALS', new_person2.name)),  # noqa E501
-#     (User.name, 'CONTAINS', 'user%2'),
-#     ('Country.zone', 'EQUALS', 'Oceania'),
-# ]
-#
-# q = session.query(User)
-# # print(Filter.apply(None, q, filter=('Address.user_id', 'EQUALS', 1)), end='\n' * 2)  # noqa E501
-# stmt = CompositeFilter.apply(None, q, filters=rule_set)
-# print(stmt)
-# assert stmt.all()[0] == new_person2
 
 
 class DatasetActorFilterPolicy(CompositeFilter):
