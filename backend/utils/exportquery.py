@@ -10,8 +10,6 @@ logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
 
-# TODO: override original build_query_filters()
-# TODO: Timing data extraction
 class ExportQuery(GenericQuery):
     def __init__(
             self,

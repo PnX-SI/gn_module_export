@@ -43,6 +43,16 @@ class ExportLog(DB.Model):
     status = DB.Column(DB.Integer, default=-2)
     log = DB.Column(DB.Text)
 
+    @staticmethod
+    def log(**kwargs):
+        try:
+            x = ExportLog(**kwargs)
+            DB.session.add(x)
+            DB.session.commit()
+        except Exception as e:
+            DB.session.rollback()
+            raise e('Echec de journalisation.')
+
 
 class CorExportsRoles(DB.Model):
     __tablename__ = 'cor_exports_roles'

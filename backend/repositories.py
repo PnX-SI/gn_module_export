@@ -52,9 +52,9 @@ class ExportRepository(object):
             raise NoResultFound('Unknown export id {}.'.format(id_export))
         if with_data and format:
             try:
-                start_time = datetime.utcnow()
                 end_time = None
                 log = None
+                start_time = datetime.utcnow()
                 columns, data = self._get_data(
                     id_role, export.view_name, export.schema_name,
                     geom_column_header=geom_column_header,
@@ -67,22 +67,24 @@ class ExportRepository(object):
             except Exception as e:
                 logger.critical('%s', str(e))
                 log = str(e)
+                ExportLog.log(
+                    id_export=export.id,
+                    id_role=id_role,
+                    format=format,
+                    start_time=start_time,
+                    end_time=end_time,
+                    status=-1,
+                    log=log)
             else:
                 end_time = datetime.utcnow()
-                try:  # FIXME: rework logic ... context manager ?
-                    x = ExportLog(
-                        id_export=export.id,
-                        id_role=id_role,
-                        format=format,
-                        start_time=start_time,
-                        end_time=end_time,
-                        status=0,
-                        log=log)
-                    DB.session.add(x)
-                    DB.session.commit()
-                except Exception as e:
-                    DB.session.rollback()
-                    raise e('Echec de journalisation.')
+                ExportLog.log(
+                    id_export=export.id,
+                    id_role=id_role,
+                    format=format,
+                    start_time=start_time,
+                    end_time=end_time,
+                    status=0,
+                    log=log)
                 return (export.as_dict(), columns, data)
         else:
             return export.as_dict()
