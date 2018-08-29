@@ -20,32 +20,32 @@ from .repositories import ExportRepository
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
-ASSETS = 'assets'
-SWAGGER_UI_DIST_DIR = 'swagger-ui-dist'  # extracted from dummy npm install
-SWAGGER_API_YML = 'api.yaml'
+blueprint = Blueprint('exports', __name__)
+
+ASSETS = os.path.join(blueprint.root_path, 'assets')
+# extracted from dummy npm install
+SWAGGER_UI_DIST_DIR = os.path.join(ASSETS, 'swagger-ui-dist')
+SWAGGER_API_YAML = 'api.yaml'
+
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 
 DEFAULT_SCHEMA = 'gn_exports'
 ID_MODULE = get_module_id('exports')
-blueprint = Blueprint('exports', __name__)
 
 
 @blueprint.route('/swagger-ui/')
 def swagger_ui():
-    return send_from_directory(os.path.join(
-        blueprint.root_path, ASSETS, SWAGGER_UI_DIST_DIR), 'index.html')
+    return send_from_directory(SWAGGER_UI_DIST_DIR, 'index.html')
 
 
 @blueprint.route('/swagger-ui/<asset>')
 def swagger_assets(asset):
-    return send_from_directory(os.path.join(
-        blueprint.root_path, ASSETS, SWAGGER_UI_DIST_DIR), asset)
+    return send_from_directory(SWAGGER_UI_DIST_DIR, asset)
 
 
 @blueprint.route('/api.yml')
 def swagger_api_yml():
-    return send_from_directory(os.path.join(
-        blueprint.root_path, ASSETS), SWAGGER_API_YML)
+    return send_from_directory(ASSETS, SWAGGER_API_YAML)
 
 
 def export_filename(export):
