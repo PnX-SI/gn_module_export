@@ -65,10 +65,14 @@ class ExportRepository(object):
                 logger.critical('%s', str(e))
                 raise e
             else:
-                ExportLog.log(
-                    id_export=export.id, format=format,
-                    id_user=id_role)
-
+                try:
+                    x = ExportLog(
+                        id_export=export.id, format=format, id_user=id_role)
+                    DB.session.add(x)
+                    DB.session.commit()
+                except Exception as e:
+                    DB.session.rollback()
+                    raise e('Echec de journalisation.')
                 return (export.as_dict(), columns, data)
         else:
             return export.as_dict()
@@ -95,8 +99,6 @@ class ExportRepository(object):
             logger.warn('%s', str(e))
             raise e
         else:
-            ExportLog.log(
-                id_export=x.id, format='crea', id_user=x.id_creator)
             return x
 
     def update(self, **kwargs):
@@ -115,8 +117,6 @@ class ExportRepository(object):
             logger.warn('%s', str(e))
             raise e
         else:
-            ExportLog.log(
-                id_export=x.id, format='upda', id_user=kwargs['id_role'])
             return x
 
     def delete(self, id_role, id_export):
@@ -129,9 +129,6 @@ class ExportRepository(object):
         except Exception as e:
             logger.critical('%s', str(e))
             raise e('Echec de journalisation.')
-        else:
-            ExportLog.log(
-                id_export=x.id, format='dele', id_user=id_role)
 
     def getCollections(self):
         # all tables and views
