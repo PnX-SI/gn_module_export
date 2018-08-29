@@ -55,9 +55,9 @@ def export_filename(export):
 
 # TODO: UUIDs
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
-@fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
-def export(id_export, format, info_role):
-    logger.debug('info_role: %s', info_role)
+@fnauth.check_auth(2, True)
+def export(id_export, format, id_role):
+    logger.debug('id_role: %s', id_role)
 
     if id_export < 1:
         return to_json_resp({'error': 'Invalid export id'}, status=404)
@@ -67,7 +67,7 @@ def export(id_export, format, info_role):
     repo = ExportRepository()
     try:
         export, columns, data = repo.get_by_id(
-            info_role, id_export, with_data=True, format=format)
+            id_role, id_export, with_data=True, format=format)
         if export:
             fname = export_filename(export)
 
@@ -107,16 +107,16 @@ def export(id_export, format, info_role):
 
 
 @blueprint.route('/<int:id_export>', methods=['POST', 'PUT'])
-@fnauth.check_auth_cruved('U', True, id_app=ID_MODULE)
+@fnauth.check_auth(1, True)
 @json_resp
-def update(id_export, info_role):
+def update(id_export, id_role):
     payload = request.get_json()
     label = payload.get('label', None)
     view_name = payload.get('view_name', None)
     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
 
-    id_creator = info_role.id_role
+    id_creator = id_role
 
     if not all(label, schema_name, view_name, desc):
         return {
@@ -145,12 +145,12 @@ def update(id_export, info_role):
 
 
 @blueprint.route('/<int:id_export>', methods=['DELETE'])
-@fnauth.check_auth_cruved('D', True, id_app=ID_MODULE)
+@fnauth.check_auth(3, True)
 @json_resp
-def delete_export(id_export, info_role):
+def delete_export(id_export, id_role):
     repo = ExportRepository()
     try:
-        repo.delete(info_role.id_role, id_export)
+        repo.delete(id_role, id_export)
     except NoResultFound as e:
         logger.warn('%s', str(e))
         return {'error': 'NoResultFound',
@@ -163,16 +163,16 @@ def delete_export(id_export, info_role):
 
 
 @blueprint.route('/', methods=['POST', 'PUT'])
-@fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
+@fnauth.check_auth(1, True)
 @json_resp
-def create(info_role):
+def create(id_role):
     payload = request.get_json()
     label = payload.get('label', None)
     view_name = payload.get('view_name', None)
     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
 
-    id_creator = info_role.id_role
+    id_creator = id_role
 
     if not(label and schema_name and view_name):
         return {
@@ -200,9 +200,9 @@ def create(info_role):
 
 
 @blueprint.route('/', methods=['GET'])
-@fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
+@fnauth.check_auth(2, True)
 @json_resp
-def getExports(info_role):
+def getExports(id_role):
     repo = ExportRepository()
     try:
         exports = repo.get_list()

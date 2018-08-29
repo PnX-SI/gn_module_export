@@ -22,13 +22,13 @@ class ExportRepository(object):
     # suggested output format list for current selection to export to.
 
     def _get_data(
-            self, info_role, view, schema,
+            self, id_role, view, schema,
             geom_column_header=None, filters=None, limit=10000, paging=0):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
         query = ExportQuery(
-            info_role, self.session, view, schema, geom_column_header,
+            id_role, self.session, view, schema, geom_column_header,
             filters, limit, paging)
 
         columns = [col.name for col in query.view.db_cols]
@@ -39,7 +39,7 @@ class ExportRepository(object):
 
     def get_by_id(
             self,
-            info_role,
+            id_role,
             id_export,
             with_data=False,
             geom_column_header=None,
@@ -53,7 +53,7 @@ class ExportRepository(object):
         if with_data and format:
             try:
                 columns, data = self._get_data(
-                    info_role, export.view_name, export.schema_name,
+                    id_role, export.view_name, export.schema_name,
                     geom_column_header=geom_column_header,
                     filters=filters,
                     limit=limit,
@@ -67,7 +67,7 @@ class ExportRepository(object):
             else:
                 ExportLog.log(
                     id_export=export.id, format=format,
-                    id_user=info_role.id_role)
+                    id_user=id_role)
 
                 return (export.as_dict(), columns, data)
         else:
