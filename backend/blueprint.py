@@ -57,7 +57,6 @@ def export_filename(export):
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
 @fnauth.check_auth(2, True)
 def export(id_export, format, id_role):
-    logger.debug('id_role: %s', id_role)
 
     if id_export < 1:
         return to_json_resp({'error': 'Invalid export id'}, status=404)

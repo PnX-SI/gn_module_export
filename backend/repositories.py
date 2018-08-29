@@ -52,6 +52,9 @@ class ExportRepository(object):
             raise NoResultFound('Unknown export id {}.'.format(id_export))
         if with_data and format:
             try:
+                start_time = datetime.utcnow()
+                end_time = None
+                log = None
                 columns, data = self._get_data(
                     id_role, export.view_name, export.schema_name,
                     geom_column_header=geom_column_header,
@@ -63,11 +66,18 @@ class ExportRepository(object):
                 raise e
             except Exception as e:
                 logger.critical('%s', str(e))
-                raise e
+                log = str(e)
             else:
-                try:
+                end_time = datetime.utcnow()
+                try:  # FIXME: rework logic ... context manager ?
                     x = ExportLog(
-                        id_export=export.id, format=format, id_user=id_role)
+                        id_export=export.id,
+                        id_role=id_role,
+                        format=format,
+                        start_time=start_time,
+                        end_time=end_time,
+                        status=0,
+                        log=log)
                     DB.session.add(x)
                     DB.session.commit()
                 except Exception as e:
@@ -77,12 +87,8 @@ class ExportRepository(object):
         else:
             return export.as_dict()
 
-    def get_list(self, all=False):
-        if not all:
-            xs = Export.query.filter(Export.deleted.is_(None)).all()
-        else:
-            xs = Export.query.all()
-        return xs
+    def get_list(self):
+        return Export.query.all()
 
     def create(self, **kwargs):
         # TODO: create view
@@ -121,19 +127,16 @@ class ExportRepository(object):
 
     def delete(self, id_role, id_export):
         # TODO: drop view
-        x = self.get_by_id(id_export)
-        x.deleted = datetime.utcnow()
+        self.get_by_id(id_export).delete()
         try:
-            self.session.add(x)
-            self.session.flush()
+            self.session.commit()
         except Exception as e:
+            self.session.rollback()
             logger.critical('%s', str(e))
-            raise e('Echec de journalisation.')
+            raise
 
     def getCollections(self):
-        # all tables and views
-        # and filter out unwanted (spatial_ref_sys & co)
-        # or walk bib_tables_location ?
+        # all tables and views and filter out unwanted (spatial_ref_sys & co)
         from sqlalchemy.engine import reflection
 
         inspection = reflection.Inspector.from_engine(DB.engine)

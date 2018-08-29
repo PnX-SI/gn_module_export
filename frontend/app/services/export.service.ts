@@ -17,14 +17,12 @@ import { AppConfig } from "@geonature_config/app.config";
 
 export interface Export {
   id: number;
-  id_creator: number;
   label: string;
   schema: string;
   view: string;
   desc: string;
-  created: Date;
-  updated: Date;
-  deleted: Date;
+  geometry_field: string;
+  geometry_srid: number;
 }
 
 const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`;
@@ -62,9 +60,7 @@ export class ExportService {
     let subscription = this.exports.subscribe(
       xs => xs.map((x) => labels.push({
         label: x.label,
-        date: x.updated ? x.updated : x.created,
-        description: x.desc,
-        creator: x.id_creator
+        description: x.desc
       })),
       error => console.error(error),
       () => subscription.unsubscribe())
@@ -102,7 +98,7 @@ export class ExportService {
       console.error(e.status);
     },
     () => {
-      let date = new Date(xport.updated ? xport.updated : xport.created)
+      let date = new Date()
       this.saveBlob(this._blob, `export_${xport.label}_${date.toISOString()}.${extension}`)
       subscription.unsubscribe()
     }
