@@ -218,3 +218,37 @@ def getExports(id_role):
 def getCollections():
     repo = ExportRepository()
     return repo.getCollections()
+
+
+@blueprint.route('/testview')
+def test_view():
+    import sqlalchemy
+    # from sqlalchemy import orm
+    from geonature.utils.env import DB
+    from geonature.core.gn_synthese.models import Synthese
+
+    from .utils.exportview import View
+
+    current_app.config['SQLALCHEMY_ECHO'] = True
+
+    metadata = DB.MetaData(schema='gn_exports', bind=DB.engine)
+
+    sample_view = View(
+        'sample_view', metadata,
+        sqlalchemy.sql.expression.select([
+            Synthese.id_synthese,
+            Synthese.id_dataset,
+            Synthese.the_geom_4326]).select_from(Synthese))
+
+    # orm.mapper(ViewName, v, primary_key=[v.c.id])
+
+    assert sample_view is not None
+    assert sample_view.primary_key == [Synthese.id_synthese]
+    metadata.create_all(tables=sample_view, checkfirst=False)
+
+    class MyStuff(DB.Model):
+        __table__ = sample_view
+        __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
+
+    print('my stuff:', DB.session.query(MyStuff).all())
+    metadata.drop_all(tables=sample_view)
