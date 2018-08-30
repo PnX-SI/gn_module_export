@@ -1,9 +1,11 @@
+from flask import current_app
 from geonature.utils.env import DB
-from geonature.utils.utilssqlalchemy import (serializable, geoserializable)
+from geonature.utils.utilssqlalchemy import (
+    # geoserializable,
+    serializable)
 from geonature.core.users.models import TRoles
 
 
-@geoserializable
 @serializable
 class Export(DB.Model):
     __tablename__ = 't_exports'
@@ -14,9 +16,15 @@ class Export(DB.Model):
     view_name = DB.Column(DB.Text, nullable=False)
     desc = DB.Column(DB.Text)
     geometry_field = DB.Column(DB.Text)
-    geometry_srid = DB.Column(DB.Integer, default=4326)
+    geometry_srid = DB.Column(DB.Integer)
 
-    def __init__(self, label, schema_name, view_name, desc=None):
+    def __init__(self,
+                 label,
+                 schema_name,
+                 view_name,
+                 desc=None,
+                 geometry_field=None,
+                 geometry_srid=current_app.config['LOCAL_SRID']):
         self.label = label
         self.schema_name = schema_name
         self.view_name = view_name
