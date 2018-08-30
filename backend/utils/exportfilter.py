@@ -55,11 +55,17 @@ class Filter():
 
     @staticmethod
     def process(field):
-            if isinstance(field, str):
-                _item = field.split('.')
-                assert len(_item) == 2
-                return getattr(model_by_name(_item[0]), _item[1])
-            return field
+        if isinstance(field, str):
+            _item = field.split('.')
+            assert len(_item) == 2
+            return getattr(model_by_name(_item[0]), _item[1])
+        else:
+            if (field.parent.class_ in [
+                m for m in DB._decl_class_registry.values()
+                if hasattr(m, '__name__')]):
+                return field
+            else:
+                raise Exception('UnregisteredModel')
 
     @staticmethod
     def is_boolean(filter):
