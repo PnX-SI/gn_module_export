@@ -47,9 +47,10 @@ class ExportRepository(object):
             limit=10000,
             paging=0,
             format=None):
-        export = Export.query.get(id_export)
+        export = Export.query.filter_by(id=id_export)
         if not export:
             raise NoResultFound('Unknown export id {}.'.format(id_export))
+
         if with_data and format:
             try:
                 end_time = None
