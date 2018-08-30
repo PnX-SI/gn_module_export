@@ -91,7 +91,7 @@ def export(id_export, format, id_role):
             #         geom_col=[c for c in data.columns
             #                   if isinstance(c.type, Geometry)][0])
             #
-            #     return send_from_directory(dir_path, fname + '.zip', as_attachment=True)  # noqa E501
+            #     return send_from_directory(dir_path, fname + '.zip', as_attachment=True)  # noqa: E501
 
     except NoResultFound as e:
         logger.warn('%s', str(e))
@@ -121,7 +121,7 @@ def update(id_export, id_role):
         return {
             'error': 'MissingParameter',
             'message': 'Missing parameter: {}'. format(
-                'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa E501
+                'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
 
     repo = ExportRepository()
     try:
@@ -177,7 +177,7 @@ def create(id_role):
         return {
             'error': 'MissingParameter',
             'message': 'Missing parameter: {}'. format(
-                'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa E501
+                'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
 
     repo = ExportRepository()
     try:
@@ -190,7 +190,7 @@ def create(id_role):
     except IntegrityError as e:
         if '(label)=({})'.format(label) in str(e):
             return {'error': 'RegisteredLabel',
-                    'message': 'Label {} is already registered.'.format(label)}, 400  # noqa E501
+                    'message': 'Label {} is already registered.'.format(label)}, 400  # noqa: E501
         else:
             logger.critical('%s', str(e))
             raise

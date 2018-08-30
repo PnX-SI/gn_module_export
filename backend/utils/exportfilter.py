@@ -31,12 +31,12 @@ def model_by_name(name):
 
 class Filter():
     # rule_set = [
-    #     ((User.name, 'EQUALS', new_person2.name), 'OR', (User.name, 'EQUALS', new_person1.name)),  # noqa E501
+    #     ((User.name, 'EQUALS', new_person2.name), 'OR', (User.name, 'EQUALS', new_person1.name)),  # noqa: E501
     #     (User.name, 'CONTAINS', 'user%2'),
     #     ('Country.zone', 'EQUALS', 'Oceania'),
     # ]
     # q = session.query(User)
-    # # print(Filter.apply(None, q, filter=('Address.user_id', 'EQUALS', 1)), end='\n' * 2)  # noqa E501
+    # # print(Filter.apply(None, q, filter=('Address.user_id', 'EQUALS', 1)), end='\n' * 2)  # noqa: E501
     # stmt = CompositeFilter.apply(None, q, filters=rule_set)
     # print(stmt)
     # assert stmt.all()[0] == new_person2
@@ -75,7 +75,7 @@ class Filter():
     def apply_boolean(context, query, filter):
         expr1, bool_op, expr2 = filter
         return query.filter(FilterBooleanOpMap[bool_op](
-            *list([getattr(Filter.process(expr1_), FilterOpMap[relation])(expr2_)  # noqa E501
+            *list([getattr(Filter.process(expr1_), FilterOpMap[relation])(expr2_)  # noqa: E501
                    for expr1_, relation, expr2_ in [expr1, expr2]])))
 
 
