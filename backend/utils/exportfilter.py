@@ -16,11 +16,11 @@ FilterOpMap = {
     # "%" and "_" that are present inside the condition
     # will behave like wildcards as well.
     'CONTAINS': 'contains'
-}
+}  # noqa: E133
 
 FilterBooleanOpMap = {
     'OR': or_
-}
+}  # noqa: E133
 
 
 def model_by_name(name):
@@ -30,6 +30,9 @@ def model_by_name(name):
 
 
 class Filter():
+    # QUESTION: check_type: column type ?
+    #  so (User.name, 'EQUALS', 5, (basestring,)) doesn't get through
+    # TODO: PN like dict
     # rule_set = [
     #     ((User.name, 'EQUALS', new_person2.name), 'OR', (User.name, 'EQUALS', new_person1.name)),  # noqa: E501
     #     (User.name, 'CONTAINS', 'user%2'),
