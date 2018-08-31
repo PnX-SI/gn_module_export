@@ -229,26 +229,25 @@ def test_view():
 
     from .utils.exportview import View
 
-    current_app.config['SQLALCHEMY_ECHO'] = True
-
     metadata = DB.MetaData(schema='gn_exports', bind=DB.engine)
 
-    sample_view = View(
-        'sample_view', metadata,
-        sqlalchemy.sql.expression.select([
-            Synthese.id_synthese,
-            Synthese.id_dataset,
-            Synthese.the_geom_4326]).select_from(Synthese))
-
-    # orm.mapper(ViewName, v, primary_key=[v.c.id])
+    # TODO: check fk exists in selection
+    selectable = sqlalchemy.sql.expression.select([
+        Synthese.id_synthese,
+        Synthese.id_dataset,
+        Synthese.the_geom_4326]).select_from(Synthese)
+    # logger.debug('selectable : %s', selectable)
+    # logger.debug('selectable fields: %s', selectable.columns)
+    # constraints = [c.copy()
+    #                for c in Synthese.__table__.constraints
+    #                if isinstance(c, DB.ForeignKeyConstraint)]
+    sample_view = View('sample_view', metadata, selectable)
 
     assert sample_view is not None
-    assert sample_view.primary_key == [Synthese.id_synthese]
-    metadata.create_all(tables=sample_view, checkfirst=False)
 
-    class MyStuff(DB.Model):
-        __table__ = sample_view
-        __table_args__ = {'schema': 'gn_exports', 'extend_existing': True}
+    metadata.create_all(tables=[sample_view], checkfirst=False)
+
+    MyStuff = DB.Table(sample_view, {'schema': 'gn_exports'}, autoload=True)
 
     print('my stuff:', DB.session.query(MyStuff).all())
-    metadata.drop_all(tables=sample_view)
+    metadata.drop_all(tables=[sample_view])
