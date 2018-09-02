@@ -1,3 +1,4 @@
+import sys
 import logging
 from datetime import datetime
 from sqlalchemy.exc import IntegrityError
@@ -33,7 +34,6 @@ class ExportRepository(object):
 
         columns = [col.name for col in query.view.db_cols]
 
-        # data = query.return_query(policy=None)
         data = query.return_query()
         return (columns, data)
 
@@ -47,51 +47,63 @@ class ExportRepository(object):
             limit=10000,
             paging=0,
             format=None):
-        export = Export.query.filter_by(id=id_export)
-        if not export:
-            raise NoResultFound('Unknown export id {}.'.format(id_export))
-
-        if with_data and format:
-            try:
-                end_time = None
-                log = None
-                start_time = datetime.utcnow()
+        result, end_time, log, e = None, None, None, None
+        status = -2
+        start_time = datetime.utcnow()
+        try:
+            export = Export.query.filter_by(id=id_export).one()
+            if with_data and format:
                 columns, data = self._get_data(
                     id_role, export.view_name, export.schema_name,
                     geom_column_header=geom_column_header,
                     filters=filters,
                     limit=limit,
                     paging=paging)
-            except InsufficientRightsError as e:
-                logger.warn('InsufficientRightsError')
-                raise e
-            except Exception as e:
-                logger.critical('%s', str(e))
-                log = str(e)
-                ExportLog.log(
-                    id_export=export.id,
-                    id_role=id_role,
-                    format=format,
-                    start_time=start_time,
-                    end_time=end_time,
-                    status=-1,
-                    log=log)
             else:
-                end_time = datetime.utcnow()
-                ExportLog.log(
-                    id_export=export.id,
-                    id_role=id_role,
-                    format=format,
-                    start_time=start_time,
-                    end_time=end_time,
-                    status=0,
-                    log=log)
-                return (export.as_dict(), columns, data)
+                return export.as_dict()
+
+        except (InsufficientRightsError, NoResultFound) as e:
+            logger.warn('%s', str(e))
+            raise
+        except Exception as e:
+            logger.critical('%s', str(e))
+            raise
         else:
-            return export.as_dict()
+            log = str(columns)
+            status = 0
+            result = (export.as_dict(), columns, data)
+        finally:
+            end_time = datetime.utcnow()
+            e = sys.exc_info()
+            if any(e):
+                if isinstance(InsufficientRightsError, e):
+                    raise e
+                elif isinstance(NoResultFound, e):
+                    raise NoResultFound(
+                        'Unknown export id {}.'.format(id_export))
+                else:
+                    log = str(e)
+                    status = -1
+
+            ExportLog.log(
+                id_export=export.id,
+                id_role=id_role,
+                format=format,
+                start_time=start_time,
+                end_time=end_time,
+                status=status,
+                log=log)
+
+            if status == -1 and any(e):
+                raise e
+            else:
+                return result
 
     def get_list(self):
-        return Export.query.all()
+        result = Export.query.all()
+        if not result:
+            raise NoResultFound('No configured export')
+        return result
 
     def create(self, **kwargs):
         # TODO: create view

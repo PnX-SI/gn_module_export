@@ -59,7 +59,7 @@ def export_filename(export):
 def export(id_export, format, id_role):
 
     if id_export < 1:
-        return to_json_resp({'error': 'Invalid export id'}, status=404)
+        return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
     assert format in {'csv', 'json'}
 
@@ -94,15 +94,14 @@ def export(id_export, format, id_role):
             #     return send_from_directory(dir_path, fname + '.zip', as_attachment=True)  # noqa: E501
 
     except NoResultFound as e:
-        logger.warn('%s', str(e))
-        return to_json_resp({'error': 'NoResultFound',
+        return to_json_resp({'api_error': 'NoResultFound',
                              'message': str(e)}, status=404)
     except InsufficientRightsError:
-        logger.warn('InsufficientRightsError')
-        return to_json_resp({'error': 'InsufficientRightsError'}, status=403)
+        return to_json_resp(
+            {'api_error': 'InsufficientRightsError'}, status=403)
     except Exception as e:
         logger.critical('%s', str(e))
-        return to_json_resp({'error': 'LoggedError'}, status=400)
+        return to_json_resp({'api_error': 'LoggedError'}, status=400)
 
 
 @blueprint.route('/<int:id_export>', methods=['POST', 'PUT'])
@@ -115,8 +114,6 @@ def update(id_export, id_role):
     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
 
-    id_creator = id_role
-
     if not all(label, schema_name, view_name, desc):
         return {
             'error': 'MissingParameter',
@@ -126,7 +123,6 @@ def update(id_export, id_role):
     repo = ExportRepository()
     try:
         export = repo.update(
-            id_creator=id_creator,
             id_export=id_export,
             label=label,
             schema_name=schema_name,
@@ -134,11 +130,11 @@ def update(id_export, id_role):
             desc=desc)
     except NoResultFound as e:
         logger.warn('%s', str(e))
-        return {'error': 'NoResultFound',
+        return {'api_error': 'NoResultFound',
                 'message': str(e)}, 404
     except Exception as e:
         logger.critical('%s', str(e))
-        return {'error': 'LoggedError'}, 400
+        return {'api_error': 'LoggedError'}, 400
     else:
         return export.as_dict(), 201
 
@@ -152,12 +148,13 @@ def delete_export(id_export, id_role):
         repo.delete(id_role, id_export)
     except NoResultFound as e:
         logger.warn('%s', str(e))
-        return {'error': 'NoResultFound',
+        return {'api_error': 'NoResultFound',
                 'message': str(e)}, 404
     except Exception as e:
         logger.critical('%s', str(e))
-        return {'error': 'LoggedError'}, 400
+        return {'api_error': 'LoggedError'}, 400
     else:
+        # return '', 204 -> 404 client side, interceptors ?
         return {'result': 'success'}, 204
 
 
@@ -171,8 +168,6 @@ def create(id_role):
     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
 
-    id_creator = id_role
-
     if not(label and schema_name and view_name):
         return {
             'error': 'MissingParameter',
@@ -182,14 +177,13 @@ def create(id_role):
     repo = ExportRepository()
     try:
         export = repo.create(
-            id_creator=id_creator,
             label=label,
             schema_name=schema_name,
             view_name=view_name,
             desc=desc)
     except IntegrityError as e:
         if '(label)=({})'.format(label) in str(e):
-            return {'error': 'RegisteredLabel',
+            return {'api_error': 'RegisteredLabel',
                     'message': 'Label {} is already registered.'.format(label)}, 400  # noqa: E501
         else:
             logger.critical('%s', str(e))
@@ -205,10 +199,13 @@ def getExports(id_role):
     repo = ExportRepository()
     try:
         exports = repo.get_list()
-    except NoResultFound as e:
-        logger.warn('%s', str(e))
-        return {'error': 'NoResultFound',
-                'message': str(e)}, 204
+        logger.debug(exports)
+    except NoResultFound:
+        return {'api_error': 'NoResultFound',
+                'message': 'Configure one or more export'}, 404
+    except Exception as e:
+        logger.critical('%s', str(e))
+        return {'api_error': 'LoggedError'}, 400
     else:
         return [export.as_dict() for export in exports]
 
@@ -229,25 +226,21 @@ def test_view():
 
     from .utils.exportview import View
 
-    metadata = DB.MetaData(schema='gn_exports', bind=DB.engine)
-
-    # TODO: check fk exists in selection
     selectable = sqlalchemy.sql.expression.select([
         Synthese.id_synthese,
         Synthese.id_dataset,
         Synthese.the_geom_4326]).select_from(Synthese)
-    # logger.debug('selectable : %s', selectable)
-    # logger.debug('selectable fields: %s', selectable.columns)
-    # constraints = [c.copy()
-    #                for c in Synthese.__table__.constraints
-    #                if isinstance(c, DB.ForeignKeyConstraint)]
-    sample_view = View('sample_view', metadata, selectable)
 
-    assert sample_view is not None
+    metadata = DB.MetaData(schema='gn_exports', bind=DB.engine)
+    stuff_view = View('sample_view', metadata, selectable)
+    logger.debug(type(stuff_view))
+    logger.debug(dir(stuff_view))
+    assert stuff_view is not None
 
-    metadata.create_all(tables=[sample_view], checkfirst=False)
+    metadata.create_all()
 
-    MyStuff = DB.Table(sample_view, {'schema': 'gn_exports'}, autoload=True)
+    MyStuff = DB.Table(
+        'sample_view', metadata, extend_existing=True)
 
-    print('my stuff:', DB.session.query(MyStuff).all())
-    metadata.drop_all(tables=[sample_view])
+    logger.debug('my stuff: %s', DB.session.query(MyStuff))
+    # metadata.drop_all()
