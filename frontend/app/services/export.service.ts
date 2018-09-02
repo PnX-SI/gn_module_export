@@ -12,6 +12,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { filter } from "rxjs/operator/filter";
 import { map } from "rxjs/operator/map";
 
+import { ToastrService } from 'ngx-toastr'
 import { AppConfig } from "@geonature_config/app.config";
 
 
@@ -25,12 +26,23 @@ export interface Export {
   geometry_srid: number;
 }
 
+export interface APIErrorResponse extends HttpErrorResponse {
+   error: {
+      api_error?: string
+      message?: string
+      // links?: { about: string }
+    }
+    name: string
+    message: string
+    status: number
+}
 const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`;
 
 export const FormatMapMime = new Map([
   ['csv', 'text/csv'],
   ['json', 'application/json'],
-  ['rdf', 'application/rdf+xml']
+  ['rdf', 'application/rdf+xml'],
+  ['shp', 'application/zipped-shapefile']
 ])
 
 @Injectable()
@@ -39,15 +51,26 @@ export class ExportService {
   downloadProgress: BehaviorSubject<number>
   private _blob: Blob
 
-  constructor(private _api: HttpClient) {
+  constructor(private _api: HttpClient, private toastr: ToastrService) {
     this.exports = <BehaviorSubject<Export[]>>new BehaviorSubject([]);
     this.downloadProgress = <BehaviorSubject<number>>new BehaviorSubject(0.0);
   }
 
   getExports() {
-    this._api.get(`${apiEndpoint}/`).subscribe(
+    this._api.get(`${apiEndpoint}/`, /*{observe: 'events'}*/).subscribe(
+      // IDEA: consider using interceptor if we have to handle 204 http code
       (exports: Export[]) => this.exports.next(exports),
-      error => console.error(error),
+      (e: APIErrorResponse) => {
+        console.error('error.error:', e.error)
+        this.toastr.error(
+          e.error.message + '. TODO: redirect to admin ui on tap',
+          'API Error:' + e.error.api_error, {
+            timeOut: 0
+          })
+        console.error('error.name:', e.name)
+        console.error('error.message:', e.message)
+        console.error('error.status:', e.status)
+      },
       () => {
         console.info(`export service: ${this.exports.value.length} exports`)
         console.debug('exports:',  this.exports.value)
@@ -55,20 +78,9 @@ export class ExportService {
     )
   }
 
-  getLabels() {
-    let labels = []
-    let subscription = this.exports.subscribe(
-      xs => xs.map((x) => labels.push({
-        label: x.label,
-        description: x.desc
-      })),
-      error => console.error(error),
-      () => subscription.unsubscribe())
-    return labels
-  }
-
   downloadExport(xport: Export, extension: string) {
     let downloadExportURL = `${apiEndpoint}/${xport.id}/${extension}`
+    console.debug('ext:', extension)
 
     let source = this._api.get(downloadExportURL, {
       headers: new HttpHeaders().set('Content-Type', `${FormatMapMime.get(extension)}`),
@@ -91,14 +103,16 @@ export class ExportService {
         this._blob = new Blob([event.body], {type: event.headers.get('Content-Type')});
       }
     },
-    (e: HttpErrorResponse) => {
-      console.error(e.error);
-      console.error(e.name);
-      console.error(e.message);
-      console.error(e.status);
+    (e: APIErrorResponse) => {
+      this.toastr.error(e.error.message, e.error.api_error, {timeOut: 0})
+      console.error('error.error:', e.error)
+      console.error(e.name)
+      console.error(e.message)
+      console.error(e.status)
     },
     () => {
       let date = new Date()
+      // FIXME: const GN_EXPORT_DATE_FORMAT, GN_EXPORT_FILENAME_FORMAT
       this.saveBlob(this._blob, `export_${xport.label}_${date.toISOString()}.${extension}`)
       subscription.unsubscribe()
     }
