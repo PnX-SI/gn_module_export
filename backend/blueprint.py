@@ -219,28 +219,66 @@ def getCollections():
 
 @blueprint.route('/testview')
 def test_view():
+    # Note that the SQLAlchemy Table object is used to represent both
+    # tables and views.
+    # To introspect a view, create a Table with autoload=True,
+    # and then use SQLAlchemy's get_view_definition method to
+    # generate the second argument to CreateView.
     import sqlalchemy
     # from sqlalchemy import orm
+    from flask import jsonify
     from geonature.utils.env import DB
-    from geonature.core.gn_synthese.models import Synthese
+    # from geonature.core.gn_synthese.models import Synthese
+    from pypnnomenclature.models import TNomenclatures
+    from .utils.views import View, DropView
+    # from .utils.filters import model_by_name
+    from .utils.query import ExportQuery
 
-    from .utils.views import View
-
-    selectable = sqlalchemy.sql.expression.select([
-        Synthese.id_synthese,
-        Synthese.id_dataset,
-        Synthese.the_geom_4326]).select_from(Synthese)
-
+    selectable = sqlalchemy.sql.expression.select([TNomenclatures])
     metadata = DB.MetaData(schema='gn_exports', bind=DB.engine)
-    stuff_view = View('sample_view', metadata, selectable)
-    logger.debug(type(stuff_view))
-    logger.debug(dir(stuff_view))
+
+    before_models = [
+        m.__name__
+        for m in DB.Model._decl_class_registry.values()
+        if hasattr(m, '__name__')]
+    before_tables = [t[0] for t in DB.metadata.tables.items()]
+
+    stuff_view = View('stuff_view', metadata, selectable)
     assert stuff_view is not None
+    assert stuff_view.name == 'stuff_view'
+
+    # MyStuff = DB.Table(stuff_view, metadata, autoload=True)
+    class MyStuff(DB.Model):
+        __table__ = stuff_view
+        __table_args__ = {
+            'schema': 'gn_exports',
+            'extend_existing': True,
+            'autoload': True
+        }
+    assert MyStuff is not None
 
     metadata.create_all()
 
-    MyStuff = DB.Table(
-        'sample_view', metadata, extend_existing=True)
+    after_models = [
+        m.__name__
+        for m in DB.Model._decl_class_registry.values()
+        if hasattr(m, '__name__')]
 
-    logger.debug('my stuff: %s', DB.session.query(MyStuff))
+    assert MyStuff.__tablename__ == 'my_stuff'
+    assert 'MyStuff' in after_models
+
+    # q = DB.session.query(MyStuff)
+    # q = DB.session.query(TNomenclatures)
+    # FIXME: schema name is not prepended to the query From clause argument even if present in metadata.
+    q = ExportQuery(1, DB.session, 'stuff_view', 'gn_exports',
+                    geometry_field=None,
+                    filters=[('stuff_view.id_nomenclature', 'GREATER_THAN', 0)],
+                    limit=0)
+    logger.debug('my stuff: %s', str(q))
+    logger.debug(MyStuff.__table_args__)
+    # logger.debug(TNomenclatures.__table_args__)
     # metadata.drop_all()
+    # MyStuff.drop()
+    # raise
+    return to_json_resp(q.return_query())
+    # return to_json_resp(q.all())
