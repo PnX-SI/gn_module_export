@@ -16,9 +16,9 @@ class CreateView(DDLElement):
 
 @compiles(CreateView)
 def visit_create_view(element, compiler, **kw):
-    return "CREATE %s AS %s" % (
+    return "CREATE VIEW gn_exports.%s AS %s" % (
         element.name,
-        compiler.sql_compiler.process(element.selectable, literal_binds=True))
+        compiler.sql_compiler.process(element.selectable))
 
 
 class DropView(DDLElement):
@@ -28,13 +28,11 @@ class DropView(DDLElement):
 
 @compiles(DropView)  # noqa
 def visit_drop_view(element, compiler, **kw):
-    return "DROP VIEW %s" % (element.name)
+    return "DROP VIEW gn_exports.%s" % (element.name)
 
 
 def View(name, metadata, selectable):
-    t = DB.Table(name, metadata)
-
+    t = DB.table(name)
     CreateView(name, selectable).execute_at('after-create', metadata)
     DropView(name).execute_at('before-drop', metadata)
-    logger.debug(selectable)
     return t
