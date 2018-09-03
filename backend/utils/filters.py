@@ -32,7 +32,7 @@ def model_by_name(name):
 class Filter():
     # QUESTION: check_type: column type ?
     #  so (User.name, 'EQUALS', 5, (basestring,)) doesn't get through
-    # TODO: PN like dict
+    # TODO: PN like dict cf @20cents
     # rule_set = [
     #     ((User.name, 'EQUALS', new_person2.name), 'OR', (User.name, 'EQUALS', new_person1.name)),  # noqa: E501
     #     (User.name, 'CONTAINS', 'user%2'),
