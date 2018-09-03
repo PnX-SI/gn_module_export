@@ -42,7 +42,7 @@ export const FormatMapMime = new Map([
   ['csv', 'text/csv'],
   ['json', 'application/json'],
   ['rdf', 'application/rdf+xml'],
-  ['shp', 'application/zipped-shapefile']
+  ['shp', 'application/zip']
 ])
 
 @Injectable()
