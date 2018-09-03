@@ -7,7 +7,6 @@ from geonature.utils.env import DB
 logger = current_app.logger
 
 
-# class CreateView(_CreateDropBase):
 class CreateView(DDLElement):
     def __init__(self, name, selectable):
         self.name = name
@@ -26,7 +25,7 @@ class DropView(DDLElement):
         self.name = name
 
 
-@compiles(DropView)  # noqa
+@compiles(DropView)
 def visit_drop_view(element, compiler, **kw):
     return "DROP VIEW gn_exports.%s" % (element.name)
 

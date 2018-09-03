@@ -3,7 +3,7 @@ from flask import current_app
 # from geojson import FeatureCollection
 from geonature.utils.utilssqlalchemy import GenericQuery
 
-from .exportfilter import CompositeFilter
+from .filters import CompositeFilter
 
 
 logger = current_app.logger

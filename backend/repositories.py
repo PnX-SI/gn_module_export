@@ -8,7 +8,7 @@ from geonature.utils.env import DB
 from pypnusershub.db.tools import InsufficientRightsError
 
 from .models import (Export, ExportLog)
-from .utils.exportquery import ExportQuery
+from .utils.query import ExportQuery
 
 
 logger = current_app.logger
