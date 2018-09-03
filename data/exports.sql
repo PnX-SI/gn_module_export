@@ -23,17 +23,18 @@ COMMENT ON COLUMN gn_exports.t_exports.geometry_field IS 'Name of the geometry f
 COMMENT ON COLUMN gn_exports.t_exports.geometry_srid IS 'SRID of the geometry';
 
 
-CREATE TABLE cor_exports_roles (
+DROP TABLE IF EXISTS gn_exports.cor_exports_roles;
+CREATE TABLE gn_exports.cor_exports_roles (
     id_export integer NOT NULL,
     id_role integer NOT NULL
 );
-ALTER TABLE ONLY cor_exports_roles
+ALTER TABLE ONLY gn_exports.cor_exports_roles
     ADD CONSTRAINT cor_exports_roles_pkey PRIMARY KEY (id_export, id_role);
 
-ALTER TABLE ONLY cor_exports_roles
+ALTER TABLE ONLY gn_exports.cor_exports_roles
     ADD CONSTRAINT fk_cor_exports_roles_id_export FOREIGN KEY (id_export) REFERENCES gn_exports.t_exports(id);
 
-ALTER TABLE ONLY cor_exports_roles
+ALTER TABLE ONLY gn_exports.cor_exports_roles
     ADD CONSTRAINT fk_cor_exports_roles_id_role FOREIGN KEY (id_role) REFERENCES utilisateurs.t_roles(id_role) ON UPDATE CASCADE;
 
 
