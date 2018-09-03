@@ -24,7 +24,7 @@ FilterBooleanOpMap = {
 
 
 def model_by_name(name):
-    for m in DB._decl_class_registry.values():
+    for m in DB.Model._decl_class_registry.values():
         if hasattr(m, '__name__') and m.__name__ == name:
             return m
 
