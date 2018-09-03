@@ -224,7 +224,7 @@ def test_view():
     from geonature.utils.env import DB
     from geonature.core.gn_synthese.models import Synthese
 
-    from .utils.view import View
+    from .utils.views import View
 
     selectable = sqlalchemy.sql.expression.select([
         Synthese.id_synthese,
