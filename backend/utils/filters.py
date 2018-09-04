@@ -23,15 +23,17 @@ FilterBooleanOpMap = {
 }  # noqa: E133
 
 
-def model_by_name(name):
-    # assert schema.name
+def model_by_ns(ns):
+    # schema.name
     models = list(DB.Model._decl_class_registry.values())
-    # FIXME: assert stuff_view in models
+    if isinstance(ns, str):
+        name = ns
+    elif isinstance(ns, list):
+        name = ns[-1]
     for m in models:
-        if hasattr(m, '__name__') and m.__name__ == name[-1]:
-            print(m.__name__)
+        if hasattr(m, '__name__') and m.__name__ == name:
             return m
-    # raise
+    raise
 
 
 class Filter():
@@ -67,11 +69,11 @@ class Filter():
             crumbs = field.split('.')
             depth = len(crumbs)
             if depth < 2:
-                raise Exception('field: [schema.]entity.attribute')
+                raise Exception('Invalid filter field param: [schema.]entity.attribute')  # noqa: E501
             elif depth > 2:
-                return getattr(model_by_name(crumbs[0:-2]), crumbs[-1])
+                return getattr(model_by_ns(crumbs[0:-2]), crumbs[-1])
             else:
-                return getattr(model_by_name(crumbs[0]), crumbs[1])
+                return getattr(model_by_ns(crumbs[0]), crumbs[1])
         else:
             if (field.parent.class_ in [
                     m for m in DB._decl_class_registry.values()
