@@ -24,9 +24,14 @@ FilterBooleanOpMap = {
 
 
 def model_by_name(name):
-    for m in DB.Model._decl_class_registry.values():
-        if hasattr(m, '__name__') and m.__name__ == name:
+    # assert schema.name
+    models = list(DB.Model._decl_class_registry.values())
+    # FIXME: assert stuff_view in models
+    for m in models:
+        if hasattr(m, '__name__') and m.__name__ == name[-1]:
+            print(m.__name__)
             return m
+    # raise
 
 
 class Filter():
@@ -59,9 +64,14 @@ class Filter():
     @staticmethod
     def process(field):
         if isinstance(field, str):
-            _item = field.split('.')
-            assert len(_item) == 2
-            return getattr(model_by_name(_item[0]), _item[1])
+            crumbs = field.split('.')
+            depth = len(crumbs)
+            if depth < 2:
+                raise Exception('field: [schema.]entity.attribute')
+            elif depth > 2:
+                return getattr(model_by_name(crumbs[0:-2]), crumbs[-1])
+            else:
+                return getattr(model_by_name(crumbs[0]), crumbs[1])
         else:
             if (field.parent.class_ in [
                     m for m in DB._decl_class_registry.values()

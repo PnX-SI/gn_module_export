@@ -237,48 +237,51 @@ def test_view():
     selectable = sqlalchemy.sql.expression.select([TNomenclatures])
     metadata = DB.MetaData(schema='gn_exports', bind=DB.engine)
 
-    before_models = [
-        m.__name__
-        for m in DB.Model._decl_class_registry.values()
-        if hasattr(m, '__name__')]
-    before_tables = [t[0] for t in DB.metadata.tables.items()]
+    # before_models = [
+    #     m.__name__
+    #     for m in DB.Model._decl_class_registry.values()
+    #     if hasattr(m, '__name__')]
+    # before_tables = [t[0] for t in DB.metadata.tables.items()]
 
     stuff_view = View('stuff_view', metadata, selectable)
     assert stuff_view is not None
     assert stuff_view.name == 'stuff_view'
 
-    # MyStuff = DB.Table(stuff_view, metadata, autoload=True)
-    class MyStuff(DB.Model):
+    class StuffView(DB.Model):
         __table__ = stuff_view
         __table_args__ = {
             'schema': 'gn_exports',
             'extend_existing': True,
             'autoload': True
-        }
-    assert MyStuff is not None
+        }  # noqa: E133
 
-    metadata.create_all()
+    metadata.create_all(bind=DB.engine)
 
     after_models = [
         m.__name__
         for m in DB.Model._decl_class_registry.values()
         if hasattr(m, '__name__')]
 
-    assert MyStuff.__tablename__ == 'my_stuff'
-    assert 'MyStuff' in after_models
-
-    # q = DB.session.query(MyStuff)
-    # q = DB.session.query(TNomenclatures)
-    # FIXME: schema name is not prepended to the query From clause argument even if present in metadata.
-    q = ExportQuery(1, DB.session, 'stuff_view', 'gn_exports',
-                    geometry_field=None,
-                    filters=[('stuff_view.id_nomenclature', 'GREATER_THAN', 0)],
-                    limit=0)
-    logger.debug('my stuff: %s', str(q))
-    logger.debug(MyStuff.__table_args__)
-    # logger.debug(TNomenclatures.__table_args__)
-    # metadata.drop_all()
-    # MyStuff.drop()
+    assert StuffView is not None
+    # assert StuffView.__tablename__ == 'my_stuff'
+    assert StuffView.__tablename__ == 'stuff_view'
+    StuffView.schema = 'gn_exports'
+    assert 'StuffView' in after_models
     # raise
-    return to_json_resp(q.return_query())
+    # q = DB.session.query(StuffView)
+    # q = DB.session.query(TNomenclatures)
+    q = ExportQuery(1, DB.session,
+                    StuffView.__tablename__,
+                    'gn_exports',
+                    geometry_field=None,
+                    filters=[('StuffView.id_nomenclature', 'GREATER_THAN', 0)],
+                    limit=0)
+    # logger.debug('my stuff: %s', str(q))
+    print(q)
+    # logger.debug(StuffView.__table_args__)
+    res = q.return_query()
+    # metadata.drop_all()
+    # StuffView.drop()
+    # raise
+    return to_json_resp(res)
     # return to_json_resp(q.all())
