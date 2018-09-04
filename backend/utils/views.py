@@ -16,12 +16,8 @@ class CreateView(DDLElement):
 
 @compiles(CreateView)
 def visit_create_view(element, compiler, **kw):
-    # DOING: fix pg schema name in generated sql
-    schema = None
-    if hasattr(element.target, 'schema') and len(element.name.split('.')) == 0:
-        schema = element.target.schema
     return "CREATE OR REPLACE VIEW %s AS (%s)" % (
-        '.'.join([schema, element.name]) if schema else element.name,
+        element.name,
         compiler.sql_compiler.process(element.selectable))
 
 
@@ -32,11 +28,7 @@ class DropView(DDLElement):
 
 @compiles(DropView)
 def visit_drop_view(element, compiler, **kw):
-    schema = None
-    if hasattr(element.target, 'schema') and len(element.name.split('.')) == 0:
-        schema = element.target.schema
-    return "DROP VIEW IF EXISTS %s" % (
-        '.'.join([schema, element.name]) if schema else element.name)
+    return "DROP VIEW IF EXISTS %s" % (element.name)
 
 
 def View(name, metadata, selectable):
@@ -48,8 +40,10 @@ def View(name, metadata, selectable):
     for c in selectable.c:
         # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-744  # noqa: E501
         c._make_proxy(t)
-    if hasattr(metadata, 'schema') and len(name.split('.')) == 0:
+    if hasattr(metadata, 'schema') and not t.schema:
+        logger.debug('adding schema to %s', name)
         t.schema = metadata.schema
+    logger.debug('view schema: %s', t.schema)
     CreateView(name, selectable).execute_at('after-create', metadata)
     DropView(name).execute_at('before-drop', metadata)
     # raise

@@ -245,7 +245,7 @@ def test_view():
 
     stuff_view = View('stuff_view', metadata, selectable)
     assert stuff_view is not None
-    assert stuff_view.name == 'stuff_view'
+    # assert stuff_view.name == 'gn_exports.stuff_view'
 
     class StuffView(DB.Model):
         __table__ = stuff_view
@@ -263,9 +263,8 @@ def test_view():
         if hasattr(m, '__name__')]
 
     assert StuffView is not None
-    # assert StuffView.__tablename__ == 'my_stuff'
     assert StuffView.__tablename__ == 'stuff_view'
-    StuffView.schema = 'gn_exports'
+    # !!! assert StuffView.schema == 'gn_exports'
     assert 'StuffView' in after_models
     # raise
     # q = DB.session.query(StuffView)
