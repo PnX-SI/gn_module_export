@@ -16,8 +16,18 @@ class CreateView(DDLElement):
 
 @compiles(CreateView)
 def visit_create_view(element, compiler, **kw):
+    # return "CREATE %s AS (%s)" % (
+    # return "CREATE OR REPLACE VIEW %s AS (%s)" % (
+    #     element.name,
+    #     # compiler.sql_compiler.process(element.selectable, literal_binds=True))
+    #     compiler.sql_compiler.process(element.selectable))
+    schema = None
+    # We need to specify a schema here
+    # else the view lands in the 'public' schema.
+    if hasattr(element.target, 'schema'):
+        schema = element.target.schema
     return "CREATE OR REPLACE VIEW %s AS (%s)" % (
-        element.name,
+        '.'.join([schema, element.name]) if schema else element.name,
         compiler.sql_compiler.process(element.selectable))
 
 
@@ -32,18 +42,21 @@ def visit_drop_view(element, compiler, **kw):
 
 
 def View(name, metadata, selectable):
-    t = DB.table(name)
     # https://docs.sqlalchemy.org/en/latest/core/selectable.html?highlight=table#sqlalchemy.sql.expression.TableClause  # noqa: E501
     # table(name, *columns) return is an instance of TableClause,
     # which represents the “syntactical” portion of the schema-level
     # Table object.
+    t = DB.table(name)
+
+    # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-744  # noqa: E501
     for c in selectable.c:
-        # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-744  # noqa: E501
         c._make_proxy(t)
     if hasattr(metadata, 'schema') and not t.schema:
-        logger.debug('adding schema to %s', name)
+        logger.debug('View: adding schema %s to %s', metadata.schema, name)
         t.schema = metadata.schema
-    logger.debug('view schema: %s', t.schema)
+        # sqlalchemy/ext/declarative/clsregistry.py:120: SAWarning: This declarative base already contains a class with the same class name and module name as exports.backend.blueprint.StuffView, and will be replaced in the string-lookup table. item.__name__
+    logger.debug('View schema: %s', t.schema)
+
     CreateView(name, selectable).execute_at('after-create', metadata)
     DropView(name).execute_at('before-drop', metadata)
     # raise

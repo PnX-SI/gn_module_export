@@ -3,6 +3,7 @@ from flask import current_app
 from sqlalchemy import or_
 from geonature.utils.env import DB
 
+
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
@@ -23,17 +24,15 @@ FilterBooleanOpMap = {
 }  # noqa: E133
 
 
-def model_by_ns(ns):
-    # schema.name
-    models = list(DB.Model._decl_class_registry.values())
+def model_by_ns(ns):  # 'name' | ['schema', 'name']
     if isinstance(ns, str):
         name = ns
     elif isinstance(ns, list):
         name = ns[-1]
-    for m in models:
+    for m in DB.Model._decl_class_registry.values():
         if hasattr(m, '__name__') and m.__name__ == name:
             return m
-    raise
+    raise Exception('Filters.model_by_ns(): Could not find model %s', ns)
 
 
 class Filter():

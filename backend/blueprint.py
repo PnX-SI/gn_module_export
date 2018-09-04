@@ -225,53 +225,59 @@ def test_view():
     # and then use SQLAlchemy's get_view_definition method to
     # generate the second argument to CreateView.
     import sqlalchemy
-    # from sqlalchemy import orm
-    from flask import jsonify
     from geonature.utils.env import DB
-    # from geonature.core.gn_synthese.models import Synthese
-    from pypnnomenclature.models import TNomenclatures
-    from .utils.views import View, DropView
-    # from .utils.filters import model_by_name
+    from .utils.views import View  # , DropView
     from .utils.query import ExportQuery
 
+    # from geonature.core.gn_synthese.models import Synthese
+    from pypnnomenclature.models import TNomenclatures
     selectable = sqlalchemy.sql.expression.select([TNomenclatures])
-    metadata = DB.MetaData(schema='gn_exports', bind=DB.engine)
-
-    # before_models = [
-    #     m.__name__
-    #     for m in DB.Model._decl_class_registry.values()
-    #     if hasattr(m, '__name__')]
-    # before_tables = [t[0] for t in DB.metadata.tables.items()]
+    metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
 
     stuff_view = View('stuff_view', metadata, selectable)
     assert stuff_view is not None
-    # assert stuff_view.name == 'gn_exports.stuff_view'
+    assert stuff_view.name == 'stuff_view'
 
     class StuffView(DB.Model):
         __table__ = stuff_view
         __table_args__ = {
-            'schema': 'gn_exports',
+            'schema': DEFAULT_SCHEMA,
             'extend_existing': True,
-            'autoload': True
+            'autoload': True,
+            'autoload_with': DB.engine
         }  # noqa: E133
 
+    assert StuffView is not None
+    assert StuffView.__tablename__ == 'stuff_view'
+
+    if hasattr(metadata, 'schema') and not StuffView.__table__.schema:
+        logger.debug('adding schema %s to %s',
+                     metadata.schema, StuffView.__tablename__)
+        StuffView.__table__.schema = metadata.schema
+
+    # Won't do: StuffView.create(DB.engine)
+    # Won't do: StuffView.__table__.create(DB.engine)
     metadata.create_all(bind=DB.engine)
+    assert StuffView.__table__.schema is not None
+    assert StuffView.__table__.schema == DEFAULT_SCHEMA
 
     after_models = [
         m.__name__
         for m in DB.Model._decl_class_registry.values()
         if hasattr(m, '__name__')]
-
-    assert StuffView is not None
-    assert StuffView.__tablename__ == 'stuff_view'
-    # !!! assert StuffView.schema == 'gn_exports'
     assert 'StuffView' in after_models
     # raise
     # q = DB.session.query(StuffView)
     # q = DB.session.query(TNomenclatures)
+    # [t for t in meta.tables]
+
+    # ERREUR:  le nom de la table « stuff_view » est spécifié plus d'une fois:
+    # SELECT gn_exports.stuff_view.id_nomenclature ...
+    # FROM gn_exports.stuff_view, gn_exports.stuff_view
+    # WHERE gn_exports.stuff_view.id_nomenclature > %(id_nomenclature_1)s
     q = ExportQuery(1, DB.session,
                     StuffView.__tablename__,
-                    'gn_exports',
+                    DEFAULT_SCHEMA,
                     geometry_field=None,
                     filters=[('StuffView.id_nomenclature', 'GREATER_THAN', 0)],
                     limit=0)
