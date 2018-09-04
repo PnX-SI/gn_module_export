@@ -23,7 +23,7 @@ FilterBooleanOpMap = {
 }  # noqa: E133
 
 
-def model_by_name(name):
+def model_by_ns(name):
     # assert schema.name
     models = list(DB.Model._decl_class_registry.values())
     # FIXME: assert stuff_view in models
@@ -69,9 +69,9 @@ class Filter():
             if depth < 2:
                 raise Exception('field: [schema.]entity.attribute')
             elif depth > 2:
-                return getattr(model_by_name(crumbs[0:-2]), crumbs[-1])
+                return getattr(model_by_ns(crumbs[0:-2]), crumbs[-1])
             else:
-                return getattr(model_by_name(crumbs[0]), crumbs[1])
+                return getattr(model_by_ns(crumbs[0]), crumbs[1])
         else:
             if (field.parent.class_ in [
                     m for m in DB._decl_class_registry.values()
