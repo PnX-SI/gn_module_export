@@ -29,10 +29,15 @@ def model_by_ns(ns):  # 'name' | ['schema', 'name']
         name = ns
     elif isinstance(ns, list):
         name = ns[-1]
+    else:
+        raise Exception(
+            'model_by_ns(): unexpected param type: {} {}'.format(type(ns), ns))
     for m in DB.Model._decl_class_registry.values():
         if hasattr(m, '__name__') and m.__name__ == name:
             return m
-    raise Exception('Filters.model_by_ns(): Could not find model %s', ns)
+    if logger.level == logging.DEBUG:
+        raise Exception(
+            'model_by_ns(): could not find model {}'.format(ns))
 
 
 class Filter():
@@ -67,15 +72,18 @@ class Filter():
         if isinstance(field, str):
             crumbs = field.split('.')
             depth = len(crumbs)
+            logger.debug('depth: %s', depth)
+            # raise
             if depth < 2:
                 raise Exception('Invalid filter field param: [schema.]entity.attribute')  # noqa: E501
             elif depth > 2:
-                return getattr(model_by_ns(crumbs[0:-2]), crumbs[-1])
+                return getattr(model_by_ns(crumbs[0:depth - 1]), crumbs[-1])
             else:
+                logger.debug('crumbs: %s', crumbs)
                 return getattr(model_by_ns(crumbs[0]), crumbs[1])
         else:
             if (field.parent.class_ in [
-                    m for m in DB._decl_class_registry.values()
+                    m for m in DB.Model._decl_class_registry.values()
                     if hasattr(m, '__name__')]):
                 return field
             else:

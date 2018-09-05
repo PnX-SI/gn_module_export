@@ -227,7 +227,6 @@ def test_view():
     import sqlalchemy
     from geonature.utils.env import DB
     from .utils.views import View  # , DropView
-    from .utils.query import ExportQuery
 
     # from geonature.core.gn_synthese.models import Synthese
     from pypnnomenclature.models import TNomenclatures
@@ -235,37 +234,39 @@ def test_view():
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
 
     stuff_view = View('stuff_view', metadata, selectable)
-    assert stuff_view is not None
+    # assert stuff_view is not None
     assert stuff_view.name == 'stuff_view'
 
-    class StuffView(DB.Model):
-        __table__ = stuff_view
-        __table_args__ = {
+    StuffView = type(
+        'StuffView', (DB.Model,), {
+            '__table__': stuff_view,
+            '__table_args__': {
             'schema': DEFAULT_SCHEMA,
             'extend_existing': True,
             'autoload': True,
             'autoload_with': DB.engine
-        }  # noqa: E133
+            }  # noqa: E133
+    })
+    # class StuffView(DB.Model):  # genericTable ?
+    #     __table__ = stuff_view
+    #     __table_args__ = {
+    #         'schema': DEFAULT_SCHEMA,
+    #         'extend_existing': True,
+    #         'autoload': True,
+    #         'autoload_with': DB.engine
+    #     }  # noqa: E133
 
-    assert StuffView is not None
     assert StuffView.__tablename__ == 'stuff_view'
-
-    if hasattr(metadata, 'schema') and not StuffView.__table__.schema:
-        logger.debug('adding schema %s to %s',
-                     metadata.schema, StuffView.__tablename__)
-        StuffView.__table__.schema = metadata.schema
-
-    # Won't do: StuffView.create(DB.engine)
-    # Won't do: StuffView.__table__.create(DB.engine)
-    metadata.create_all(bind=DB.engine)
-    assert StuffView.__table__.schema is not None
     assert StuffView.__table__.schema == DEFAULT_SCHEMA
+    # Won't do: StuffView.create(DB.engine) -> !Table
+    #           StuffView.__table__.create(DB.engine)
+    metadata.create_all(bind=DB.engine)
 
-    after_models = [
-        m.__name__
-        for m in DB.Model._decl_class_registry.values()
-        if hasattr(m, '__name__')]
-    assert 'StuffView' in after_models
+    # after_models = [
+    #     m.__name__
+    #     for m in DB.Model._decl_class_registry.values()
+    #     if hasattr(m, '__name__')]
+    # assert 'StuffView' in after_models
     # raise
     # q = DB.session.query(StuffView)
     # q = DB.session.query(TNomenclatures)
@@ -275,14 +276,21 @@ def test_view():
     # SELECT gn_exports.stuff_view.id_nomenclature ...
     # FROM gn_exports.stuff_view, gn_exports.stuff_view
     # WHERE gn_exports.stuff_view.id_nomenclature > %(id_nomenclature_1)s
-    q = ExportQuery(1, DB.session,
-                    StuffView.__tablename__,
-                    DEFAULT_SCHEMA,
-                    geometry_field=None,
-                    filters=[('StuffView.id_nomenclature', 'GREATER_THAN', 0)],
-                    limit=0)
+    from .utils.query import ExportQuery
+    # from geonature.utils.utilssqlalchemy import GenericQuery
+
+    # q = GenericQuery(
+    q = ExportQuery(
+        1,
+        DB.session,
+        StuffView.__tablename__,
+        DEFAULT_SCHEMA,
+        geometry_field=None,
+        filters=[('StuffView.id_nomenclature', 'GREATER_THAN', 0)],
+        # filters={'id_nomenclature': 1},
+        limit=0)
     # logger.debug('my stuff: %s', str(q))
-    print(q)
+    print(str(q))
     # logger.debug(StuffView.__table_args__)
     res = q.return_query()
     # metadata.drop_all()

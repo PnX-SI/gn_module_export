@@ -19,7 +19,7 @@ def visit_create_view(element, compiler, **kw):
     # return "CREATE %s AS (%s)" % (
     # return "CREATE OR REPLACE VIEW %s AS (%s)" % (
     #     element.name,
-    #     # compiler.sql_compiler.process(element.selectable, literal_binds=True))
+    #     # compiler.sql_compiler.process(element.selectable, literal_binds=True))  # noqa: E501
     #     compiler.sql_compiler.process(element.selectable))
     schema = None
     # We need to specify a schema here
@@ -50,11 +50,12 @@ def View(name, metadata, selectable):
 
     # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-744  # noqa: E501
     for c in selectable.c:
+        # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-3883  # noqa: E501
         c._make_proxy(t)
     if hasattr(metadata, 'schema') and not t.schema:
         logger.debug('View: adding schema %s to %s', metadata.schema, name)
+        # else the view lands in the public schema
         t.schema = metadata.schema
-        # sqlalchemy/ext/declarative/clsregistry.py:120: SAWarning: This declarative base already contains a class with the same class name and module name as exports.backend.blueprint.StuffView, and will be replaced in the string-lookup table. item.__name__
     logger.debug('View schema: %s', t.schema)
 
     CreateView(name, selectable).execute_at('after-create', metadata)
