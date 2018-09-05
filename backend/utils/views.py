@@ -22,8 +22,6 @@ def visit_create_view(element, compiler, **kw):
     #     # compiler.sql_compiler.process(element.selectable, literal_binds=True))  # noqa: E501
     #     compiler.sql_compiler.process(element.selectable))
     schema = None
-    # We need to specify a schema here
-    # else the view lands in the 'public' schema.
     if hasattr(element.target, 'schema'):
         schema = element.target.schema
     return "CREATE OR REPLACE VIEW %s AS (%s)" % (
@@ -47,14 +45,14 @@ def View(name, metadata, selectable):
     # which represents the “syntactical” portion of the schema-level
     # Table object.
     t = DB.table(name)
-
     # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-744  # noqa: E501
+    # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-3883  # noqa: E501
+    # raise
     for c in selectable.c:
-        # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-3883  # noqa: E501
         c._make_proxy(t)
     if hasattr(metadata, 'schema') and not t.schema:
-        logger.debug('View: adding schema %s to %s', metadata.schema, name)
-        # else the view lands in the public schema
+        # Looks like we need to specify a schema here otherwise
+        # the view lands in the 'public' schema.
         t.schema = metadata.schema
     logger.debug('View schema: %s', t.schema)
 

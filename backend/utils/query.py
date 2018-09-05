@@ -1,6 +1,7 @@
 import logging
 from flask import current_app
 # from geojson import FeatureCollection
+# from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import GenericQuery
 
 from .filters import CompositeFilter

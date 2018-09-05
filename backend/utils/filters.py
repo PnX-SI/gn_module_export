@@ -7,16 +7,15 @@ from geonature.utils.env import DB
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
-# map encoding to column operator names
 # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html?highlight=column%20operator#sqlalchemy.sql.operators.ColumnOperators
+# map encoding to column operator names
 FilterOpMap = {
     'EQUALS': '__eq__',
     'NOT_EQUALS': '__ne__',
     'GREATER_THAN': '__gt__',
     'LESS_THAN': '__lt__',
-    # "%" and "_" that are present inside the condition
-    # will behave like wildcards as well.
-    'CONTAINS': 'contains'
+    'CONTAINS': 'contains',  # "%" and "_" -> wildcards in the condition.
+    # in_: Order.items.any(LineItem.product_name.in_(product_names))
 }  # noqa: E133
 
 FilterBooleanOpMap = {
@@ -24,7 +23,15 @@ FilterBooleanOpMap = {
 }  # noqa: E133
 
 
-def model_by_ns(ns):  # 'name' | ['schema', 'name']
+def get_query_models(query):
+    models = [col_desc['entity'] for col_desc in query.column_descriptions]
+    models.extend(mapper.class_ for mapper in query._join_entities)
+    raise
+    return {model.__name__: model for model in models}
+
+
+def model_by_ns(context, ns):
+    # 'name' | ['schema', 'name']
     if isinstance(ns, str):
         name = ns
     elif isinstance(ns, list):
@@ -32,9 +39,17 @@ def model_by_ns(ns):  # 'name' | ['schema', 'name']
     else:
         raise Exception(
             'model_by_ns(): unexpected param type: {} {}'.format(type(ns), ns))
-    for m in DB.Model._decl_class_registry.values():
+
+    # DOING: get a reliable grab on models
+    # User.__mapper__.class_ -> __main__.User
+    # User.__mapper__.entity -> __main__.User
+    # User.__mapper__.class_manager.class_ -> __main__.User
+    # raise
+    # for m in DB.Model._decl_class_registry.values():
+    for m in get_query_models(context['models']):
         if hasattr(m, '__name__') and m.__name__ == name:
             return m
+
     if logger.level == logging.DEBUG:
         raise Exception(
             'model_by_ns(): could not find model {}'.format(ns))
@@ -63,24 +78,26 @@ class Filter():
                 return Filter.apply_boolean(context, query, filter)
 
             else:
-                field = Filter.process(field)
-                return query.filter(
-                    getattr(field, FilterOpMap[relation])(condition))
+                field = Filter.process(context, field)
+                filter = getattr(field, FilterOpMap[relation])(condition)
+                logger.debug('filter: %s', filter)
+                return query.filter(filter)
 
     @staticmethod
-    def process(field):
+    def process(context, field):
         if isinstance(field, str):
             crumbs = field.split('.')
             depth = len(crumbs)
-            logger.debug('depth: %s', depth)
+            # logger.debug('depth: %s', depth)
             # raise
             if depth < 2:
                 raise Exception('Invalid filter field param: [schema.]entity.attribute')  # noqa: E501
             elif depth > 2:
-                return getattr(model_by_ns(crumbs[0:depth - 1]), crumbs[-1])
+                return getattr(model_by_ns(crumbs[0:depth - 1], context), crumbs[-1])
             else:
                 logger.debug('crumbs: %s', crumbs)
-                return getattr(model_by_ns(crumbs[0]), crumbs[1])
+                # raise
+                return getattr(model_by_ns(crumbs[0], context), crumbs[1])
         else:
             if (field.parent.class_ in [
                     m for m in DB.Model._decl_class_registry.values()
@@ -104,6 +121,9 @@ class Filter():
 class CompositeFilter(Filter):
     @staticmethod
     def apply(context, query, filters=None):
+        context = {}
+        context['models'] = get_query_models(query)
+
         for f in filters:
             query = Filter.apply(context, query, f)
         return query

@@ -232,44 +232,39 @@ def test_view():
     from pypnnomenclature.models import TNomenclatures
     selectable = sqlalchemy.sql.expression.select([TNomenclatures])
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
-
     stuff_view = View('stuff_view', metadata, selectable)
     # assert stuff_view is not None
     assert stuff_view.name == 'stuff_view'
+    assert stuff_view.schema == DEFAULT_SCHEMA
 
     StuffView = type(
         'StuffView', (DB.Model,), {
             '__table__': stuff_view,
             '__table_args__': {
-            'schema': DEFAULT_SCHEMA,
-            'extend_existing': True,
-            'autoload': True,
-            'autoload_with': DB.engine
-            }  # noqa: E133
-    })
-    # class StuffView(DB.Model):  # genericTable ?
-    #     __table__ = stuff_view
-    #     __table_args__ = {
-    #         'schema': DEFAULT_SCHEMA,
-    #         'extend_existing': True,
-    #         'autoload': True,
-    #         'autoload_with': DB.engine
-    #     }  # noqa: E133
+                'schema': DEFAULT_SCHEMA,
+                'extend_existing': True,
+                'autoload': True,
+                'autoload_with': DB.engine
+                }  # noqa: E133
+            })
 
     assert StuffView.__tablename__ == 'stuff_view'
     assert StuffView.__table__.schema == DEFAULT_SCHEMA
     # Won't do: StuffView.create(DB.engine) -> !Table
     #           StuffView.__table__.create(DB.engine)
+
     metadata.create_all(bind=DB.engine)
 
     # after_models = [
     #     m.__name__
     #     for m in DB.Model._decl_class_registry.values()
     #     if hasattr(m, '__name__')]
+    # logger.debug(after_models)
     # assert 'StuffView' in after_models
     # raise
     # q = DB.session.query(StuffView)
     # q = DB.session.query(TNomenclatures)
+
     # [t for t in meta.tables]
 
     # ERREUR:  le nom de la table « stuff_view » est spécifié plus d'une fois:
@@ -287,10 +282,11 @@ def test_view():
         DEFAULT_SCHEMA,
         geometry_field=None,
         filters=[('StuffView.id_nomenclature', 'GREATER_THAN', 0)],
-        # filters={'id_nomenclature': 1},
+        # filters=[('stuff_view.id_nomenclature', 'GREATER_THAN', 0)],
+        # filters={'filter_n_up_id_nomenclature': 1},
         limit=0)
     # logger.debug('my stuff: %s', str(q))
-    print(str(q))
+    # print(str(q))
     # logger.debug(StuffView.__table_args__)
     res = q.return_query()
     # metadata.drop_all()
