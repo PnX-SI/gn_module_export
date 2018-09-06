@@ -17,18 +17,15 @@ class CreateView(DDLElement):
 @compiles(CreateView)
 def visit_create_view(element, compiler, **kw):
     # return "CREATE %s AS (%s)" % (
-    # return "CREATE OR REPLACE VIEW %s AS (%s)" % (
-    #     element.name,
-    #     # compiler.sql_compiler.process(element.selectable, literal_binds=True))  # noqa: E501
-    #     compiler.sql_compiler.process(element.selectable))
-    # schema = None
-    # if hasattr(element.target, 'schema'):
-    #     schema = element.target.schema
-    # return "CREATE OR REPLACE VIEW %s AS (%s)" % (
-    #     '.'.join([schema, element.name]) if schema else element.name,
-    return "CREATE OR REPLACE VIEW %s AS (%s)" % (
-        element.name,
-        compiler.sql_compiler.process(element.selectable))
+    if hasattr(element.target, 'schema') and element.target.schema:
+        schema = element.target.schema
+        return 'CREATE OR REPLACE VIEW %s AS (%s)' % (
+            '.'.join([schema, element.name]) if schema else element.name,
+            compiler.sql_compiler.process(element.selectable))
+    else:
+        return 'CREATE OR REPLACE VIEW %s AS (%s)' % (
+            element.name,
+            compiler.sql_compiler.process(element.selectable))
 
 
 class DropView(DDLElement):
@@ -38,7 +35,7 @@ class DropView(DDLElement):
 
 @compiles(DropView)
 def visit_drop_view(element, compiler, **kw):
-    return "DROP VIEW IF EXISTS %s CASCADE" % (element.name)
+    return "DROP VIEW IF EXISTS %s" % (element.name)
 
 
 def View(name, metadata, selectable):
@@ -46,25 +43,15 @@ def View(name, metadata, selectable):
     # table(name, *columns) return is an instance of TableClause,
     # which represents the “syntactical” portion of the schema-level
     # Table object.
-    # t = DB.table(name)
-    # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-744  # noqa: E501
-    # https://bitbucket.org/zzzeek/sqlalchemy/src/081d4275cf5c3e6842c8e0198542ff89617eaa96/lib/sqlalchemy/sql/elements.py?at=master&fileviewer=file-view-default#elements.py-3883  # noqa: E501
-    # raise
-    # for c in selectable.c:
-    #     c._make_proxy(t)
-    # if hasattr(metadata, 'schema') and not t.schema:
-    #     # Looks like we need to specify a schema here otherwise
-    #     # the view lands in the 'public' schema.
-    #     t.schema = metadata.schema
-    # logger.debug('View schema: %s', t.schema)
-    from sqlalchemy.schema import CreateColumn
+    t = DB.table(name)
+    for c in selectable.c:
+        c._make_proxy(t)
+    if hasattr(metadata, 'schema') and not t.schema:
+        # Looks like we need to specify a schema here otherwise
+        # the view lands in the 'public' schema.
+        t.schema = metadata.schema
 
-    t = DB.Table(
-        name,
-        metadata,
-        *list([CreateColumn(c) for c in selectable.columns]))
-
-    CreateView(name, selectable).execute_at('after-create', metadata)
-    DropView(name).execute_at('before-drop', metadata)
+    CreateView(t.name, selectable).execute_at('after-create', metadata)
+    # DropView(t.name).execute_at('before-drop', metadata)
     # raise
     return t

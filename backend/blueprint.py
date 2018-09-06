@@ -7,6 +7,7 @@ from flask import (
     Blueprint,
     request,
     current_app,
+    jsonify,
     send_from_directory)
 from geonature.utils.env import get_module_id
 from geonature.utils.utilssqlalchemy import (
@@ -219,54 +220,37 @@ def getCollections():
 
 @blueprint.route('/testview')
 def test_view():
-    # Note that the SQLAlchemy Table object is used to represent both
-    # tables and views.
-    # To introspect a view, create a Table with autoload=True,
-    # and then use SQLAlchemy's get_view_definition method to
-    # generate the second argument to CreateView.
     import re
     import sqlalchemy
     from geonature.utils.env import DB
-    # from .utils.views import View  # , DropView
+    # from sqlalchemy_views import CreateView, DropView
+    from .utils.views import View  # , DropView
     from pypnnomenclature.models import TNomenclatures
-    from sqlalchemy_views import CreateView, DropView
 
     def slugify(s):
-        # FIXME: regex
+        # FIXME: slugify function
         return re.sub(r'([A-Z])', r'_\1', s).lstrip('_').lower()
 
-    def mkStuffView(
+    def mkView(
             name,
             metadata=DB.MetaData(),
             selectable=sqlalchemy.sql.expression.select([TNomenclatures])):
-            # from geonature.core.gn_synthese.models import Synthese
-            # selectable = sqlalchemy.sql.expression.select([TNomenclatures])
-            # return View('stuff_view', metadata, selectable)
-
-        def mkView(name, metadata, selectable):
-            view = DB.Table(name, metadata)
-            # logger.debug(selectable.columns)
-            CreateView(view, selectable).execute_at('after-create', metadata)
-            DropView(view).execute_at('before-drop', metadata)
-            return view
-
+        logger.debug('View schema: %s', metadata.schema)
         return type(
-        name, (DB.Model,), {
-            '__table__': mkView(slugify(name), metadata, selectable),
-            '__table_args__': {
-                'schema': metadata.schema if metadata.schema else DEFAULT_SCHEMA,
-                'extend_existing': True,
-                'autoload': True,
-                'autoload_with': metadata.bind if metadata.bind else DB.engine
-                }  # noqa: E133
-            })
+            name, (DB.Model,), {
+                '__table__': View(slugify(name), metadata, selectable),
+                '__table_args__': {
+                    'schema': metadata.schema if getattr(metadata, 'schema', None) else DEFAULT_SCHEMA,  # noqa: E501
+                    'extend_existing': True,
+                    'autoload': True,
+                    'autoload_with': metadata.bind if getattr(metadata, 'bind', None) else DB.engine  # noqa: E501
+                    }  # noqa: E133
+                })
 
     # Won't do: StuffView.create(DB.engine) -> !Table
     #           StuffView.__table__.create(DB.engine)
-
     # if not hasattr(view, '_sa_class_manager'):
     #         orm.mapper(view, view.__view__)
-
     # after_models = [
     #     m.__name__
     #     for m in DB.Model._decl_class_registry.values()
@@ -276,9 +260,7 @@ def test_view():
     # raise
     # q = DB.session.query(StuffView)
     # q = DB.session.query(TNomenclatures)
-
     # [t for t in meta.tables]
-
     # ERREUR:  le nom de la table « stuff_view » est spécifié plus d'une fois:
     # SELECT gn_exports.stuff_view.id_nomenclature ...
     # FROM gn_exports.stuff_view, gn_exports.stuff_view
@@ -287,12 +269,33 @@ def test_view():
     # from geonature.utils.utilssqlalchemy import GenericQuery
 
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
-    StuffView = mkStuffView('StuffView', metadata)
+    StuffView = mkView('StuffView', metadata)
     # metadata.create_all(tables=[StuffView.__table__], bind=DB.engine)
-    StuffView.__table__.create()
-
+    # -> AttributeError: 'TableClause' object has no attribute 'foreign_key_constraints'  # noqa: E501
+    metadata.create_all()
+    # logger.debug('mkView: %s', dir(StuffView))
+    # StuffView.__table__.create()
+    # StuffView.create()
     assert StuffView.__tablename__ == 'stuff_view'
-    assert StuffView.__table__.schema == DEFAULT_SCHEMA
+    # assert StuffView.__table__.schema == DEFAULT_SCHEMA
+    # return jsonify({'success': True}, 200)
+
+    # from sqlalchemy.orm import configure_mappers
+    # configure_mappers()
+    # raise
+    models = [
+        m.__name__ for m in DB.Model._decl_class_registry.values()
+        if hasattr(m, '__name__')]
+    logger.debug('models: %s', models)
+    from .utils.filters import model_by_ns
+    s1 = model_by_ns('StuffView')
+    logger.debug('diff: %s', [
+        i for i, j in zip(
+            [str(getattr(StuffView, attr)) for attr in dir(StuffView)],
+            [str(getattr(s1, attr)) for attr in dir(s1)])
+        if not i == j])
+
+    # raise
 
     try:
         # q = GenericQuery(
@@ -300,7 +303,7 @@ def test_view():
             1,
             DB.session,
             StuffView.__tablename__,
-            StuffView.schema if StuffView.schema else DEFAULT_SCHEMA,
+            StuffView.__table__.schema if getattr(StuffView.__table__, 'schema', None) else DEFAULT_SCHEMA,  # noqa: E501
             geometry_field=None,
             filters=[('StuffView.id_nomenclature', 'GREATER_THAN', 0)],
             # filters=[('stuff_view.id_nomenclature', 'GREATER_THAN', 0)],
@@ -311,11 +314,13 @@ def test_view():
         # logger.debug(StuffView.__table_args__)
         res = q.return_query()
         # metadata.drop_all(tables=[StuffView.__table__])
-        StuffView.__table__.drop()
+        # StuffView.__table__.drop()
         # raise
         return to_json_resp(res)
         # return to_json_resp(q.all())
     except Exception as e:
-        StuffView.drop()
+        # StuffView.drop()
         # metadata.drop_all(tables=[StuffView.__table__])
+        raise
         logger.critical('error: %s', str(e))
+        return jsonify({'error': str(e)}, 400)

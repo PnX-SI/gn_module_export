@@ -33,6 +33,7 @@ def model_by_ns(ns):
         raise Exception(
             'model_by_ns(): unexpected param type: {} {}'.format(type(ns), ns))
 
+    # find primary mapper ?
     for m in DB.Model._decl_class_registry.values():
         if hasattr(m, '__name__') and m.__name__ == name:
             return m
