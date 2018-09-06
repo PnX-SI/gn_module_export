@@ -16,16 +16,13 @@ class CreateView(DDLElement):
 
 @compiles(CreateView)
 def visit_create_view(element, compiler, **kw):
-    # return "CREATE %s AS (%s)" % (
+    schema, schema_dot_view = kw.get('schema', None), None
     if hasattr(element.target, 'schema') and element.target.schema:
         schema = element.target.schema
-        return 'CREATE OR REPLACE VIEW %s AS (%s)' % (
-            '.'.join([schema, element.name]) if schema else element.name,
-            compiler.sql_compiler.process(element.selectable))
-    else:
-        return 'CREATE OR REPLACE VIEW %s AS (%s)' % (
-            element.name,
-            compiler.sql_compiler.process(element.selectable))
+        schema_dot_view = '.'.join([schema, element.name])
+    return 'CREATE OR REPLACE VIEW %s AS (%s)' % (
+        schema_dot_view if schema else element.name,
+        compiler.sql_compiler.process(element.selectable))
 
 
 class DropView(DDLElement):
@@ -35,7 +32,7 @@ class DropView(DDLElement):
 
 @compiles(DropView)
 def visit_drop_view(element, compiler, **kw):
-    return "DROP VIEW IF EXISTS %s" % (element.name)
+    return "DROP VIEW IF EXISTS %s" % (element.name)  # CASCADE
 
 
 def View(name, metadata, selectable):
@@ -47,8 +44,7 @@ def View(name, metadata, selectable):
     for c in selectable.c:
         c._make_proxy(t)
     if hasattr(metadata, 'schema') and not t.schema:
-        # Looks like we need to specify a schema here otherwise
-        # the view lands in the 'public' schema.
+        # We need a schema here otherwise the view lands in 'public' schema.
         t.schema = metadata.schema
 
     CreateView(t.name, selectable).execute_at('after-create', metadata)

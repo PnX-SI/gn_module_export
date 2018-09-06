@@ -44,9 +44,8 @@ def model_by_ns(ns):
 
 
 class Filter():
-    # QUESTION: check_type: column type ?
-    #  so (User.name, 'EQUALS', 5, (basestring,)) doesn't get through
-    # TODO: PN like dict cf @20cents
+    # QUESTION: check column type so (User.name, 'EQUALS', 5, (basestring,)) doesn't get through  # noqa: E501
+    # TODO: PN like dict ... cf @20cents
     # rule_set = [
     #     ((User.name, 'EQUALS', new_person2.name), 'OR', (User.name, 'EQUALS', new_person1.name)),  # noqa: E501
     #     (User.name, 'CONTAINS', 'user%2'),
@@ -73,13 +72,15 @@ class Filter():
 
     @staticmethod
     def process(context, field):
+        # -> DB.Column/InstrumentedAttribute
         if isinstance(field, str):
             crumbs = field.split('.')
             depth = len(crumbs)
-            # logger.debug('depth: %s', depth)
-            # raise
-            if depth < 2:
-                raise Exception('Invalid filter field param: [schema.]entity.attribute')  # noqa: E501
+            if depth == 0:
+                raise Exception('InvalidFilterField: [schema.]entity.attribute')  # noqa: E501
+            elif depth == 1:
+                view = context.get('view')
+                return getattr(view.tableDef.columns, field)
             elif depth > 2:
                 return getattr(model_by_ns(crumbs[0:depth - 1]), crumbs[-1])
             else:

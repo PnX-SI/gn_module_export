@@ -247,57 +247,17 @@ def test_view():
                     }  # noqa: E133
                 })
 
-    # Won't do: StuffView.create(DB.engine) -> !Table
-    #           StuffView.__table__.create(DB.engine)
-    # if not hasattr(view, '_sa_class_manager'):
-    #         orm.mapper(view, view.__view__)
-    # after_models = [
-    #     m.__name__
-    #     for m in DB.Model._decl_class_registry.values()
-    #     if hasattr(m, '__name__')]
-    # logger.debug(after_models)
-    # assert 'StuffView' in after_models
-    # raise
-    # q = DB.session.query(StuffView)
-    # q = DB.session.query(TNomenclatures)
-    # [t for t in meta.tables]
-    # ERREUR:  le nom de la table « stuff_view » est spécifié plus d'une fois:
-    # SELECT gn_exports.stuff_view.id_nomenclature ...
-    # FROM gn_exports.stuff_view, gn_exports.stuff_view
-    # WHERE gn_exports.stuff_view.id_nomenclature > %(id_nomenclature_1)s
-    from .utils.query import ExportQuery
-    # from geonature.utils.utilssqlalchemy import GenericQuery
-
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
     StuffView = mkView('StuffView', metadata)
+    # StuffView.__table__.create()
     # metadata.create_all(tables=[StuffView.__table__], bind=DB.engine)
     # -> AttributeError: 'TableClause' object has no attribute 'foreign_key_constraints'  # noqa: E501
     metadata.create_all()
-    # logger.debug('mkView: %s', dir(StuffView))
-    # StuffView.__table__.create()
-    # StuffView.create()
     assert StuffView.__tablename__ == 'stuff_view'
-    # assert StuffView.__table__.schema == DEFAULT_SCHEMA
-    # return jsonify({'success': True}, 200)
-
-    # from sqlalchemy.orm import configure_mappers
-    # configure_mappers()
-    # raise
-    models = [
-        m.__name__ for m in DB.Model._decl_class_registry.values()
-        if hasattr(m, '__name__')]
-    logger.debug('models: %s', models)
-    from .utils.filters import model_by_ns
-    s1 = model_by_ns('StuffView')
-    logger.debug('diff: %s', [
-        i for i, j in zip(
-            [str(getattr(StuffView, attr)) for attr in dir(StuffView)],
-            [str(getattr(s1, attr)) for attr in dir(s1)])
-        if not i == j])
-
-    # raise
 
     try:
+        from .utils.query import ExportQuery
+        # from geonature.utils.utilssqlalchemy import GenericQuery
         # q = GenericQuery(
         q = ExportQuery(
             1,
@@ -305,22 +265,15 @@ def test_view():
             StuffView.__tablename__,
             StuffView.__table__.schema if getattr(StuffView.__table__, 'schema', None) else DEFAULT_SCHEMA,  # noqa: E501
             geometry_field=None,
-            filters=[('StuffView.id_nomenclature', 'GREATER_THAN', 0)],
-            # filters=[('stuff_view.id_nomenclature', 'GREATER_THAN', 0)],
+            filters=[('id_nomenclature', 'GREATER_THAN', 0)],
             # filters={'filter_n_up_id_nomenclature': 1},
-            limit=0)
-        # logger.debug('my stuff: %s', str(q))
-        # print(str(q))
-        # logger.debug(StuffView.__table_args__)
+            limit=1000)
         res = q.return_query()
         # metadata.drop_all(tables=[StuffView.__table__])
         # StuffView.__table__.drop()
-        # raise
         return to_json_resp(res)
-        # return to_json_resp(q.all())
     except Exception as e:
-        # StuffView.drop()
+        # StuffView.__table__.drop()
         # metadata.drop_all(tables=[StuffView.__table__])
-        raise
         logger.critical('error: %s', str(e))
         return jsonify({'error': str(e)}, 400)
