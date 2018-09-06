@@ -224,36 +224,48 @@ def test_view():
     # To introspect a view, create a Table with autoload=True,
     # and then use SQLAlchemy's get_view_definition method to
     # generate the second argument to CreateView.
+    import re
     import sqlalchemy
     from geonature.utils.env import DB
-    from .utils.views import View  # , DropView
-
-    # from geonature.core.gn_synthese.models import Synthese
+    # from .utils.views import View  # , DropView
     from pypnnomenclature.models import TNomenclatures
-    selectable = sqlalchemy.sql.expression.select([TNomenclatures])
-    metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
-    stuff_view = View('stuff_view', metadata, selectable)
-    # assert stuff_view is not None
-    assert stuff_view.name == 'stuff_view'
-    assert stuff_view.schema == DEFAULT_SCHEMA
+    from sqlalchemy_views import CreateView, DropView
 
-    StuffView = type(
-        'StuffView', (DB.Model,), {
-            '__table__': stuff_view,
+    def slugify(s):
+        # FIXME: regex
+        return re.sub(r'([A-Z])', r'_\1', s).lstrip('_').lower()
+
+    def mkStuffView(
+            name,
+            metadata=DB.MetaData(),
+            selectable=sqlalchemy.sql.expression.select([TNomenclatures])):
+            # from geonature.core.gn_synthese.models import Synthese
+            # selectable = sqlalchemy.sql.expression.select([TNomenclatures])
+            # return View('stuff_view', metadata, selectable)
+
+        def mkView(name, metadata, selectable):
+            view = DB.Table(name, metadata)
+            # logger.debug(selectable.columns)
+            CreateView(view, selectable).execute_at('after-create', metadata)
+            DropView(view).execute_at('before-drop', metadata)
+            return view
+
+        return type(
+        name, (DB.Model,), {
+            '__table__': mkView(slugify(name), metadata, selectable),
             '__table_args__': {
-                'schema': DEFAULT_SCHEMA,
+                'schema': metadata.schema if metadata.schema else DEFAULT_SCHEMA,
                 'extend_existing': True,
                 'autoload': True,
-                'autoload_with': DB.engine
+                'autoload_with': metadata.bind if metadata.bind else DB.engine
                 }  # noqa: E133
             })
 
-    assert StuffView.__tablename__ == 'stuff_view'
-    assert StuffView.__table__.schema == DEFAULT_SCHEMA
     # Won't do: StuffView.create(DB.engine) -> !Table
     #           StuffView.__table__.create(DB.engine)
 
-    metadata.create_all(bind=DB.engine)
+    # if not hasattr(view, '_sa_class_manager'):
+    #         orm.mapper(view, view.__view__)
 
     # after_models = [
     #     m.__name__
@@ -274,23 +286,36 @@ def test_view():
     from .utils.query import ExportQuery
     # from geonature.utils.utilssqlalchemy import GenericQuery
 
-    # q = GenericQuery(
-    q = ExportQuery(
-        1,
-        DB.session,
-        StuffView.__tablename__,
-        DEFAULT_SCHEMA,
-        geometry_field=None,
-        filters=[('StuffView.id_nomenclature', 'GREATER_THAN', 0)],
-        # filters=[('stuff_view.id_nomenclature', 'GREATER_THAN', 0)],
-        # filters={'filter_n_up_id_nomenclature': 1},
-        limit=0)
-    # logger.debug('my stuff: %s', str(q))
-    # print(str(q))
-    # logger.debug(StuffView.__table_args__)
-    res = q.return_query()
-    # metadata.drop_all()
-    # StuffView.drop()
-    # raise
-    return to_json_resp(res)
-    # return to_json_resp(q.all())
+    metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
+    StuffView = mkStuffView('StuffView', metadata)
+    # metadata.create_all(tables=[StuffView.__table__], bind=DB.engine)
+    StuffView.__table__.create()
+
+    assert StuffView.__tablename__ == 'stuff_view'
+    assert StuffView.__table__.schema == DEFAULT_SCHEMA
+
+    try:
+        # q = GenericQuery(
+        q = ExportQuery(
+            1,
+            DB.session,
+            StuffView.__tablename__,
+            StuffView.schema if StuffView.schema else DEFAULT_SCHEMA,
+            geometry_field=None,
+            filters=[('StuffView.id_nomenclature', 'GREATER_THAN', 0)],
+            # filters=[('stuff_view.id_nomenclature', 'GREATER_THAN', 0)],
+            # filters={'filter_n_up_id_nomenclature': 1},
+            limit=0)
+        # logger.debug('my stuff: %s', str(q))
+        # print(str(q))
+        # logger.debug(StuffView.__table_args__)
+        res = q.return_query()
+        # metadata.drop_all(tables=[StuffView.__table__])
+        StuffView.__table__.drop()
+        # raise
+        return to_json_resp(res)
+        # return to_json_resp(q.all())
+    except Exception as e:
+        StuffView.drop()
+        # metadata.drop_all(tables=[StuffView.__table__])
+        logger.critical('error: %s', str(e))

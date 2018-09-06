@@ -23,14 +23,7 @@ FilterBooleanOpMap = {
 }  # noqa: E133
 
 
-def get_query_models(query):
-    models = [col_desc['entity'] for col_desc in query.column_descriptions]
-    models.extend(mapper.class_ for mapper in query._join_entities)
-    raise
-    return {model.__name__: model for model in models}
-
-
-def model_by_ns(context, ns):
+def model_by_ns(ns):
     # 'name' | ['schema', 'name']
     if isinstance(ns, str):
         name = ns
@@ -40,13 +33,7 @@ def model_by_ns(context, ns):
         raise Exception(
             'model_by_ns(): unexpected param type: {} {}'.format(type(ns), ns))
 
-    # DOING: get a reliable grab on models
-    # User.__mapper__.class_ -> __main__.User
-    # User.__mapper__.entity -> __main__.User
-    # User.__mapper__.class_manager.class_ -> __main__.User
-    # raise
-    # for m in DB.Model._decl_class_registry.values():
-    for m in get_query_models(context['models']):
+    for m in DB.Model._decl_class_registry.values():
         if hasattr(m, '__name__') and m.__name__ == name:
             return m
 
@@ -93,11 +80,11 @@ class Filter():
             if depth < 2:
                 raise Exception('Invalid filter field param: [schema.]entity.attribute')  # noqa: E501
             elif depth > 2:
-                return getattr(model_by_ns(crumbs[0:depth - 1], context), crumbs[-1])
+                return getattr(model_by_ns(crumbs[0:depth - 1]), crumbs[-1])
             else:
                 logger.debug('crumbs: %s', crumbs)
                 # raise
-                return getattr(model_by_ns(crumbs[0], context), crumbs[1])
+                return getattr(model_by_ns(crumbs[0]), crumbs[1])
         else:
             if (field.parent.class_ in [
                     m for m in DB.Model._decl_class_registry.values()
@@ -121,8 +108,8 @@ class Filter():
 class CompositeFilter(Filter):
     @staticmethod
     def apply(context, query, filters=None):
-        context = {}
-        context['models'] = get_query_models(query)
+        # context = {}
+        # context['models'] = get_query_models(query)
 
         for f in filters:
             query = Filter.apply(context, query, f)
