@@ -19,8 +19,7 @@ class ExportRepository(object):
     def __init__(self, session=DB.session):
         self.session = session
 
-    # TODO: get_formats()
-    # suggested output format list for current selection to export to.
+    # TODO: get_outputs()
 
     def _get_data(
             self, id_role, view, schema,
@@ -151,17 +150,16 @@ class ExportRepository(object):
             raise
 
     def getCollections(self):
-        # all tables and views and filter out unwanted (spatial_ref_sys & co)
+        # all tables and views
+        # TODO: filter out spatial_ref_sys & co
         from sqlalchemy.engine import reflection
 
         inspection = reflection.Inspector.from_engine(DB.engine)
         schemas = {}
         schema_names = inspection.get_schema_names()
-        # schema_names = ['gn_synthese']
         for schema in schema_names:
             tables = {}
             mapped_tables = inspection.get_table_names(schema=schema)
-            logger.debug('schema: %s %s', schema, mapped_tables)
             for table in mapped_tables:
                 columns = {}
                 mapped_columns = inspection.get_columns(table, schema=schema)
