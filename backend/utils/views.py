@@ -1,4 +1,6 @@
 # inspiration: https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/Views
+# sqlalchemy-views
+
 from sqlalchemy.schema import DDLElement
 from sqlalchemy.ext.compiler import compiles
 from flask import current_app
@@ -47,7 +49,17 @@ def View(name, metadata, selectable):
         # We need a schema here otherwise the view lands in 'public' schema.
         t.schema = metadata.schema
 
+    # DB.event.listen(
+    #             metadata,
+    #             "after_create",
+    #             DB.DDL(CreateView)
+    #         )
+    # DB.event.listen(
+    #     metadata,
+    #     "before_drop",
+    #     DB.DDL("DROP VIEW %s" % name)
+    # )  # noqa: E133
+    # FIXME: deprecated execute_at -> use DB.event
     CreateView(t.name, selectable).execute_at('after-create', metadata)
-    # DropView(t.name).execute_at('before-drop', metadata)
-    # raise
+    DropView(t.name).execute_at('before-drop', metadata)
     return t

@@ -7,7 +7,6 @@ from flask import (
     Blueprint,
     request,
     current_app,
-    jsonify,
     send_from_directory)
 from geonature.utils.env import get_module_id
 from geonature.utils.utilssqlalchemy import (
@@ -222,14 +221,16 @@ def getCollections():
 def test_view():
     import re
     import sqlalchemy
+    from flask import jsonify
     from geonature.utils.env import DB
-    # from sqlalchemy_views import CreateView, DropView
     from .utils.views import View  # , DropView
     from pypnnomenclature.models import TNomenclatures
 
     def slugify(s):
-        # FIXME: slugify function
-        return re.sub(r'([A-Z])', r'_\1', s).lstrip('_').lower()
+        # FIXME: slugify
+        return re.sub(r'([A-Z ])', r'_\1', s).lstrip('_')\
+                                             .replace(' ', '')\
+                                             .lower()
 
     def mkView(
             name,
@@ -249,8 +250,8 @@ def test_view():
 
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
     StuffView = mkView('StuffView', metadata)
-    # StuffView.__table__.create()
-    # metadata.create_all(tables=[StuffView.__table__], bind=DB.engine)
+    # StuffView.__table__.create(), nope
+    # metadata.create_all(tables=[StuffView.__table__], bind=DB.engine), nope
     # -> AttributeError: 'TableClause' object has no attribute 'foreign_key_constraints'  # noqa: E501
     metadata.create_all()
     assert StuffView.__tablename__ == 'stuff_view'
