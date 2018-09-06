@@ -20,7 +20,7 @@ class ExportQuery(GenericQuery):
             schema_name,
             geometry_field,
             filters,
-            limit, offset=0):
+            limit=100, offset=0):
         self.user = id_role
 
         super().__init__(
@@ -31,7 +31,9 @@ class ExportQuery(GenericQuery):
         logger.debug('User perm: %s', self.user)
 
     def build_query_filters(self, query, filters):
-        return CompositeFilter.apply(None, query, filters=filters)
+        ctx = {'view': self.view}
+        return CompositeFilter.apply(ctx, query,
+                                     filters=filters)
 
     def build_query_filter(self, query, param_name, param_value):
         return query
