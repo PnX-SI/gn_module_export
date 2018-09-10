@@ -5,6 +5,11 @@ instance/
 .webassets-cache
 node_modules
 *.swp
+.tags*
+venv*
+tmp_*
+*.sublime-project
+*.sublime-workspace
 .idea
 .vscode*
 .ropeproject
