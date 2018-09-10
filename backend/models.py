@@ -29,11 +29,24 @@ class Export(DB.Model):
         self.schema_name = schema_name
         self.view_name = view_name
         self.desc = desc
+        self.geometry_field = geometry_field
+        self.geometry_srid = geometry_srid
 
     def __str__(self):
         return "<Export(id='{}', label='{}')>".format(self.id, self.label)
 
     __repr__ = __str__
+
+    @classmethod
+    def from_dict(cls, adict):
+        export = Export(
+            label=adict['label'],
+            schema_name=adict['schema_name'],
+            view_name=adict['view_name'],
+            desc=adict['desc'],
+            geometry_field=adict['geometry_field'],
+            geometry_srid=adict['geometry_srid'])
+        return export
 
 
 @serializable
@@ -51,10 +64,32 @@ class ExportLog(DB.Model):
     status = DB.Column(DB.Integer, default=-2)
     log = DB.Column(DB.Text)
 
-    @staticmethod
-    def log(**kwargs):
+    def __init__(self, id_role, id_export, format, start_time, end_time, status, log):  # noqa: E501
+        self.id_role = id_role
+        self.id_export = id_export
+        self.format = format
+        self.start_time = start_time
+        self.end_time = end_time
+        self.status = status
+        self.log = log
+
+    @classmethod
+    def from_dict(cls, adict):
+        print('adict: ', adict)
+        export_log = ExportLog(
+            id_role=adict['id_role'],
+            id_export=adict['id_export'],
+            format=adict['format'],
+            start_time=adict['start_time'],
+            end_time=adict['end_time'],
+            status=adict['status'],
+            log=adict['log'])
+        return export_log
+
+    @classmethod
+    def record(cls, adict):
         try:
-            x = ExportLog(**kwargs)
+            x = ExportLog.from_dict(adict)
             DB.session.add(x)
             DB.session.commit()
         except Exception as e:

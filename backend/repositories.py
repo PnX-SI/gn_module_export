@@ -84,14 +84,14 @@ class ExportRepository(object):
                     log = str(e)
                     status = -1
 
-            ExportLog.log(
-                id_export=export.id,
-                id_role=id_role,
-                format=format,
-                start_time=start_time,
-                end_time=end_time,
-                status=status,
-                log=log)
+            ExportLog.record({
+                'id_role': id_role,
+                'id_export': export.id,
+                'format': format,
+                'start_time': start_time,
+                'end_time': end_time,
+                'status': status,
+                'log': log})
 
             if status == -1 and any(e):
                 raise e
@@ -104,10 +104,10 @@ class ExportRepository(object):
             raise NoResultFound('No configured export')
         return result
 
-    def create(self, **kwargs):
+    def create(self, adict):
         # TODO: create view
         try:
-            x = Export(**kwargs)
+            x = Export.from_dict(adict)
             self.session.add(x)
             self.session.flush()
         except IntegrityError as e:
@@ -121,15 +121,15 @@ class ExportRepository(object):
         else:
             return x
 
-    def update(self, **kwargs):
+    def update(self, adict):
         # TODO: drop/recreate/refresh view
-        x = self.get_by_id(kwargs['id_export'])
+        x = self.get_by_id(adict['id_export'])
         if not x:
             raise NoResultFound(
-                'Unknown export id: {}'.format(kwargs['id_export']))
+                'Unknown export id: {}'.format(adict['id_export']))
         try:
             x.__dict__.update(
-                (k, v) for k, v in kwargs.items() if k in x.__dict__)
+                (k, v) for k, v in adict.items() if k in x.__dict__)
             self.session.add(x)
             self.session.flush()
         except Exception as e:

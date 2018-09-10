@@ -167,6 +167,8 @@ def create(id_role):
     view_name = payload.get('view_name', None)
     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
     desc = payload.get('desc', None)
+    geometry_field = payload.get('geometry_field'),
+    geometry_srid = payload.get('geometry_srid')
 
     if not(label and schema_name and view_name):
         return {
@@ -176,11 +178,13 @@ def create(id_role):
 
     repo = ExportRepository()
     try:
-        export = repo.create(
-            label=label,
-            schema_name=schema_name,
-            view_name=view_name,
-            desc=desc)
+        export = repo.create({
+            'label': label,
+            'schema_name': schema_name,
+            'view_name': view_name,
+            'desc': desc,
+            'geometry_field': geometry_field,
+            'geometry_srid': geometry_srid})
     except IntegrityError as e:
         if '(label)=({})'.format(label) in str(e):
             return {'api_error': 'RegisteredLabel',
