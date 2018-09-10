@@ -30,7 +30,7 @@ SWAGGER_API_YAML = 'api.yaml'
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 
 DEFAULT_SCHEMA = 'gn_exports'
-ID_MODULE = get_module_id('exports')
+# ID_MODULE = get_module_id('exports')
 
 
 @blueprint.route('/swagger-ui/')
