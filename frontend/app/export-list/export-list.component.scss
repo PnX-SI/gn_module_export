@@ -60,6 +60,10 @@ ngx-datatable {
   height: 5.0rem !important;
 }
 
+.form-control#licence{
+  height: auto !important;
+}
+
 :host /deep/ #dataset-form {
   height: 2.05rem !important;
 }
