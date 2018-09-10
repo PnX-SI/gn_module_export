@@ -31,10 +31,8 @@ class ExportRepository(object):
             id_role, self.session, view, schema, geom_column_header,
             filters, limit, paging)
 
-        columns = [col.name for col in query.view.db_cols]
-
         data = query.return_query()
-        return (columns, data)
+        return (query.view.db_cols, data)
 
     def get_by_id(
             self,

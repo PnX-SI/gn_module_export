@@ -55,13 +55,13 @@ def export_filename(export):
 
 # TODO: UUIDs
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
-@fnauth.check_auth(2, True)
-def export(id_export, format, id_role):
+# @fnauth.check_auth(2, True)
+def export(id_export, format, id_role=1):
 
     if id_export < 1:
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
-    assert format in {'csv', 'json'}
+    assert format in {'csv', 'json', 'shp'}
 
     repo = ExportRepository()
     try:
@@ -77,21 +77,24 @@ def export(id_export, format, id_role):
 
             if format == 'csv':
                 return to_csv_resp(
-                    fname, data.get('items', None), columns, ',')
+                    fname,
+                    data.get('items', None),
+                    list([c.name for c in columns]),
+                    ',')
 
-            # if (format == 'shp'):
-            #     from geoalchemy2 import Geometry
-            #     from geonature.utils.utilsgeometry import ShapeService
-            #
-            #     shape_service = ShapeService(columns, srid=2150)
-            #     shape_service.create_shapes(
-            #         data=data.get('items', None),
-            #         dir_path=SHAPEFILES_DIR,
-            #         file_name=fname,
-            #         geom_col=[c for c in data.columns
-            #                   if isinstance(c.type, Geometry)][0])
-            #
-            #     return send_from_directory(dir_path, fname + '.zip', as_attachment=True)  # noqa: E501
+            if (format == 'shp'):
+                from geonature.utils.utilsgeometry import FionaShapeService
+
+                shape_service = FionaShapeService()
+                shape_service.create_shapes_struct(
+                    db_cols=columns, srid=export.get('geometry_srid'),
+                    dir_path=SHAPEFILES_DIR, file_name=fname.replace(' ', '_'))
+                shape_service.create_feature(
+                    data.get('items', None), export.get('geometry_field'))
+                shape_service.save_and_zip_shapefiles()
+
+                return send_from_directory(
+                    SHAPEFILES_DIR, fname + '.zip', as_attachment=True)
 
     except NoResultFound as e:
         return to_json_resp({'api_error': 'NoResultFound',
@@ -101,6 +104,7 @@ def export(id_export, format, id_role):
             {'api_error': 'InsufficientRightsError'}, status=403)
     except Exception as e:
         logger.critical('%s', str(e))
+        raise
         return to_json_resp({'api_error': 'LoggedError'}, status=400)
 
 
