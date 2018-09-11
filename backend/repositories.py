@@ -127,7 +127,9 @@ class ExportRepository(object):
                 'Unknown export id: {}'.format(adict['id_export']))
         try:
             x.__dict__.update(
-                (k, v) for k, v in adict.items() if k in x.__dict__)
+                (k, v)
+                for k, v in adict.items()
+                if k in x.__dict__ and not callable(v))
             self.session.add(x)
             self.session.flush()
         except Exception as e:
