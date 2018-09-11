@@ -87,6 +87,16 @@ def export(id_export, format, id_role=1):
                 shape_service.create_shapes_struct(
                     db_cols=columns, srid=export.get('geometry_srid'),
                     dir_path=SHAPEFILES_DIR, file_name=fname)
+                # File "~/geonature/backend/venv/lib/python3.5/site-packages/fiona/collection.py", line 156, in __init__  # noqa: E501
+                # self.session.start(self, **kwargs)
+                # File "fiona/ogrext.pyx", line 990, in fiona.ogrext.WritingSession.start  # noqa: E501
+                # TypeError: argument of type 'NoneType' is not iterable
+                # > fio dump POINT_OccTax_-_DLB_2018_09_11_10h08m10.shp
+                # {"features": [], "fiona:crs": {"init": "epsg:4326"},
+                #  "fiona:schema": {"geometry": "Point", "properties": {"WKT": "str:80", "altMin": "int:9", "cdNom": "int:9", "cdRef": "int:9", "comment": "str:80", "dSPublique": "str:80", "dateDebut": "str:80", "dateDet": "str:80", "dateFin": "str:80", "date_max": "str:80", "date_min": "str:80", "denbrMin": "int:9", "detId": "str:80", "detNomOrg": "str:80", "heureDebut": "str:80", "heureFin": "str:80", "idOrigine": "str:80", "id_digitis": "int:9", "jddId": "str:80", "methGrp": "str:80", "natObjGeo": "str:80", "nomCite": "str:80", "objDenbr": "str:80", "obsCtx": "str:80", "obsMeth": "str:80", "obsNomOrg": "str:80", "ocBiogeo": "str:80", "ocEtatBio": "str:80", "ocMethDet": "str:80", "ocNat": "str:80", "ocStade": "str:80", "ocStatBio": "str:80", "orgGestDat": "str:80", "permId": "str:80", "permIdGrp": "str:80", "preuvNoNum": "str:80", "preuvNum": "str:80", "preuveOui": "str:80", "refBiblio": "str:80", "statObs": "str:80", "statSource": "str:80", "typDenbr": "str:80", "typGrp": "str:80"}}, "type": "FeatureCollection"}   # noqa: E501
+                # CPLE_NotSupported in b"Normalized/laundered field name: 'id_digitiser' to 'id_digitis'":  # noqa: E501
+                # -> Apparently this is a dbf format limitation => max(len(feat_name)) <= 10 chars  # noqa: E501
+                # -> This could cause problematic import/processing if no corresponding mapping is provided.  # noqa: E501
                 logger.debug('items: %s', data.get('items'))
                 shape_service.create_feature(
                     data.get('items'), export.get('geometry_field'))
