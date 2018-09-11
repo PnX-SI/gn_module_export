@@ -1,3 +1,4 @@
 #!/bin/bash
+# FIXME: . config/settings.ini
 connection="postgresql://geonatuser:monpassachanger@localhost:5432/geonaturedb"
 psql $connection -c 'SELECT gn_exports.logs_delete_function()'

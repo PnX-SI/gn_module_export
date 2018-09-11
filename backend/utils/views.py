@@ -46,8 +46,8 @@ def View(name, metadata, selectable):
     for c in selectable.c:
         c._make_proxy(t)
     if hasattr(metadata, 'schema') and not t.schema:
-        # We need a schema here otherwise the view lands in 'public' schema.
-        t.schema = metadata.schema
+        t.schema = metadata.schema  # otherwise the view lands in 'public'.
+    # FIXME: cp foreign_key_constraints -> constriants
 
     # DB.event.listen(
     #             metadata,

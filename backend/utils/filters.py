@@ -1,3 +1,4 @@
+# insp: https://github.com/Overseas-Student-Living/sqlalchemy-filters
 import logging
 from flask import current_app
 from sqlalchemy import or_
