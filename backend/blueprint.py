@@ -8,9 +8,9 @@ from flask import (
     request,
     current_app,
     send_from_directory)
-from geonature.utils.env import get_module_id
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
+from geonature.utils.filemanager import removeDisallowedFilenameChars
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub import routes as fnauth
 
@@ -30,7 +30,6 @@ SWAGGER_API_YAML = 'api.yaml'
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 
 DEFAULT_SCHEMA = 'gn_exports'
-# ID_MODULE = get_module_id('exports')
 
 
 @blueprint.route('/swagger-ui/')
@@ -49,8 +48,9 @@ def swagger_api_yml():
 
 
 def export_filename(export):
-    return '_'.join(
-        [export.get('label'), datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
+    return '_'.join([
+        removeDisallowedFilenameChars(export.get('label')),
+        datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
 
 
 # TODO: UUIDs
@@ -61,10 +61,9 @@ def export(id_export, format, id_role=1):
     if id_export < 1:
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
-    assert format in {'csv', 'json', 'shp'}
-
-    repo = ExportRepository()
     try:
+        assert format in {'csv', 'json', 'shp'}
+        repo = ExportRepository()
         export, columns, data = repo.get_by_id(
             id_role, id_export, with_data=True, format=format)
         if export:
@@ -78,8 +77,7 @@ def export(id_export, format, id_role=1):
             if format == 'csv':
                 return to_csv_resp(
                     fname,
-                    data.get('items', None),
-                    list([c.name for c in columns]),
+                    data.get('items'), list([c.name for c in columns]),
                     ',')
 
             if (format == 'shp'):
@@ -89,8 +87,9 @@ def export(id_export, format, id_role=1):
                 shape_service.create_shapes_struct(
                     db_cols=columns, srid=export.get('geometry_srid'),
                     dir_path=SHAPEFILES_DIR, file_name=fname)
+                logger.debug('items: %s', data.get('items'))
                 shape_service.create_feature(
-                    data.get('items', None), export.get('geometry_field'))
+                    data.get('items'), export.get('geometry_field'))
                 shape_service.save_and_zip_shapefiles()
 
                 return send_from_directory(
