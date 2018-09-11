@@ -292,11 +292,13 @@ def test_view():
             # filters={'filter_n_up_id_nomenclature': 1},
             limit=1000)
         res = q.return_query()
-        # metadata.drop_all(tables=[StuffView.__table__])
+        metadata.drop_all(tables=[StuffView.__table__])
+        # StuffView.drop()
         # StuffView.__table__.drop()
         return to_json_resp(res)
     except Exception as e:
         # StuffView.__table__.drop()
         # metadata.drop_all(tables=[StuffView.__table__])
         logger.critical('error: %s', str(e))
+        raise
         return jsonify({'error': str(e)}, 400)
