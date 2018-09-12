@@ -220,7 +220,7 @@ def create(id_role):
 def getExports(id_role):
     repo = ExportRepository()
     try:
-        exports = repo.get_list()
+        exports = repo.list()
         logger.debug(exports)
     except NoResultFound:
         return {'api_error': 'NoResultFound',

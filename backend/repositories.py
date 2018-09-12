@@ -96,14 +96,15 @@ class ExportRepository(object):
             else:
                 return result
 
-    def get_list(self):
+    def list(self):
+        # TODO: list(self, filters)
         result = Export.query.all()
         if not result:
             raise NoResultFound('No configured export')
         return result
 
     def create(self, adict):
-        # TODO: create view
+        # TODO: adict.pop('selectable') and create_view(selectable)
         try:
             x = Export.from_dict(adict)
             self.session.add(x)
@@ -140,9 +141,9 @@ class ExportRepository(object):
             return x
 
     def delete(self, id_role, id_export):
-        # TODO: drop view
-        self.get_by_id(id_export).delete()
         try:
+            self.get_by_id(id_export).delete()
+            # TODO: drop view if view.schema == DEFAULT_SCHEMA
             self.session.commit()
         except Exception as e:
             self.session.rollback()
@@ -151,12 +152,12 @@ class ExportRepository(object):
 
     def getCollections(self):
         # all tables and views
-        # TODO: filter out spatial_ref_sys & co
         from sqlalchemy.engine import reflection
 
         inspection = reflection.Inspector.from_engine(DB.engine)
         schemas = {}
         schema_names = inspection.get_schema_names()
+        # TODO: filter out spatial_ref_sys & co
         for schema in schema_names:
             tables = {}
             mapped_tables = inspection.get_table_names(schema=schema)
