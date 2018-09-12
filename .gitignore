@@ -18,3 +18,4 @@ tmp_*
 .ipynb_checkpoints
 .flake8
 .pylintrc
+backlog*
