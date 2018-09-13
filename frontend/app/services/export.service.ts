@@ -36,7 +36,9 @@ export interface APIErrorResponse extends HttpErrorResponse {
     message: string
     status: number
 }
-const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`;
+
+// const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`;
+const apiEndpoint=`http://localhost:8000/exports`;
 
 export const FormatMapMime = new Map([
   ['csv', 'text/csv'],
