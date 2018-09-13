@@ -105,13 +105,7 @@ def export(id_export, format, id_role=1):
                 FionaShapeService.save_and_zip_shapefiles()
 
                 return send_from_directory(
-                    SHAPEFILES_DIR, fname + '.zip',
-                    # FIXME: google chrome opens the dot.shp only
-                    # mimetype='application/octet-stream',
-                    # mimetype='application/x-zip-compressed',
-                    mimetype='multipart/x-zip',
-                    # mimetype='application/zip',
-                    as_attachment=True)
+                    SHAPEFILES_DIR, fname + '.zip', as_attachment=True)
 
     except NoResultFound as e:
         return to_json_resp({'api_error': 'NoResultFound',
