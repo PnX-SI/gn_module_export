@@ -1,4 +1,4 @@
-import { Injectable } from "@angular/core";
+import { Injectable } from '@angular/core'
 import {
   HttpClient,
   HttpEvent,
@@ -6,24 +6,24 @@ import {
   HttpRequest,
   HttpEventType,
   HttpErrorResponse
-} from "@angular/common/http";
-import { Observable } from "rxjs/Observable";
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { filter } from "rxjs/operator/filter";
-import { map } from "rxjs/operator/map";
+} from '@angular/common/http'
+import { Observable } from 'rxjs/Observable'
+import { BehaviorSubject } from 'rxjs/BehaviorSubject'
+import { filter } from 'rxjs/operator/filter'
+import { map } from 'rxjs/operator/map'
 
 import { ToastrService } from 'ngx-toastr'
-import { AppConfig } from "@geonature_config/app.config";
+import { AppConfig } from '@geonature_config/app.config'
 
 
 export interface Export {
-  id: number;
-  label: string;
-  schema: string;
-  view: string;
-  desc: string;
-  geometry_field: string;
-  geometry_srid: number;
+  id: number
+  label: string
+  schema: string
+  view: string
+  desc: string
+  geometry_field: string
+  geometry_srid: number
 }
 
 export interface APIErrorResponse extends HttpErrorResponse {
@@ -37,8 +37,8 @@ export interface APIErrorResponse extends HttpErrorResponse {
     status: number
 }
 
-// const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`;
-const apiEndpoint=`http://localhost:8000/exports`;
+// const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`
+const apiEndpoint=`http://localhost:8000/exports`
 
 export const FormatMapMime = new Map([
   ['csv', 'text/csv'],
@@ -54,13 +54,12 @@ export class ExportService {
   private _blob: Blob
 
   constructor(private _api: HttpClient, private toastr: ToastrService) {
-    this.exports = <BehaviorSubject<Export[]>>new BehaviorSubject([]);
-    this.downloadProgress = <BehaviorSubject<number>>new BehaviorSubject(0.0);
+    this.exports = <BehaviorSubject<Export[]>>new BehaviorSubject([])
+    this.downloadProgress = <BehaviorSubject<number>>new BehaviorSubject(0.0)
   }
 
   getExports() {
-    this._api.get(`${apiEndpoint}/`, /*{observe: 'events'}*/).subscribe(
-      // IDEA: consider using interceptor if we have to handle 204 http code
+    this._api.get(`${apiEndpoint}/`).subscribe(
       (exports: Export[]) => this.exports.next(exports),
       (e: APIErrorResponse) => {
         console.error('error.error:', e.error)
@@ -80,30 +79,38 @@ export class ExportService {
     )
   }
 
-  downloadExport(xport: Export, extension: string) {
-    let downloadExportURL = `${apiEndpoint}/${xport.id}/${extension}`
-    console.debug('ext:', extension)
+  downloadExport(xport: Export, format: string) {
+    let downloadExportURL = `${apiEndpoint}/${xport.id}/${format}`
+    console.debug('ext:', format)
 
     let source = this._api.get(downloadExportURL, {
-      headers: new HttpHeaders().set('Content-Type', `${FormatMapMime.get(extension)}`),
+      headers: new HttpHeaders().set('Content-Type', `${FormatMapMime.get(format)}`),
       observe: 'events',
       responseType: 'blob',
       reportProgress: true,
     })
     let subscription = source.subscribe(
       event => {
-        if (event.type === HttpEventType.DownloadProgress) {
-          if (event.hasOwnProperty('total')) {
-            const percentage = Math.round((100 / event.total) * event.loaded);
-            this.downloadProgress.next(percentage)
-          } else {
-            const kb = (event.loaded / 1024).toFixed(2);
-             this.downloadProgress.next(parseFloat(kb))
-          }
-      }
-      if (event.type === HttpEventType.Response) {
-        this._blob = new Blob([event.body], {type: event.headers.get('Content-Type')});
-      }
+        switch(event.type) {
+          case(HttpEventType.DownloadProgress):
+            if (event.hasOwnProperty('total')) {
+              const percentage = Math.round((100 / event.total) * event.loaded)
+              this.downloadProgress.next(percentage)
+            } else {
+              const kb = (event.loaded / 1024).toFixed(2)
+              this.downloadProgress.next(parseFloat(kb))
+            }
+            break
+
+          // case(HttpEventType.ResponseHeader):
+          //   console.log(event.headers.get('Content-Disposition'))
+          //   break
+
+          case(HttpEventType.Response):
+            // console.log(event.headers.get('Content-Disposition'))
+            this._blob = new Blob([event.body], {type: event.headers.get('Content-Type')})
+            break
+        }
     },
     (e: APIErrorResponse) => {
       this.toastr.error(e.error.message, e.error.api_error, {timeOut: 0})
@@ -114,7 +121,9 @@ export class ExportService {
     },
     () => {
       let date = new Date()
-      // FIXME: const GN_EXPORT_DATE_FORMAT, GN_EXPORT_FILENAME_FORMAT
+      // FIXME: const DATE_FORMAT, FILENAME_FORMAT
+      // FIXME: (format, mimetype, extension)
+      let extension = (format!=='shp') ? format : 'zip'
       this.saveBlob(this._blob, `export_${xport.label}_${date.toISOString()}.${extension}`)
       subscription.unsubscribe()
     }

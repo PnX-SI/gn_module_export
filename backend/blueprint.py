@@ -8,6 +8,7 @@ from flask import (
     request,
     current_app,
     send_from_directory)
+# from flask_cors import CORS
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 from geonature.utils.filemanager import removeDisallowedFilenameChars
@@ -21,6 +22,10 @@ logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
 blueprint = Blueprint('exports', __name__)
+# CORS(blueprint,
+#      supports_credentials=True,
+#      allow_headers=['content-type', 'content-disposition'],
+#      expose_headers=['Content-Type', 'Content-Disposition'])
 
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 # extracted from dummy npm install
@@ -57,7 +62,6 @@ def export_filename(export):
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
 # @fnauth.check_auth(2, True)
 def export(id_export, format, id_role=1):
-
     if id_export < 1:
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
@@ -70,6 +74,8 @@ def export(id_export, format, id_role=1):
             fname = export_filename(export)
             geometry = export.get('geometry_field')
 
+            # resp.headers['Access-Control-Allow-Headers'] += 'content-disposition'  # noqa: E501
+            # resp.headers['Access-Control-Expose-Headers'] += 'Content-Disposition'  # noqa: E501
             if format == 'json':
                 return to_json_resp(
                     data.get('items', None),
@@ -84,25 +90,29 @@ def export(id_export, format, id_role=1):
 
             if (format == 'shp' and geometry):
                 from geojson.geometry import Point, Polygon, MultiPolygon
-                from geonature.utils.utilsgeometry import FionaShapeService
+                from geonature.utils.utilsgeometry import FionaShapeService as ShapeService  # noqa: E501
 
-                FionaShapeService.create_shapes_struct(
+                ShapeService.create_shapes_struct(
                     db_cols=columns, srid=export.get('geometry_srid'),
                     dir_path=SHAPEFILES_DIR, file_name=fname)
 
-                for row in data.get('items')['features']:
-                    logger.debug('row: %s', row)
-                    if isinstance(row.get('geometry'), Point):
-                        FionaShapeService.point_shape.write(row)
-                        FionaShapeService.point_feature = True
-                    elif isinstance(row.get('geometry'), Polygon) or isinstance(row.get('geometry'), MultiPolygon):  # noqa: E501
-                        FionaShapeService.polygone_shape.write(row.get('properties'))  # noqa: E501
-                        FionaShapeService.polygon_feature = True
+                items = data.get('items')
+                for feature in items['features']:
+                    logger.debug('feature: %s', feature)
+                    geom, props = (feature.get(field)
+                                   for field in ('geometry', 'properties'))
+                    if isinstance(geom, Point):
+                        ShapeService.point_shape.write(feature)
+                        ShapeService.point_feature = True
+                    elif (isinstance(geom, Polygon)
+                          or isinstance(geom, MultiPolygon)):
+                        ShapeService.polygone_shape.write(props)
+                        ShapeService.polygon_feature = True
                     else:
-                        FionaShapeService.polyline_shape.write(row.get('properties'))  # noqa: E501
-                        FionaShapeService.polyline_feature = True
+                        ShapeService.polyline_shape.write(props)
+                        ShapeService.polyline_feature = True
 
-                FionaShapeService.save_and_zip_shapefiles()
+                ShapeService.save_and_zip_shapefiles()
 
                 return send_from_directory(
                     SHAPEFILES_DIR, fname + '.zip', as_attachment=True)
