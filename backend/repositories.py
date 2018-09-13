@@ -39,7 +39,6 @@ class ExportRepository(object):
             id_role,
             id_export,
             with_data=False,
-            geom_column_header=None,
             filters=None,
             limit=10000,
             paging=0,
@@ -52,7 +51,7 @@ class ExportRepository(object):
             if with_data and format:
                 columns, data = self._get_data(
                     id_role, export.view_name, export.schema_name,
-                    geom_column_header=geom_column_header,
+                    geom_column_header=export.geometry_field,
                     filters=filters,
                     limit=limit,
                     paging=paging)
@@ -63,7 +62,7 @@ class ExportRepository(object):
             logger.warn('%s', str(e))
             raise
         except Exception as e:
-            logger.critical('%s', str(e))
+            logger.critical('exception: %s', e)
             raise
         else:
             log = str(columns)
@@ -73,9 +72,9 @@ class ExportRepository(object):
             end_time = datetime.utcnow()
             e = sys.exc_info()
             if any(e):
-                if isinstance(InsufficientRightsError, e):
+                if isinstance(e, InsufficientRightsError):
                     raise e
-                elif isinstance(NoResultFound, e):
+                elif isinstance(e, NoResultFound):
                     raise NoResultFound(
                         'Unknown export id {}.'.format(id_export))
                 else:
@@ -92,6 +91,7 @@ class ExportRepository(object):
                 'log': log})
 
             if status == -1 and any(e):
+                logger.critical('unmanaged export error: %s', e)
                 raise e
             else:
                 return result

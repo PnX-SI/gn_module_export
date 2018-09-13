@@ -68,6 +68,7 @@ def export(id_export, format, id_role=1):
             id_role, id_export, with_data=True, format=format)
         if export:
             fname = export_filename(export)
+            geometry = export.get('geometry_field')
 
             if format == 'json':
                 return to_json_resp(
@@ -77,35 +78,25 @@ def export(id_export, format, id_role=1):
             if format == 'csv':
                 return to_csv_resp(
                     fname,
-                    data.get('items'), list([c.name for c in columns]),
-                    ',')
+                    data.get('items'),
+                    [c.name for c in columns],  # DOING : fix1
+                    separator=',')
 
-            if (format == 'shp'):
+            if (format == 'shp' and geometry):
                 from geonature.utils.utilsgeometry import FionaShapeService
 
-                shape_service = FionaShapeService()
-                shape_service.create_shapes_struct(
+                FionaShapeService.create_shapes_struct(
                     db_cols=columns, srid=export.get('geometry_srid'),
                     dir_path=SHAPEFILES_DIR, file_name=fname)
-                # File "/home/pat/geonature/backend/geonature/utils/utilsgeometry.py", line 75, in create_shapes_struct  # noqa: E501
-                #     cls.point_shape = fiona.open(cls.file_point, 'w', 'ESRI Shapefile', cls.point_schema, crs=cls.source_crs)  # noqa: E501
-                # File "/home/pat/geonature/backend/venv/lib/python3.5/site-packages/fiona/__init__.py", line 175, in open  # noqa: E501
-                #     enabled_drivers=enabled_drivers, crs_wkt=crs_wkt)
-                # File "~/geonature/backend/venv/lib/python3.5/site-packages/fiona/collection.py", line 156, in __init__  # noqa: E501
-                #     self.session.start(self, **kwargs)
-                # File "fiona/ogrext.pyx", line 990, in fiona.ogrext.WritingSession.start  # noqa: E501
-                #     TypeError: argument of type 'NoneType' is not iterable
-                #
-                # > fio dump POINT_OccTax_-_DLB_2018_09_11_10h08m10.shp
-                # {"features": [], "fiona:crs": {"init": "epsg:4326"},
-                #  "fiona:schema": {"geometry": "Point", "properties": {"WKT": "str:80", "altMin": "int:9", "cdNom": "int:9", "cdRef": "int:9", "comment": "str:80", "dSPublique": "str:80", "dateDebut": "str:80", "dateDet": "str:80", "dateFin": "str:80", "date_max": "str:80", "date_min": "str:80", "denbrMin": "int:9", "detId": "str:80", "detNomOrg": "str:80", "heureDebut": "str:80", "heureFin": "str:80", "idOrigine": "str:80", "id_digitis": "int:9", "jddId": "str:80", "methGrp": "str:80", "natObjGeo": "str:80", "nomCite": "str:80", "objDenbr": "str:80", "obsCtx": "str:80", "obsMeth": "str:80", "obsNomOrg": "str:80", "ocBiogeo": "str:80", "ocEtatBio": "str:80", "ocMethDet": "str:80", "ocNat": "str:80", "ocStade": "str:80", "ocStatBio": "str:80", "orgGestDat": "str:80", "permId": "str:80", "permIdGrp": "str:80", "preuvNoNum": "str:80", "preuvNum": "str:80", "preuveOui": "str:80", "refBiblio": "str:80", "statObs": "str:80", "statSource": "str:80", "typDenbr": "str:80", "typGrp": "str:80"}}, "type": "FeatureCollection"}   # noqa: E501
-                # CPLE_NotSupported in b"Normalized/laundered field name: 'id_digitiser' to 'id_digitis'":  # noqa: E501
-                # -> Apparently this is a dbf format limitation => max(len(feat_name)) <= 10 chars  # noqa: E501
-                # -> This could cause problematic import/processing if no corresponding mapping is provided.  # noqa: E501
+
                 logger.debug('items: %s', data.get('items'))
-                shape_service.create_feature(
-                    data.get('items'), export.get('geometry_field'))
-                shape_service.save_and_zip_shapefiles()
+                for row in data.get('items'):
+                    # logger.debug('row: %s', row)
+                    geom = getattr(row, geometry, None)  # DOING : fix2
+                    if geom:
+                        FionaShapeService.create_feature(row, geom)
+
+                FionaShapeService.save_and_zip_shapefiles()
 
                 return send_from_directory(
                     SHAPEFILES_DIR, fname + '.zip', as_attachment=True)
@@ -117,9 +108,14 @@ def export(id_export, format, id_role=1):
         return to_json_resp(
             {'api_error': 'InsufficientRightsError'}, status=403)
     except Exception as e:
-        logger.critical('%s', str(e))
+        logger.critical('%s', e)
         raise
         return to_json_resp({'api_error': 'LoggedError'}, status=400)
+        # return render_template(
+        #     'error.html',
+        #     error=message,
+        #     redirect=current_app.config['URL_APPLICATION']+"/#/exports"
+        # )
 
 
 @blueprint.route('/<int:id_export>', methods=['POST', 'PUT'])

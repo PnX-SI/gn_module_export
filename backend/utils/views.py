@@ -47,11 +47,13 @@ def View(name, metadata, selectable):
         c._make_proxy(t)
     if hasattr(metadata, 'schema') and not t.schema:
         t.schema = metadata.schema  # otherwise the view lands in 'public'.
-    # FIXME: cp foreign_key_constraints -> constraints
+
     t.foreign_key_constraints = [c.copy()
                                  for c in t.columns
                                  if isinstance(c, DB.ForeignKeyConstraint)]
-    t._extra_dependencies = None
+    # FIXME: lookup what are table _extra_dependencies
+    t._extra_dependencies = set()
+    # TODO: cp indexes
 
     # DB.event.listen(
     #             metadata,
