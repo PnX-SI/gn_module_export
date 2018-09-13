@@ -49,9 +49,15 @@ class ExportRepository(object):
         try:
             export = Export.query.filter_by(id=id_export).one()
             if with_data and format:
+                geometry = (
+                    export.geometry_field
+                    if (hasattr(export, 'geometry_field') and format != 'csv')
+                    else None)
                 columns, data = self._get_data(
-                    id_role, export.view_name, export.schema_name,
-                    geom_column_header=export.geometry_field,
+                    id_role,
+                    export.view_name,
+                    export.schema_name,
+                    geom_column_header=geometry,  # noqa: E501
                     filters=filters,
                     limit=limit,
                     paging=paging)

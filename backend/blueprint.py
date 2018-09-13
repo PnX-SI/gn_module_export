@@ -79,27 +79,39 @@ def export(id_export, format, id_role=1):
                 return to_csv_resp(
                     fname,
                     data.get('items'),
-                    [c.name for c in columns],  # DOING : fix1
+                    [c.name for c in columns],
                     separator=',')
 
             if (format == 'shp' and geometry):
+                from geojson.geometry import Point, Polygon, MultiPolygon
                 from geonature.utils.utilsgeometry import FionaShapeService
 
                 FionaShapeService.create_shapes_struct(
                     db_cols=columns, srid=export.get('geometry_srid'),
                     dir_path=SHAPEFILES_DIR, file_name=fname)
 
-                logger.debug('items: %s', data.get('items'))
-                for row in data.get('items'):
-                    # logger.debug('row: %s', row)
-                    geom = getattr(row, geometry, None)  # DOING : fix2
-                    if geom:
-                        FionaShapeService.create_feature(row, geom)
+                for row in data.get('items')['features']:
+                    logger.debug('row: %s', row)
+                    if isinstance(row.get('geometry'), Point):
+                        FionaShapeService.point_shape.write(row)
+                        FionaShapeService.point_feature = True
+                    elif isinstance(row.get('geometry'), Polygon) or isinstance(row.get('geometry'), MultiPolygon):  # noqa: E501
+                        FionaShapeService.polygone_shape.write(row.get('properties'))  # noqa: E501
+                        FionaShapeService.polygon_feature = True
+                    else:
+                        FionaShapeService.polyline_shape.write(row.get('properties'))  # noqa: E501
+                        FionaShapeService.polyline_feature = True
 
                 FionaShapeService.save_and_zip_shapefiles()
 
                 return send_from_directory(
-                    SHAPEFILES_DIR, fname + '.zip', as_attachment=True)
+                    SHAPEFILES_DIR, fname + '.zip',
+                    # FIXME: google chrome opens the dot.shp only
+                    # mimetype='application/octet-stream',
+                    # mimetype='application/x-zip-compressed',
+                    mimetype='multipart/x-zip',
+                    # mimetype='application/zip',
+                    as_attachment=True)
 
     except NoResultFound as e:
         return to_json_resp({'api_error': 'NoResultFound',
@@ -143,11 +155,11 @@ def update(id_export, id_role):
             view_name=view_name,
             desc=desc)
     except NoResultFound as e:
-        logger.warn('%s', str(e))
+        logger.warn('%s', e)
         return {'api_error': 'NoResultFound',
                 'message': str(e)}, 404
     except Exception as e:
-        logger.critical('%s', str(e))
+        logger.critical('%s', e)
         return {'api_error': 'LoggedError'}, 400
     else:
         return export.as_dict(), 201
