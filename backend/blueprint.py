@@ -269,7 +269,13 @@ def test_view():
 
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
     _tname = slugify('StuffView')
+<<<<<<< HEAD
     StuffView = mkView(_tname, metadata, select([TNomenclatures]))
+=======
+    StuffView = mkView(
+            _tname, metadata,
+            select([TNomenclatures]))
+>>>>>>> 71cb3ca21ae043bf120757d256f96518c1181c25
     metadata.create_all()
     assert StuffView.__tablename__ == 'stuff_view' == _tname
 
