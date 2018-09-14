@@ -47,8 +47,9 @@ i.action {
 }
 
 ngx-datatable {
-  left:5px;
+  min-height: 4vh;
   overflow-y: auto;
+  left:5px;
 }
 
 .form-control-sm {

@@ -14,13 +14,11 @@
                     <!-- Liste des exports disponibles au téléchargement -->
                 <!-- <div class="btn-group btn-group-vertical" data-toggle="buttons" id="button-export"> -->
                 <div>
-                  <!-- FIXME: vertical shrinking -->
                   <ngx-datatable
-                    style="max-height: 30vh;"
                     [rows]="exports$ | async"
                     [columnMode]="'flex'"
                     [rowHeight]="'auto'"
-                    [limit]="3"
+                    [limit]="6"
                     [reorderable]="true"
                     >
                       <ngx-datatable-column name="Nom export" prop="label" [flexGrow]="1">
