@@ -157,13 +157,13 @@ class ExportRepository(object):
             raise
 
     def getCollections(self):
-        # all tables and views
         from sqlalchemy.engine import reflection
 
+        DODGED_SCHEMAS = ['information_schema', 'public']
         inspection = reflection.Inspector.from_engine(DB.engine)
         schemas = {}
-        schema_names = inspection.get_schema_names()
-        # TODO: filter out spatial_ref_sys & co
+        schema_names = [schema for schema in inspection.get_schema_names()
+                        if schema not in DODGED_SCHEMAS]
         for schema in schema_names:
             tables = {}
             mapped_tables = inspection.get_table_names(schema=schema)

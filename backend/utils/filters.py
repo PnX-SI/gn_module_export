@@ -32,7 +32,8 @@ def model_by_ns(ns):
         name = ns[-1]
     else:
         raise Exception(
-            'model_by_ns(): unexpected param type: {} {}'.format(type(ns), ns))
+            'model_by_ns(): unexpected param type: "{}" "{}".'.format(
+                type(ns), ns))
 
     for m in DB.Model._decl_class_registry.values():
         if hasattr(m, '__name__') and m.__name__ == name:
@@ -40,7 +41,7 @@ def model_by_ns(ns):
 
     if logger.level == logging.DEBUG:
         raise Exception(
-            'model_by_ns(): could not find model {}'.format(ns))
+            'model_by_ns(): could not find model "{}".'.format(ns))
 
 
 class Filter():

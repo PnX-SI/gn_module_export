@@ -59,8 +59,8 @@ def export_filename(export):
 
 
 # TODO: UUIDs
-# @cross_origin(expose_headers=["Content-Type", "Content-Disposition"])
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
+# @cross_origin(expose_headers=["Content-Type", "Content-Disposition"])
 # @fnauth.check_auth(2, True)
 def export(id_export, format, id_role=1):
     if id_export < 1:
@@ -92,7 +92,10 @@ def export(id_export, format, id_role=1):
             if (format == 'shp' and geometry):
                 from geojson.geometry import Point, Polygon, MultiPolygon
                 from geonature.utils.utilsgeometry import FionaShapeService as ShapeService  # noqa: E501
+                from geonature.utils import filemanager
 
+                filemanager.delete_recursively(
+                    SHAPEFILES_DIR, excluded_files=['.gitkeep'])
                 ShapeService.create_shapes_struct(
                     db_cols=columns, srid=export.get('geometry_srid'),
                     dir_path=SHAPEFILES_DIR, file_name=fname)
@@ -254,44 +257,74 @@ def getCollections():
 
 @blueprint.route('/testview')
 def test_view():
-    import re
     from sqlalchemy.sql.expression import select
     from geonature.utils.env import DB
-    from .utils.views import mkView
+    from .utils.views import mkView, slugify
     from .utils.query import ExportQuery
-    from pypnnomenclature.models import TNomenclatures
+    from .utils.filters import model_by_ns
+    # from geonature.utils.utilssqlalchemy import GenericQuery
 
-    def slugify(s):
-        # FIXME: slugify
-        return re.sub(r'([A-Z ])', r'_\1', s).lstrip('_')\
-                                             .replace(' ', '')\
-                                             .lower()
+    subject_table = 'pr_occtax.export_occtax_dlb'
 
-    metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
-    _tname = slugify('StuffView')
-    StuffView = mkView(_tname, metadata, select([TNomenclatures]))
-    metadata.create_all()
-    assert StuffView.__tablename__ == 'stuff_view' == _tname
+    filters = [('dateDebut', 'GREATER_THAN', datetime(2017, 1, 1, 12, 5, 0))]
+
+    persistent, view_model_name = False, 'StuffView'
+
+    def check_exists(table_or_view):
+        schema, table = None, None
+        split = subject_table.split('.')
+        if len(split > 1):
+            schema, table = *split
+            return DB.engine.dialect.has_table(DB.engine, table, schema=schema)
+        else:
+            return DB.engine.dialect.has_table(DB.engine, table)
 
     try:
-        # from geonature.utils.utilssqlalchemy import GenericQuery
+        # raise Exception if unknown !
+        subject_model = model_by_ns(subject_table)
+    except Exception:
+        subject_model = None
+        pass
+
+    # [m.__name__ for m in DB.Model._decl_class_registry.values() if hasattr(m, '__name__')]  # noqa: E501
+
+    def unregister_model(class_):
+        # https://stackoverflow.com/questions/5185825/is-it-possible-to-unload-declarative-classes-in-sqlalchemy  # noqa: E501
+        # prevent accidental use of unregisted class.
+        DB.orm.instrumentation.unregister_class(class_)
+        # unregisters and will prevent warning.
+        del class_._decl_class_registry[class_.__name__]
+
+    try:
+        if persistent and view_model_name:
+            t_name = slugify(view_model_name)
+            metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
+            model = mkView(t_name, metadata, select([subject_model]))
+            metadata.create_all(
+                tables=['%s.%s' % (DEFAULT_SCHEMA, t_name)])
+        else:
+            model = subject_model
+
+        table = getattr(model, '__table__')
+        table_name = getattr(model, '__tablename__')
+
         # q = GenericQuery(
         q = ExportQuery(
             1,
             DB.session,
-            StuffView.__tablename__,
-            StuffView.__table__.schema if getattr(StuffView.__table__, 'schema', None) else DEFAULT_SCHEMA,  # noqa: E501
+            table_name,
+            table.schema if getattr(table, 'schema', None) else DEFAULT_SCHEMA,
             geometry_field=None,
-            filters=[('id_nomenclature', 'GREATER_THAN', 0)],
+            filters=filters,
             # filters={'filter_n_up_id_nomenclature': 1},
             limit=1000)
         # res = q.return_query()
-        # metadata.drop_all(tables=[StuffView.__table__])
+        # metadata.drop_all(tables=[table])
         # return to_json_resp(res)
         return to_json_resp(q.return_query())
     except Exception as e:
-        # StuffView.__table__.drop() ... hmmmmmm, nope
-        # metadata.drop_all(tables=[StuffView.__table__])
+        # table.drop() ... hmmmmmm, nope
+        # metadata.drop_all(tables=[table])
         logger.critical('error: %s', str(e))
         raise
         return to_json_resp({'error': str(e)}, status=400)

@@ -2,6 +2,7 @@
 # https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/Views
 # sqlalchemy-views
 
+import re
 from sqlalchemy.schema import DDLElement
 from sqlalchemy.ext.compiler import compiles
 from flask import current_app
@@ -80,3 +81,22 @@ def mkView(slug_name, metadata, selectable):
                 'autoload_with': metadata.bind if getattr(metadata, 'bind', None) else DB.engine  # noqa: E501
                 }  # noqa: E133
             })
+
+
+def slugify(s):
+    allowed_chars = r'- a-zA-Z0-9_'
+    ansi = re.compile(r'\x1b\[[;\d]*[A-Za-z]')
+    invalid_view_name = re.compile(r'[^\s\.-a-zA-Z0-9_]')
+    m = re.match(invalid_view_name, s)
+    if m:
+        raise Exception(
+            'InvalidViewName: "{}", allowed chars: "{}"'.format(
+                s, allowed_chars))
+    else:
+        text = ansi.sub('', s)
+        text = re.sub(r'([\.\sA-Z])', r'_\1', text)
+        text = re.sub(r'[\.\s]+', '', text)
+        text = re.sub(r'_{2,}', '_', text)
+        text = text.strip('_')
+        text = text.lower()
+        return text
