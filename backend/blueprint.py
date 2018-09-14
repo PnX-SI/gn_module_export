@@ -255,7 +255,7 @@ def getCollections():
 @blueprint.route('/testview')
 def test_view():
     import re
-    import sqlalchemy
+    from sqlalchemy.sql.expression import select
     from geonature.utils.env import DB
     from .utils.views import mkView
     from .utils.query import ExportQuery
@@ -269,9 +269,7 @@ def test_view():
 
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
     _tname = slugify('StuffView')
-    StuffView = mkView(
-            _tname, metadata,
-            sqlalchemy.sql.expression.select([TNomenclatures]))
+    StuffView = mkView(_tname, metadata, select([TNomenclatures]))
     metadata.create_all()
     assert StuffView.__tablename__ == 'stuff_view' == _tname
 
