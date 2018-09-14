@@ -8,7 +8,7 @@ from flask import (
     request,
     current_app,
     send_from_directory)
-# from flask_cors import CORS
+# from flask_cors import CORS, cross_origin
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 from geonature.utils.filemanager import removeDisallowedFilenameChars
@@ -23,7 +23,7 @@ logger.setLevel(logging.DEBUG)
 
 blueprint = Blueprint('exports', __name__)
 # CORS(blueprint,
-#      supports_credentials=True,
+#      supports_credentials=True)
 #      allow_headers=['content-type', 'content-disposition'],
 #      expose_headers=['Content-Type', 'Content-Disposition'])
 
@@ -59,6 +59,7 @@ def export_filename(export):
 
 
 # TODO: UUIDs
+# @cross_origin(expose_headers=["Content-Type", "Content-Disposition"])
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
 # @fnauth.check_auth(2, True)
 def export(id_export, format, id_role=1):
@@ -255,9 +256,9 @@ def getCollections():
 def test_view():
     import re
     import sqlalchemy
-    from flask import jsonify
     from geonature.utils.env import DB
-    from .utils.views import View  # , DropView
+    from .utils.views import mkView
+    from .utils.query import ExportQuery
     from pypnnomenclature.models import TNomenclatures
 
     def slugify(s):
@@ -266,32 +267,15 @@ def test_view():
                                              .replace(' ', '')\
                                              .lower()
 
-    def mkView(
-            name,
-            metadata=DB.MetaData(),
-            selectable=sqlalchemy.sql.expression.select([TNomenclatures])):
-        logger.debug('View schema: %s', metadata.schema)
-        return type(
-            name, (DB.Model,), {
-                '__table__': View(slugify(name), metadata, selectable),
-                '__table_args__': {
-                    'schema': metadata.schema if getattr(metadata, 'schema', None) else DEFAULT_SCHEMA,  # noqa: E501
-                    'extend_existing': True,
-                    'autoload': True,
-                    'autoload_with': metadata.bind if getattr(metadata, 'bind', None) else DB.engine  # noqa: E501
-                    }  # noqa: E133
-                })
-
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
-    StuffView = mkView('StuffView', metadata)
-    # StuffView.__table__.create(), nope
-    # metadata.create_all(tables=[StuffView.__table__], bind=DB.engine), nope
-    # -> AttributeError: 'TableClause' object has no attribute 'foreign_key_constraints'  # noqa: E501
+    _tname = slugify('StuffView')
+    StuffView = mkView(
+            _tname, metadata,
+            sqlalchemy.sql.expression.select([TNomenclatures]))
     metadata.create_all()
-    assert StuffView.__tablename__ == 'stuff_view'
+    assert StuffView.__tablename__ == 'stuff_view' == _tname
 
     try:
-        from .utils.query import ExportQuery
         # from geonature.utils.utilssqlalchemy import GenericQuery
         # q = GenericQuery(
         q = ExportQuery(
@@ -303,14 +287,13 @@ def test_view():
             filters=[('id_nomenclature', 'GREATER_THAN', 0)],
             # filters={'filter_n_up_id_nomenclature': 1},
             limit=1000)
-        res = q.return_query()
-        metadata.drop_all(tables=[StuffView.__table__])
-        # StuffView.drop()
-        # StuffView.__table__.drop()
-        return to_json_resp(res)
+        # res = q.return_query()
+        # metadata.drop_all(tables=[StuffView.__table__])
+        # return to_json_resp(res)
+        return to_json_resp(q.return_query())
     except Exception as e:
-        # StuffView.__table__.drop()
+        # StuffView.__table__.drop() ... hmmmmmm, nope
         # metadata.drop_all(tables=[StuffView.__table__])
         logger.critical('error: %s', str(e))
         raise
-        return jsonify({'error': str(e)}, 400)
+        return to_json_resp({'error': str(e)}, status=400)

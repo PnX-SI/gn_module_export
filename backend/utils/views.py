@@ -1,4 +1,5 @@
-# inspiration: https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/Views
+# inspiration:
+# https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/Views
 # sqlalchemy-views
 
 from sqlalchemy.schema import DDLElement
@@ -34,38 +35,48 @@ class DropView(DDLElement):
 
 @compiles(DropView)
 def visit_drop_view(element, compiler, **kw):
-    return "DROP VIEW IF EXISTS %s" % (element.name)  # CASCADE
+    return "DROP VIEW %s" % (element.name)
 
 
 def View(name, metadata, selectable):
-    # https://docs.sqlalchemy.org/en/latest/core/selectable.html?highlight=table#sqlalchemy.sql.expression.TableClause  # noqa: E501
-    # table(name, *columns) return is an instance of TableClause,
-    # which represents the “syntactical” portion of the schema-level
-    # Table object.
     t = DB.table(name)
     for c in selectable.c:
         c._make_proxy(t)
     if hasattr(metadata, 'schema') and not t.schema:
         t.schema = metadata.schema  # otherwise the view lands in 'public'.
 
-    t.foreign_key_constraints = [c.copy()
-                                 for c in t.columns
-                                 if isinstance(c, DB.ForeignKeyConstraint)]
-    # FIXME: lookup what are table _extra_dependencies
+    t.foreign_key_constraints = {c for c in t.columns
+                                 if isinstance(c, DB.ForeignKeyConstraint)}
     t._extra_dependencies = set()
-    # TODO: cp indexes
+    # TODO: view indexes
+    # logger.debug('indexes: %s', {c for c in t.columns
+    #                              if isinstance(c, DB.Index)})
 
+    # FIXME: deprecated execute_at -> use DB.event ?
+    CreateView(t.name, selectable).execute_at('after-create', metadata)
+    DropView(t.name).execute_at('before-drop', metadata)
     # DB.event.listen(
     #             metadata,
     #             "after_create",
-    #             DB.DDL(CreateView)
+    #             ?CreateView(t.name, selectable)?
     #         )
+    # the drop event snippet freezes the navigator
     # DB.event.listen(
     #     metadata,
     #     "before_drop",
-    #     DB.DDL("DROP VIEW %s" % name)
+    #     DB.DDL("DROP VIEW %s.%s" % (t.schema, t.name))
     # )  # noqa: E133
-    # FIXME: deprecated execute_at -> use DB.event
-    CreateView(t.name, selectable).execute_at('after-create', metadata)
-    DropView(t.name).execute_at('before-drop', metadata)
     return t
+
+
+def mkView(slug_name, metadata, selectable):
+    return type(
+        slug_name, (DB.Model,), {
+            '__table__': View(slug_name, metadata, selectable),
+            '__table_args__': {
+                'schema': metadata.schema if getattr(metadata, 'schema', None) else "gn_exports",  # noqa: E501
+                'extend_existing': True,
+                'autoload': True,
+                'autoload_with': metadata.bind if getattr(metadata, 'bind', None) else DB.engine  # noqa: E501
+                }  # noqa: E133
+            })
