@@ -12,13 +12,13 @@ class ExportQuery(GenericQuery):
             schema_name,
             geometry_field,
             filters,
-            limit=100, offset=0):
+            limit=10000, offset=0):
         self.user = id_role
 
         super().__init__(
             db_session,
             table_name, schema_name, geometry_field,
-            filters, limit=100, offset=0)
+            filters, limit=limit, offset=offset)
 
     def build_query_filters(self, query, filters):
         ctx = {'view': self.view}
