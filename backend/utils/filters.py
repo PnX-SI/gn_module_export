@@ -1,7 +1,7 @@
 # insp: https://github.com/Overseas-Student-Living/sqlalchemy-filters
 import logging
 from flask import current_app
-from sqlalchemy import or_
+from sqlalchemy import or_, types as sa_types
 from geonature.utils.env import DB
 
 
@@ -14,6 +14,7 @@ FilterOpMap = {
     'EQUALS': '__eq__',
     'NOT_EQUALS': '__ne__',
     'GREATER_THAN': '__gt__',
+    'GREATER_OR_EQUALS': '__ge__',
     'LESS_THAN': '__lt__',
     'CONTAINS': 'contains',  # "%" and "_" -> wildcards in the condition.
 }  # noqa: E133
@@ -74,20 +75,37 @@ class Filter():
     @staticmethod
     def process(context, field):
         # -> DB.Column[field]
+        def dt_cast(column):
+            if (isinstance(column, (
+                    sa_types.DATETIME, sa_types.DATE,
+                    sa_types.TIME, sa_types.TIMESTAMP))
+                or column.name.endswith('time')  # noqa: E129
+                or column.name.endswith('date')  # noqa: E129
+                or column.name.startswith('heure')  # noqa: E129
+                or column.name.startswith('date')):  # noqa: E129
+                logger.debug(
+                    'dt_cast: %s, %s', column.name, DB.func.date(column))
+                return DB.func.date(column)
+            else:
+                return column
+
         if isinstance(field, str):
             crumbs = field.split('.')
             depth = len(crumbs)
             view = context.get('view')
             if depth == 1:
                 if view:
-                    return getattr(view.tableDef.columns, field)
+                    return dt_cast(
+                        getattr(view.tableDef.columns, field))
                 else:
                     raise Exception(
                         'InvalidFilterContext: missing "view:name" key-value pair.')  # noqa: E501
             elif depth == 2:
-                return getattr(model_by_ns(crumbs[0]), crumbs[1])
+                return dt_cast(
+                    getattr(model_by_ns(crumbs[0]), crumbs[1]))
             elif depth > 2:
-                return getattr(model_by_ns(crumbs[0:depth - 1]), crumbs[-1])
+                return dt_cast(
+                    getattr(model_by_ns(crumbs[0:depth - 1]), crumbs[-1]))
             else:
                 raise Exception(
                     'InvalidFilterField: [schema.][entity.]attribute')
@@ -95,7 +113,7 @@ class Filter():
             if (field.parent.class_ in [
                     m for m in DB.Model._decl_class_registry.values()
                     if hasattr(m, '__name__')]):
-                return field
+                return dt_cast(field)
             else:
                 raise Exception('UnregisteredModel: {}'.format(str(field)))
 
