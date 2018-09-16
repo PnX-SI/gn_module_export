@@ -275,19 +275,6 @@ def test_view():
 
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
 
-    # def check_exists(schema_dot_view: str) -> bool:
-    #     schema_view = schema_dot_view.rsplit('.', 1)
-    #     if len(schema_view) == 2:
-    #         schema, view = schema_view
-    #         return DB.engine.dialect.has_table(
-    #             DB.engine, view, schema=schema)
-    #     else:
-    #         raise('invalid_schema_dot_view')
-    #
-    # def unregister_model(model: DB.Model):
-    #     DB.orm.instrumentation.unregister_class(model)
-    #     del model._decl_class_registry[model.__name__]
-
     def create_view(
             view_name: str, selectable: Selectable) -> DB.Model:
         name = slugify(view_name)
@@ -303,25 +290,16 @@ def test_view():
         logger.debug('model: %s', random_model.__name__)
         selectable = select([random_model])
 
-        model = None
-        view = None
-
         if persisted and view_model_name:
 
-            # if view_model_name in [m.__name__ for m in models]:
-            #     unregister_model(model)
-
             model = create_view(view_model_name, selectable)
-            view = model.__table__
-            view_name = model.__tablename__
-            schema = view.schema
 
             # q = GenericQuery(
             q = ExportQuery(
                 1,
                 DB.session,
-                view_name,
-                schema,
+                model.__tablename__,
+                model.__table__.schema,
                 geometry_field=None,
                 filters=filters,
                 # filters={'filter_n_up_id_nomenclature': 1},
