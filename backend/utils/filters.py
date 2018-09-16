@@ -79,10 +79,10 @@ class Filter():
             if (isinstance(column, (
                     sa_types.DATETIME, sa_types.DATE,
                     sa_types.TIME, sa_types.TIMESTAMP))
-                or column.name.endswith('time')  # noqa: E129
-                or column.name.endswith('date')  # noqa: E129
-                or column.name.startswith('heure')  # noqa: E129
-                or column.name.startswith('date')):  # noqa: E129
+                or column.name.startswith('heure')
+                or column.name.startswith('date')
+                or column.name.endswith('time')
+                or column.name.endswith('date')):  # noqa: E129
                 logger.debug(
                     'dt_cast: %s, %s', column.name, DB.func.date(column))
                 return DB.func.date(column)

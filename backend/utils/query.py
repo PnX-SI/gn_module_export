@@ -12,7 +12,8 @@ class ExportQuery(GenericQuery):
             schema_name,
             geometry_field,
             filters,
-            limit=10000, offset=0):
+            limit=10000, offset=10000):
+        # FIXME: pagination
         self.user = id_role
 
         super().__init__(
