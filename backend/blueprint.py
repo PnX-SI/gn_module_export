@@ -96,6 +96,7 @@ def export(id_export, format, id_role=1):
 
                 filemanager.delete_recursively(
                     SHAPEFILES_DIR, excluded_files=['.gitkeep'])
+
                 ShapeService.create_shapes_struct(
                     db_cols=columns, srid=export.get('geometry_srid'),
                     dir_path=SHAPEFILES_DIR, file_name=fname)
@@ -257,74 +258,91 @@ def getCollections():
 
 @blueprint.route('/testview')
 def test_view():
+    from sqlalchemy.sql import Selectable as Selectable
     from sqlalchemy.sql.expression import select
     from geonature.utils.env import DB
     from .utils.views import mkView, slugify
     from .utils.query import ExportQuery
-    from .utils.filters import model_by_ns
     # from geonature.utils.utilssqlalchemy import GenericQuery
 
-    subject_table = 'pr_occtax.export_occtax_dlb'
+    filters = None
+    # filters = [
+    #     ('dateDebut', 'GREATER_OR_EQUALS', datetime(2017, 1, 1, 0, 0, 0))
+    #     ]
+    # -> datetime.strptime(value[0], '%Y-%m-%dT%H:%M:%S.%fZ').date()
+    persisted = True
+    view_model_name = 'StuffView'
 
-    filters = [('dateDebut', 'GREATER_THAN', datetime(2017, 1, 1, 12, 5, 0))]
+    metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
 
-    persistent, view_model_name = False, 'StuffView'
+    # def check_exists(schema_dot_view: str) -> bool:
+    #     schema_view = schema_dot_view.rsplit('.', 1)
+    #     if len(schema_view) == 2:
+    #         schema, view = schema_view
+    #         return DB.engine.dialect.has_table(
+    #             DB.engine, view, schema=schema)
+    #     else:
+    #         raise('invalid_schema_dot_view')
+    #
+    # def unregister_model(model: DB.Model):
+    #     DB.orm.instrumentation.unregister_class(model)
+    #     del model._decl_class_registry[model.__name__]
 
-    def check_exists(table_or_view):
-        schema, table = None, None
-        split = subject_table.split('.')
-        if len(split > 1):
-            schema, table = *split
-            return DB.engine.dialect.has_table(DB.engine, table, schema=schema)
-        else:
-            return DB.engine.dialect.has_table(DB.engine, table)
+    def create_view(
+            view_name: str, selectable: Selectable) -> DB.Model:
+        name = slugify(view_name)
+        model = mkView(name, metadata, selectable)
+        metadata.create_all()
+        return model
 
     try:
-        # raise Exception if unknown !
-        subject_model = model_by_ns(subject_table)
-    except Exception:
-        subject_model = None
-        pass
+        models = [m for m in DB.Model._decl_class_registry.values()
+                  if hasattr(m, '__name__')]
+        from random import randint
+        random_model = models[randint(0, len(models) - 1)]
+        logger.debug('model: %s', random_model.__name__)
+        selectable = select([random_model])
 
-    # [m.__name__ for m in DB.Model._decl_class_registry.values() if hasattr(m, '__name__')]  # noqa: E501
+        model = None
+        view = None
 
-    def unregister_model(class_):
-        # https://stackoverflow.com/questions/5185825/is-it-possible-to-unload-declarative-classes-in-sqlalchemy  # noqa: E501
-        # prevent accidental use of unregisted class.
-        DB.orm.instrumentation.unregister_class(class_)
-        # unregisters and will prevent warning.
-        del class_._decl_class_registry[class_.__name__]
+        if persisted and view_model_name:
 
-    try:
-        if persistent and view_model_name:
-            t_name = slugify(view_model_name)
-            metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
-            model = mkView(t_name, metadata, select([subject_model]))
-            metadata.create_all(
-                tables=['%s.%s' % (DEFAULT_SCHEMA, t_name)])
-        else:
-            model = subject_model
+            # if view_model_name in [m.__name__ for m in models]:
+            #     unregister_model(model)
 
-        table = getattr(model, '__table__')
-        table_name = getattr(model, '__tablename__')
+            model = create_view(view_model_name, selectable)
+            view = model.__table__
+            view_name = model.__tablename__
+            schema = view.schema
 
-        # q = GenericQuery(
-        q = ExportQuery(
-            1,
-            DB.session,
-            table_name,
-            table.schema if getattr(table, 'schema', None) else DEFAULT_SCHEMA,
-            geometry_field=None,
-            filters=filters,
-            # filters={'filter_n_up_id_nomenclature': 1},
-            limit=1000)
-        # res = q.return_query()
-        # metadata.drop_all(tables=[table])
-        # return to_json_resp(res)
-        return to_json_resp(q.return_query())
+            # q = GenericQuery(
+            q = ExportQuery(
+                1,
+                DB.session,
+                view_name,
+                schema,
+                geometry_field=None,
+                filters=filters,
+                # filters={'filter_n_up_id_nomenclature': 1},
+                limit=10000, offset=0)
+            return to_json_resp(q.return_query())
     except Exception as e:
-        # table.drop() ... hmmmmmm, nope
-        # metadata.drop_all(tables=[table])
         logger.critical('error: %s', str(e))
         raise
         return to_json_resp({'error': str(e)}, status=400)
+
+# model: LAreas
+# TypeError(b"\x01\x06\x00\x00 j\x08\x00\x00\x01\x00
+# [...]
+# \x01\x03\x00\x00\x00|\xbf+A\x00\x00\x00@MBZA" is not JSON serializable
+# model: TDatasets
+# ERREUR:  la colonne t_datasets.active n'existe pas
+# model: Synthese, SyntheseOneRecord
+# ERREUR:  la colonne synthese.id_nomenclature_geo_object_nature n'existe pas
+# model: SyntheseForWebApp
+# ERREUR:  la colonne v_synthese_for_web_app.unique_id_sinp n'existe pas
+# model: VSyntheseDecodeNomenclatures
+# ERREUR:  la colonne v_synthese_decode_nomenclatures.obs_method n'existe pas
+# model: DefaultsNomenclaturesValue
+# ERREUR:  la colonne defaults_nomenclatures_value.id_type n'existe pas
