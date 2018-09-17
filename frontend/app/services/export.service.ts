@@ -82,6 +82,7 @@ export class ExportService {
   downloadExport(xport: Export, format: string) {
     let downloadExportURL = `${apiEndpoint}/${xport.id}/${format}`
     console.debug('ext:', format)
+    let fileName = undefined
 
     let source = this._api.get(downloadExportURL, {
       headers: new HttpHeaders().set('Content-Type', `${FormatMapMime.get(format)}`),
@@ -103,11 +104,12 @@ export class ExportService {
             break
 
           case(HttpEventType.ResponseHeader):
-            console.log(event.headers.get('Content-Disposition'))
+            const disp = event.headers.get('Content-Disposition')
+            const fileNameMatch = disp ? /filename="?([^"]*)"?;?/g.exec(disp) : undefined;
+            fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
             break
 
           case(HttpEventType.Response):
-            console.log(event.headers.get('Content-Disposition'))
             this._blob = new Blob([event.body], {type: event.headers.get('Content-Type')})
             break
         }
@@ -121,10 +123,9 @@ export class ExportService {
     },
     () => {
       let date = new Date()
-      // FIXME: const DATE_FORMAT, FILENAME_FORMAT
       // FIXME: (format, mimetype, extension)
       let extension = (format!=='shp') ? format : 'zip'
-      this.saveBlob(this._blob, `export_${xport.label}_${date.toISOString()}.${extension}`)
+      this.saveBlob(this._blob, fileName)
       subscription.unsubscribe()
     }
   )}
