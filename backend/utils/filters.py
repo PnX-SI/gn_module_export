@@ -18,6 +18,7 @@ FilterOpMap = {
     'LESS_THAN': '__lt__',
     'CONTAINS': 'contains',  # "%" and "_" -> wildcards in the condition.
 }  # noqa: E133
+# in_(value.split(','))
 
 FilterBooleanOpMap = {
     'OR': or_
@@ -82,7 +83,7 @@ class Filter():
                 or column.name.startswith('heure')
                 or column.name.startswith('date')
                 or column.name.endswith('time')
-                or column.name.endswith('date')):  # noqa: E129
+                or column.name.endswith('date')):  # noqa: E129 W503
                 logger.debug(
                     'dt_cast: %s, %s', column.name, DB.func.date(column))
                 return DB.func.date(column)
@@ -95,14 +96,12 @@ class Filter():
             view = context.get('view')
             if depth == 1:
                 if view:
-                    return dt_cast(
-                        getattr(view.tableDef.columns, field))
+                    return dt_cast(getattr(view.tableDef.columns, field))
                 else:
                     raise Exception(
                         'InvalidFilterContext: missing "view:name" key-value pair.')  # noqa: E501
             elif depth == 2:
-                return dt_cast(
-                    getattr(model_by_ns(crumbs[0]), crumbs[1]))
+                return dt_cast(getattr(model_by_ns(crumbs[0]), crumbs[1]))
             elif depth > 2:
                 return dt_cast(
                     getattr(model_by_ns(crumbs[0:depth - 1]), crumbs[-1]))
@@ -110,9 +109,9 @@ class Filter():
                 raise Exception(
                     'InvalidFilterField: [schema.][entity.]attribute')
         else:
-            if (field.parent.class_ in [
+            if (field.parent.class_ in {
                     m for m in DB.Model._decl_class_registry.values()
-                    if hasattr(m, '__name__')]):
+                    if hasattr(m, '__name__')}):
                 return dt_cast(field)
             else:
                 raise Exception('UnregisteredModel: {}'.format(str(field)))

@@ -285,13 +285,22 @@ def test_view():
     try:
         models = [m for m in DB.Model._decl_class_registry.values()
                   if hasattr(m, '__name__')]
-        from random import randint
-        random_model = models[randint(0, len(models) - 1)]
+        from random import choice
+        random_model = choice(models)
+        while random_model in ['LAreas']:
+            random_model = choice(models)
         logger.debug('model: %s', random_model.__name__)
         selectable = select([random_model])
+        # columns = request.get_json('columns')
+        # stmt = select([column(c) for c in columns]).\
+        #     select_from(some_table)
+        # stmt = select([table.c[c] for c in columns])
+        # stmt = select([DB.text('*')]).where(foo_col == 1)
+        # selectable = DB.session.execute(stmt).fetchall()
+        # selectable = DB.session.query(*[table.c[c] for c in columns])
+        # session.execute(q.selectable)
 
         if persisted and view_model_name:
-
             model = create_view(view_model_name, selectable)
 
             # q = GenericQuery(
@@ -304,23 +313,17 @@ def test_view():
                 filters=filters,
                 # filters={'filter_n_up_id_nomenclature': 1},
                 limit=10000, offset=0)
-            return to_json_resp(q.return_query())
+            return to_json_resp({
+                'model': random_model.__name__, **q.return_query()})
     except Exception as e:
         logger.critical('error: %s', str(e))
-        raise
-        return to_json_resp({'error': str(e)}, status=400)
+        # raise
+        return to_json_resp({'error': str(e),
+                             'model': random_model.__name__, }, status=400)
 
 # model: LAreas
 # TypeError(b"\x01\x06\x00\x00 j\x08\x00\x00\x01\x00
 # [...]
 # \x01\x03\x00\x00\x00|\xbf+A\x00\x00\x00@MBZA" is not JSON serializable
-# model: TDatasets
-# ERREUR:  la colonne t_datasets.active n'existe pas
-# model: Synthese, SyntheseOneRecord
-# ERREUR:  la colonne synthese.id_nomenclature_geo_object_nature n'existe pas
-# model: SyntheseForWebApp
-# ERREUR:  la colonne v_synthese_for_web_app.unique_id_sinp n'existe pas
-# model: VSyntheseDecodeNomenclatures
-# ERREUR:  la colonne v_synthese_decode_nomenclatures.obs_method n'existe pas
 # model: DefaultsNomenclaturesValue
 # ERREUR:  la colonne defaults_nomenclatures_value.id_type n'existe pas
