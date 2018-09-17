@@ -9,6 +9,7 @@ from flask import (
     current_app,
     send_from_directory)
 # from flask_cors import CORS, cross_origin
+from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 from geonature.utils.filemanager import removeDisallowedFilenameChars
@@ -22,10 +23,6 @@ logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
 blueprint = Blueprint('exports', __name__)
-# CORS(blueprint,
-#      supports_credentials=True)
-#      allow_headers=['content-type', 'content-disposition'],
-#      expose_headers=['Content-Type', 'Content-Disposition'])
 
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 # extracted from dummy npm install
@@ -60,7 +57,10 @@ def export_filename(export):
 
 # TODO: UUIDs
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
-# @cross_origin(expose_headers=["Content-Type", "Content-Disposition"])
+@cross_origin(
+    supports_credentials=True,
+    allow_headers=['content-type', 'content-disposition'],
+    expose_headers=['Content-Type', 'Content-Disposition'])
 # @fnauth.check_auth(2, True)
 def export(id_export, format, id_role=1):
     if id_export < 1:
@@ -75,8 +75,6 @@ def export(id_export, format, id_role=1):
             fname = export_filename(export)
             geometry = export.get('geometry_field')
 
-            # resp.headers['Access-Control-Allow-Headers'] += 'content-disposition'  # noqa: E501
-            # resp.headers['Access-Control-Expose-Headers'] += 'Content-Disposition'  # noqa: E501
             if format == 'json':
                 return to_json_resp(
                     data.get('items', None),
@@ -133,11 +131,6 @@ def export(id_export, format, id_role=1):
         logger.critical('%s', e)
         raise
         return to_json_resp({'api_error': 'LoggedError'}, status=400)
-        # return render_template(
-        #     'error.html',
-        #     error=message,
-        #     redirect=current_app.config['URL_APPLICATION']+"/#/exports"
-        # )
 
 
 @blueprint.route('/<int:id_export>', methods=['POST', 'PUT'])

@@ -102,12 +102,12 @@ export class ExportService {
             }
             break
 
-          // case(HttpEventType.ResponseHeader):
-          //   console.log(event.headers.get('Content-Disposition'))
-          //   break
+          case(HttpEventType.ResponseHeader):
+            console.log(event.headers.get('Content-Disposition'))
+            break
 
           case(HttpEventType.Response):
-            // console.log(event.headers.get('Content-Disposition'))
+            console.log(event.headers.get('Content-Disposition'))
             this._blob = new Blob([event.body], {type: event.headers.get('Content-Type')})
             break
         }
