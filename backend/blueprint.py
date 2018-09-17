@@ -103,16 +103,17 @@ def export(id_export, format, id_role=1):
 
                 items = data.get('items')
                 for feature in items['features']:
-                    logger.debug('feature: %s', feature)
                     geom, props = (feature.get(field)
                                    for field in ('geometry', 'properties'))
                     if isinstance(geom, Point):
                         ShapeService.point_shape.write(feature)
                         ShapeService.point_feature = True
+
                     elif (isinstance(geom, Polygon)
-                          or isinstance(geom, MultiPolygon)):
+                          or isinstance(geom, MultiPolygon)):  # noqa: W503
                         ShapeService.polygone_shape.write(props)
                         ShapeService.polygon_feature = True
+
                     else:
                         ShapeService.polyline_shape.write(props)
                         ShapeService.polyline_feature = True
@@ -287,7 +288,7 @@ def test_view():
                   if hasattr(m, '__name__')]
         from random import choice
         random_model = choice(models)
-        while random_model in ['LAreas']:
+        while random_model.__name__ in ['LAreas']:
             random_model = choice(models)
         logger.debug('model: %s', random_model.__name__)
         selectable = select([random_model])

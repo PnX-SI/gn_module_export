@@ -75,7 +75,6 @@ class ExportLog(DB.Model):
 
     @classmethod
     def from_dict(cls, adict):
-        print('adict: ', adict)
         export_log = ExportLog(
             id_role=adict['id_role'],
             id_export=adict['id_export'],
