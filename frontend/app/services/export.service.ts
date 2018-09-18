@@ -26,9 +26,9 @@ export interface Export {
   geometry_srid: number
 }
 
-export interface APIErrorResponse extends HttpErrorResponse {
-   error: {
-      api_error?: string
+export interface ApiErrorResponse extends HttpErrorResponse {
+   api_error: {
+      error?: string
       message?: string
       // links?: { about: string }
     }
@@ -37,8 +37,7 @@ export interface APIErrorResponse extends HttpErrorResponse {
     status: number
 }
 
-// const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`
-const apiEndpoint=`http://localhost:8000/exports`
+const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`
 
 export const FormatMapMime = new Map([
   ['csv', 'text/csv'],
@@ -61,11 +60,11 @@ export class ExportService {
   getExports() {
     this._api.get(`${apiEndpoint}/`).subscribe(
       (exports: Export[]) => this.exports.next(exports),
-      (e: APIErrorResponse) => {
-        console.error('error.error:', e.error)
+      (e: ApiErrorResponse) => {
+        console.error('api error:', e.api_error)
         this.toastr.error(
-          e.error.message + '. TODO: redirect to admin ui on tap',
-          'API Error:' + e.error.api_error, {
+          e.api_error.message,
+          'API Error:' + e.api_error.error, {
             timeOut: 0
           })
         console.error('error.name:', e.name)
@@ -81,7 +80,6 @@ export class ExportService {
 
   downloadExport(xport: Export, format: string) {
     let downloadExportURL = `${apiEndpoint}/${xport.id}/${format}`
-    console.debug('ext:', format)
     let fileName = undefined
 
     let source = this._api.get(downloadExportURL, {
@@ -114,17 +112,11 @@ export class ExportService {
             break
         }
     },
-    (e: APIErrorResponse) => {
-      this.toastr.error(e.error.message, e.error.api_error, {timeOut: 0})
-      console.error('error.error:', e.error)
-      console.error(e.name)
-      console.error(e.message)
-      console.error(e.status)
+    (e: ApiErrorResponse) => {
+      this.toastr.error(e.api_error.message, e.api_error.error, {timeOut: 0})
+      console.error('api error:', e.api_error)
     },
     () => {
-      let date = new Date()
-      // FIXME: (format, mimetype, extension)
-      let extension = (format!=='shp') ? format : 'zip'
       this.saveBlob(this._blob, fileName)
       subscription.unsubscribe()
     }

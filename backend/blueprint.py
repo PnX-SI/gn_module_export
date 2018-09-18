@@ -60,7 +60,7 @@ def export_filename(export):
 @cross_origin(
     supports_credentials=True,
     allow_headers=['content-type', 'content-disposition'],
-    expose_headers=['Content-Type', 'Content-Disposition'])
+    expose_headers=['Content-Type', 'Content-Disposition', 'Authorization'])
 # @fnauth.check_auth(2, True)
 def export(id_export, format, id_role=1):
     if id_export < 1:
@@ -145,7 +145,7 @@ def update(id_export, id_role):
 
     if not all(label, schema_name, view_name, desc):
         return {
-            'error': 'MissingParameter',
+            'api_error': 'MissingParameter',
             'message': 'Missing parameter: {}'. format(
                 'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
 
@@ -250,6 +250,12 @@ def getCollections():
     return repo.getCollections()
 
 
+@blueprint.route('/testerror')
+def test_error():
+    return to_json_resp(
+        {'api_error': 'SomeApiError'}, status=500)
+
+
 @blueprint.route('/testview')
 def test_view():
     from sqlalchemy.sql import Selectable as Selectable
@@ -279,24 +285,27 @@ def test_view():
     try:
         models = [m for m in DB.Model._decl_class_registry.values()
                   if hasattr(m, '__name__')]
-        from random import choice
-        random_model = choice(models)
-        while random_model.__name__ in ['LAreas']:
-            random_model = choice(models)
-        logger.debug('model: %s', random_model.__name__)
-        selectable = select([random_model])
+        # from random import choice
+        # random_model = choice(models)
+        # while random_model.__name__ in ['LAreas']:
+        #     random_model = choice(models)
+        # logger.debug('model: %s', random_model.__name__)
+        # selectable = select([random_model])
+
         # columns = request.get_json('columns')
-        # stmt = select([column(c) for c in columns]).\
+        # selectable = select([column(c) for c in columns]).\
         #     select_from(some_table)
-        # stmt = select([table.c[c] for c in columns])
-        # stmt = select([DB.text('*')]).where(foo_col == 1)
-        # selectable = DB.session.execute(stmt).fetchall()
-        # selectable = DB.session.query(*[table.c[c] for c in columns])
-        # session.execute(q.selectable)
+        # selectable = DB.session.query(random_model.__table__).selectable
+        src_model = [m for m in models if m.__name__ == 'BibNoms'][0]
+        # selectable = DB.session.query(src_model).selectable
+        # selectable = select([src_model])
+        selectable = select([src_model.id_nom, src_model.nom_francais])
+        # .where(src_model.nom_francais=='Cicindela hybrida') => literals ?
+        # =>join with where clause
 
         if persisted and view_model_name:
+            logger.debug('selectable: %s', selectable)
             model = create_view(view_model_name, selectable)
-
             # q = GenericQuery(
             q = ExportQuery(
                 1,
@@ -308,12 +317,12 @@ def test_view():
                 # filters={'filter_n_up_id_nomenclature': 1},
                 limit=10000, offset=0)
             return to_json_resp({
-                'model': random_model.__name__, **q.return_query()})
+                'model': model.__name__, **q.return_query()})
     except Exception as e:
         logger.critical('error: %s', str(e))
-        # raise
+        raise
         return to_json_resp({'error': str(e),
-                             'model': random_model.__name__, }, status=400)
+                             'model': model.__name__}, status=400)
 
 # model: LAreas
 # TypeError(b"\x01\x06\x00\x00 j\x08\x00\x00\x01\x00
