@@ -8,7 +8,6 @@ from flask import (
     request,
     current_app,
     send_from_directory)
-# from flask_cors import CORS, cross_origin
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
@@ -55,7 +54,6 @@ def export_filename(export):
         datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
 
 
-# TODO: UUIDs
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
 @cross_origin(
     supports_credentials=True,
@@ -199,6 +197,33 @@ def create(id_role):
     geometry_field = payload.get('geometry_field'),
     geometry_srid = payload.get('geometry_srid')
 
+    # ERROR_UNKNOWN_FIELD = "unknown field"
+    # ERROR_REQUIRED_FIELD = "required field"
+    # from marshmallow import Schema, fields, ValidationError
+    #
+    # def must_not_be_blank(data):
+    #     if not data:
+    #         raise ValidationError('Data not provided.')
+    #
+    # class ExportSchema(Schema):
+    #     id = fields.Integer(dump_only=True)
+    #     label = fields.String(required=True, validate=[must_not_be_blank])
+    #     view_name = fields.String(required=True, validate=[must_not_be_blank])
+    #     schema_name = fields.String(required=True)
+    #     desc = fields.String(required=False)
+    #     geometry_field = fields.Geometry(required=False),
+    #     geometry_srid = fields.Integer(required=False)
+    #
+    # export_schema = ExportSchema()
+    # exportsSchema = ExportSchema(many=True)
+    # # , only=('label', 'view_name', 'schema_name', 'desc')
+    #
+    # try:
+    #     data, errors = export_schema.load(request.get_json())
+    # except ValidationError as e:
+    #     return jsonify(e.messages), 400
+
+
     if not(label and schema_name and view_name):
         return {
             'error': 'MissingParameter',
@@ -296,16 +321,44 @@ def test_view():
         # selectable = select([column(c) for c in columns]).\
         #     select_from(some_table)
         # selectable = DB.session.query(random_model.__table__).selectable
-        src_model = [m for m in models if m.__name__ == 'BibNoms'][0]
+        # src_model = [m for m in models if m.__name__ == 'BibNoms'][0]
+        src_model = [m for m in models if m.__name__ == 'TaxrefProtectionEspeces'][0]  # noqa: E501
         # selectable = DB.session.query(src_model).selectable
         # selectable = select([src_model])
-        selectable = select([src_model.id_nom, src_model.nom_francais])
-        # .where(src_model.nom_francais=='Cicindela hybrida') => literals ?
+        # .where(src_model.nom_francais=='Cicindela hybrida').compile().params
+        # => literals ?
         # =>join with where clause
+
+        # select model otherwise stuff_view might end up with no pk
+        # selectable = select([src_model.__table__.c.nom_francais_cite])\
+        selectable = select([src_model])\
+            .where(src_model.__table__.c.nom_francais_cite == DB.bindparam('nom'))  # .bindparams(nom='canard siffleur')
+
+        # DB.bindparam('canard', type_=DB.String) + DB.text("'%'")).compile().params)
+
+        # selectable = select([src_model])\
+        #     .where(
+        #         DB.and_(
+        #             src_model.nom_francais_cite.isnot(None),
+        #             src_model.precisions.isnot(None)))
+
+        # .where(src_model.nom_francais_cite.like(
+        #     DB.bindparam('canard', type_=DB.String) + DB.text("'%'")))
+
+        # selectable = select([src_model]).where(
+        #     DB.and_(
+        #         src_model.nom_francais_cite.like('canard%'),
+        #         src_model.precisions.isnot(None)))
+
+        # selectable = DB.session.query(src_model)\
+        #                        .filter(DB.and_(
+        #                            src_model.nom_francais_cite.isnot(None),
+        #                            src_model.precisions.isnot(None))).selectable
 
         if persisted and view_model_name:
             logger.debug('selectable: %s', selectable)
             model = create_view(view_model_name, selectable)
+
             # q = GenericQuery(
             q = ExportQuery(
                 1,
@@ -315,14 +368,14 @@ def test_view():
                 geometry_field=None,
                 filters=filters,
                 # filters={'filter_n_up_id_nomenclature': 1},
-                limit=10000, offset=0)
+                limit=1000, offset=0)
             return to_json_resp({
-                'model': model.__name__, **q.return_query()})
+                'model': src_model.__name__, **q.return_query()})
     except Exception as e:
         logger.critical('error: %s', str(e))
         raise
         return to_json_resp({'error': str(e),
-                             'model': model.__name__}, status=400)
+                             'model': src_model.__name__}, status=400)
 
 # model: LAreas
 # TypeError(b"\x01\x06\x00\x00 j\x08\x00\x00\x01\x00

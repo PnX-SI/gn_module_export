@@ -49,7 +49,7 @@ def View(name, metadata, selectable):
         t.schema = metadata.schema  # otherwise the view lands in 'public'.
     for c in selectable.c:
         c._make_proxy(t)
-
+    # TODO: if no pk in selection, make all attributes pks
     t.foreign_key_constraints = {c for c in t.columns
                                  if isinstance(c, DB.ForeignKeyConstraint)}
     t._extra_dependencies = set()
@@ -62,9 +62,9 @@ def View(name, metadata, selectable):
     return t
 
 
-def mkView(slug_name, metadata, selectable):
+def mkView(slug_name, metadata, selectable, model=DB.Model, *mixins):
     return type(
-        slug_name, (DB.Model,), {
+        slug_name, (model, *mixins), {
             '__table__': View(slug_name, metadata, selectable),
             '__table_args__': {
                 'schema': metadata.schema if getattr(metadata, 'schema', None) else "gn_exports",  # noqa: E501
