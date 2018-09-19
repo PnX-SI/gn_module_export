@@ -15,7 +15,7 @@ from geonature.utils.filemanager import removeDisallowedFilenameChars
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub import routes as fnauth
 
-from .repositories import ExportRepository
+from .repositories import ExportRepository, EmptyDataSetError
 
 
 logger = current_app.logger
@@ -75,8 +75,10 @@ def export(id_export, format, id_role=1):
 
             if format == 'json':
                 return to_json_resp(
-                    data.get('items', None),
-                    as_file=True, filename=fname, indent=4)
+                    data.get('items', []),
+                    as_file=True,
+                    filename=fname,
+                    indent=4)
 
             if format == 'csv':
                 return to_csv_resp(
@@ -106,7 +108,7 @@ def export(id_export, format, id_role=1):
                         ShapeService.point_feature = True
 
                     elif (isinstance(geom, Polygon)
-                          or isinstance(geom, MultiPolygon)):  # noqa: W503
+                          or isinstance(geom, MultiPolygon)):  # noqa: E123 W503
                         ShapeService.polygone_shape.write(props)
                         ShapeService.polygon_feature = True
 
@@ -125,9 +127,13 @@ def export(id_export, format, id_role=1):
     except InsufficientRightsError:
         return to_json_resp(
             {'api_error': 'InsufficientRightsError'}, status=403)
+    except EmptyDataSetError as e:
+        return to_json_resp(
+            {'api_error': 'EmptyDataSetError',
+             'message': str(e)}, status=404)
     except Exception as e:
         logger.critical('%s', e)
-        raise
+        # raise
         return to_json_resp({'api_error': 'LoggedError'}, status=400)
 
 

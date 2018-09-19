@@ -64,7 +64,7 @@ export class ExportListComponent {
   public buttonDisabled: boolean = false
   public downloading: boolean = false
   public closeResult: string
-  private _id_export: number
+  private _export: Export
 
   @ViewChild('content') FormatSelector: ElementRef
   @ViewChild('contentApi') DatasetComposer: ElementRef
@@ -120,28 +120,28 @@ export class ExportListComponent {
     this.buttonDisabled = !this.buttonDisabled
   }
 
-  selectFormat(id_export?: number) {
-    if (id_export) {
-      this._id_export = id_export
-      // TODO: populate FormatSelector from column feature types
-      this.open(this.FormatSelector)
-    }
+  selectFormat(id_export: number) {
+    this._getOne(id_export)
+    this.open(this.FormatSelector)
   }
 
-  download() {
-    if (this.modalForm.valid && this._id_export) {
-      this.downloading = !this.downloading
-      const extension = this.formatSelection.value
-      this.exports$.switchMap(
-        (exports: Export[]) => exports.filter(
-          (x: Export) => (x.id == this._id_export))
-        ).take(1).subscribe(
-        x => this._exportService.downloadExport(x, extension),
+  _getOne(id_export: number) {
+    this.exports$.switchMap(
+      (exports: Export[]) => exports.filter(
+        (x: Export) => (x.id == id_export))
+      ).take(1).subscribe(
+        x => this._export = x,
         e => {
           console.error(e.error)
           this.toastr.error(e.message, e.name, {timeOut: 0})
         }
       )
+  }
+
+  download() {
+    if (this.modalForm.valid && this._export.id) {
+      this.downloading = !this.downloading
+      this._exportService.downloadExport(this._export, this.formatSelection.value)
     }
   }
 }

@@ -27,8 +27,8 @@ export interface Export {
 }
 
 export interface ApiErrorResponse extends HttpErrorResponse {
-   api_error: {
-      error?: string
+   api_error?: {
+      error: string
       message?: string
       // links?: { about: string }
     }
@@ -42,8 +42,8 @@ const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`
 export const FormatMapMime = new Map([
   ['csv', 'text/csv'],
   ['json', 'application/json'],
-  ['rdf', 'application/rdf+xml'],
-  ['shp', 'application/zip']
+  ['shp', 'application/zip'],
+  ['rdf', 'application/rdf+xml']
 ])
 
 @Injectable()
@@ -61,15 +61,12 @@ export class ExportService {
     this._api.get(`${apiEndpoint}/`).subscribe(
       (exports: Export[]) => this.exports.next(exports),
       (e: ApiErrorResponse) => {
-        console.error('api error:', e.api_error)
         this.toastr.error(
           e.api_error.message,
           'API Error:' + e.api_error.error, {
             timeOut: 0
           })
-        console.error('error.name:', e.name)
-        console.error('error.message:', e.message)
-        console.error('error.status:', e.status)
+        console.error('api error:', e.api_error)
       },
       () => {
         console.info(`export service: ${this.exports.value.length} exports`)
@@ -78,8 +75,8 @@ export class ExportService {
     )
   }
 
-  downloadExport(xport: Export, format: string) {
-    let downloadExportURL = `${apiEndpoint}/${xport.id}/${format}`
+  downloadExport(x: Export, format: string) {
+    let downloadExportURL = `${apiEndpoint}/${x.id}/${format}`
     let fileName = undefined
 
     let source = this._api.get(downloadExportURL, {
@@ -102,9 +99,10 @@ export class ExportService {
             break
 
           case(HttpEventType.ResponseHeader):
-            const disp = event.headers.get('Content-Disposition')
-            const fileNameMatch = disp ? /filename="?([^"]*)"?;?/g.exec(disp) : undefined;
-            fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            const disposition = event.headers.get('Content-Disposition')
+            const match = disposition ? /filename="?([^"]*)"?;?/g.exec(disposition) : undefined;
+            fileName = match && match.length > 1 ? match[1] : undefined;
+            console.debug(event.headers)
             break
 
           case(HttpEventType.Response):
@@ -113,8 +111,12 @@ export class ExportService {
         }
     },
     (e: ApiErrorResponse) => {
-      this.toastr.error(e.api_error.message, e.api_error.error, {timeOut: 0})
-      console.error('api error:', e.api_error)
+      this.toastr.error(
+        (e.api_error)
+          ? [...e.api_error.message, e.api_error.error]
+          : [...e.message, e.error],
+        {timeOut: 0})
+      console.error('api error:', e)
     },
     () => {
       this.saveBlob(this._blob, fileName)

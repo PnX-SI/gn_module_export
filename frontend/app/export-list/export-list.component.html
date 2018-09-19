@@ -390,7 +390,7 @@
                                 (change)="downloading=false">
                                 <option value="csv">CSV</option>
                                 <option value="json">JSON</option>
-                                <option value="shp">SHP</option>
+                                <option value="shp" [disabled]="!_export.geometry_field">SHP</option>
                                 <option value="rdf" [disabled]="true">RDF</option>
                         </select>
                         <!-- Affichage d'une barre de progression lors du téléchargement du fichier -->

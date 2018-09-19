@@ -15,6 +15,15 @@ logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
 
+class Error(Exception):
+    pass
+
+
+class EmptyDataSetError(Error):
+    def __init__(self, message=None):
+        self.message = message
+
+
 class ExportRepository(object):
     def __init__(self, session=DB.session):
         self.session = session
@@ -53,6 +62,7 @@ class ExportRepository(object):
                     export.geometry_field
                     if (hasattr(export, 'geometry_field') and format != 'csv')
                     else None)
+
                 columns, data = self._get_data(
                     id_role,
                     export.view_name,
@@ -61,25 +71,33 @@ class ExportRepository(object):
                     filters=filters,
                     limit=limit,
                     paging=paging)
+
+                if (not data.get('items', None) or len(data.get('items')) == 0):  # noqa: E501
+                    raise EmptyDataSetError(
+                        'Empty dataset for export id {}.'.format(id_export))
             else:
                 return export.as_dict()
 
-        except (InsufficientRightsError, NoResultFound) as e:
-            logger.warn('%s', str(e))
+        except (
+                InsufficientRightsError,
+                NoResultFound,
+                EmptyDataSetError) as e:
+            logger.warn('repository.get_by_id(): %s', str(e))
             raise
         except Exception as e:
             logger.critical('exception: %s', e)
             raise
         else:
-            log = str(columns)
+            # log = str(columns)
             status = 0
             result = (export.as_dict(), columns, data)
         finally:
             end_time = datetime.utcnow()
             e = sys.exc_info()
             if any(e):
-                if isinstance(e, InsufficientRightsError):
-                    raise e
+                if (isinstance(e, InsufficientRightsError)
+                    or isinstance(e, EmptyDataSetError)):  # noqa: E129 W503
+                    raise
                 elif isinstance(e, NoResultFound):
                     raise NoResultFound(
                         'Unknown export id {}.'.format(id_export))
@@ -97,8 +115,8 @@ class ExportRepository(object):
                 'log': log})
 
             if status == -1 and any(e):
-                logger.critical('unmanaged export error: %s', e)
-                raise e
+                logger.critical('export error: %s', e)
+                raise
             else:
                 return result
 
