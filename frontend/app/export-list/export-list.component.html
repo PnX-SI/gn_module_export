@@ -53,6 +53,12 @@
 
                 </div>
 
+                <div id="collect">
+                  <a href="external_assets/exports/licence.pdf" download="licence.pdf" type="application/octet-stream">
+                    <input type="button" class="btn btn-outline-secondary btn-sm pull-right" value="Lire la licence">
+                  </a>
+                </div>
+                <button type="submit" class="btn btn-outline-secondary btn-sm pull-left" (click)="open(collections)">Collections</button>
                 <div id="readlicence">
                   <a href="external_assets/exports/licence.pdf" download="licence.pdf" type="application/octet-stream">
                     <input type="button" class="btn btn-outline-secondary btn-sm pull-right" value="Lire la licence">
@@ -60,6 +66,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal exportable collections -->
+        <ng-template #collections let-c="close" let-d="dismiss">
+          <!-- <form [formGroup]="collectionForm" class="modal-content"> -->
+            <div class="modal-header">
+                <h4 class="modal-title" style="text-indent: 25px;"> - Collections - </h4>
+            </div>
+            <div class="modal-body">
+              <collections></collections>
+            </div>
+        <!-- </form> -->
+        </ng-template>
 
         <!-- Modal Choix API - Interface graphique -->
         <ng-template #contentApi let-c="close" let-d="dismiss">

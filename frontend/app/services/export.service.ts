@@ -62,15 +62,34 @@ export class ExportService {
       (exports: Export[]) => this.exports.next(exports),
       (e: ApiErrorResponse) => {
         this.toastr.error(
-          e.api_error.message,
-          'API Error:' + e.api_error.error, {
-            timeOut: 0
-          })
+          (e.api_error) ? e.api_error.message : e.message,
+          (e.api_error) ? e.api_error.error : e.name,
+          {timeOut: 0})
         console.error('api error:', e.api_error)
       },
       () => {
         console.info(`export service: ${this.exports.value.length} exports`)
         console.debug('exports:',  this.exports.value)
+      }
+    )
+  }
+
+  getCollections() {
+    let selectables = undefined
+    this._api.get(`${apiEndpoint}/Collections`).subscribe(
+      (collections: any[]) => {
+        selectables = collections
+      },
+      (e: ApiErrorResponse) => {
+        this.toastr.error(
+          (e.api_error) ? e.api_error.message : e.message,
+          (e.api_error) ? e.api_error.error : e.name,
+          {timeOut: 0})
+        console.error('api error:', e.api_error)
+      },
+      () => {
+        console.debug('collections:',  selectables)
+        return selectables
       }
     )
   }
@@ -102,7 +121,6 @@ export class ExportService {
             const disposition = event.headers.get('Content-Disposition')
             const match = disposition ? /filename="?([^"]*)"?;?/g.exec(disposition) : undefined;
             fileName = match && match.length > 1 ? match[1] : undefined;
-            console.debug(event.headers)
             break
 
           case(HttpEventType.Response):
@@ -112,9 +130,8 @@ export class ExportService {
     },
     (e: ApiErrorResponse) => {
       this.toastr.error(
-        (e.api_error)
-          ? [...e.api_error.message, e.api_error.error]
-          : [...e.message, e.error],
+        (e.api_error) ? e.api_error.message : e.api_error.error,
+        (e.api_error) ? e.message : e.name,
         {timeOut: 0})
       console.error('api error:', e)
     },

@@ -25,6 +25,10 @@ import { ToastrService } from 'ngx-toastr'
 import { CommonService } from "@geonature_common/service/common.service"
 // import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component"
 // import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service"
+import {
+  // ITreeOptions,
+  TreeNode
+} from 'angular-tree-component'
 import { Export, ExportService } from "../services/export.service"
 
 @Component({
@@ -53,6 +57,64 @@ export class NgPBar {
 }
 
 @Component({
+  selector: 'collections',
+  template: '<tree-root [nodes]="nodes" [options]="options"></tree-root>'
+})
+export class SelectableCollections {
+  // options: ITreeOptions = {
+  //   getChildren: this.getChildren.bind(this)
+  // }
+  options = {}
+  nodes: any[] = []
+  asyncChildren = [
+    {
+      name: 'child1',
+      hasChildren: true
+    }, {
+      name: 'child2'
+    }
+  ];
+
+  constructor(private _exportService: ExportService) {
+    this.nodes = [
+      {
+        id: 1,
+        name: 'root1',
+        children: [
+          { id: 2, name: 'child1' },
+          { id: 3, name: 'child2' }
+        ]
+      },
+      {
+        id: 4,
+        name: 'root2',
+        children: [
+          { id: 5, name: 'child2.1' },
+          {
+            id: 6,
+            name: 'child2.2',
+            children: [
+              { id: 7, name: 'subsub' }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+
+  // getChildren(node: any) {
+  //   // const newNodes = this._exportService.getCollections()
+  //   const newNodes = this.asyncChildren.map((c) => Object.assign({}, c));
+  //
+  //   return new Promise((resolve, reject) => {
+  //     setTimeout(() => resolve(newNodes), 1000);
+  //   });
+  // }
+
+}
+
+
+@Component({
   selector: "pnx-export-list",
   templateUrl: "export-list.component.html",
   styleUrls: ["./export-list.component.scss"],
@@ -66,6 +128,7 @@ export class ExportListComponent {
   public closeResult: string
   private _export: Export
 
+  @ViewChild('collections') ExportComposer: ElementRef
   @ViewChild('content') FormatSelector: ElementRef
   @ViewChild('contentApi') DatasetComposer: ElementRef
 
@@ -126,10 +189,12 @@ export class ExportListComponent {
   }
 
   _getOne(id_export: number) {
-    this.exports$.switchMap(
-      (exports: Export[]) => exports.filter(
-        (x: Export) => (x.id == id_export))
-      ).take(1).subscribe(
+    this.exports$
+      .switchMap(
+        (exports: Export[]) => exports.filter(
+          (x: Export) => (x.id == id_export)))
+      .take(1)
+      .subscribe(
         x => this._export = x,
         e => {
           console.error(e.error)
