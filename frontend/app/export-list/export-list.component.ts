@@ -26,8 +26,10 @@ import { CommonService } from "@geonature_common/service/common.service"
 // import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component"
 // import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service"
 import {
-//   // ITreeOptions,
-  TreeNode
+  TreeComponent,
+  TreeModel,
+  TreeNode,
+  ITreeOption
 } from 'angular-tree-component'
 import { Export, ExportService } from "../services/export.service"
 
@@ -68,7 +70,8 @@ export class CollectionsComponent {
   // }
   options = {
     // useCheckbox: true,
-    // useTriState: true
+    // useTriState: true,
+    // useVirtualScroll: true
   }
   nodes: any[] = []
 
@@ -120,7 +123,7 @@ export class ExportListComponent {
   public closeResult: string
   private _export: Export
 
-  @ViewChild('entitySelection') ExportComposer: ElementRef
+  @ViewChild('collectionTree') collectionTree: TreeComponent
   @ViewChild('content') FormatSelector: ElementRef
   @ViewChild('contentApi') DatasetComposer: ElementRef
 

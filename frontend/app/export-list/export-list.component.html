@@ -72,18 +72,16 @@
 
         <!-- Modal exportable collections -->
         <ng-template #entitySelection let-c="close" let-d="dismiss">
-          <form [formGroup]="collectionForm" class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" style="text-indent: 25px;"> - Collections - </h4>
-            </div>
-            <div class="modal-body">
-              <selectable-collections></selectable-collections>
-              <div class="modal-footer" id="choicePopup">
-                      <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close collections')">Fermer</button>
-                      <button id="widthButton" type="submit" class="btn btn-success">OK</button>
-              </div>
-            </div>
-        </form>
+          <div class="modal-header">
+            <h4 class="modal-title" style="text-indent: 25px;"> - Collections - </h4>
+          </div>
+          <div class="modal-body">
+            <selectable-collections></selectable-collections>
+          </div>
+          <div class="modal-footer" id="choicePopup">
+            <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close collections')">Fermer</button>
+            <button id="widthButton" type="submit" class="btn btn-success">OK</button>
+          </div>
         </ng-template>
 
         <!-- Modal Choix API - Interface graphique -->
