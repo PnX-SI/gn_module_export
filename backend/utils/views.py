@@ -62,15 +62,16 @@ def View(name, metadata, selectable):
     return t
 
 
-def mkView(slug_name, metadata, selectable, model=DB.Model, *mixins):
+def mkView(name, metadata, selectable, base=DB.Model, *mixins):
+    slug_name = slugify(name)
     return type(
-        slug_name, (model, *mixins), {
+        slug_name, (base, *mixins), {
             '__table__': View(slug_name, metadata, selectable),
             '__table_args__': {
-                'schema': metadata.schema if getattr(metadata, 'schema', None) else "gn_exports",  # noqa: E501
+                'schema': metadata.schema if hasattr(metadata, 'schema') else "gn_exports",  # noqa: E501
                 'extend_existing': True,
                 'autoload': True,
-                'autoload_with': metadata.bind if getattr(metadata, 'bind', None) else DB.engine  # noqa: E501
+                'autoload_with': metadata.bind if hasattr(metadata, 'bind') else DB.engine  # noqa: E501
                 }  # noqa: E133
             })
 

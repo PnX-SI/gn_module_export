@@ -71,7 +71,7 @@ def export(id_export, format, id_role=1):
             id_role, id_export, with_data=True, format=format)
         if export:
             fname = export_filename(export)
-            geometry = export.get('geometry_field')
+            has_geometry = export.get('geometry_field', None)
 
             if format == 'json':
                 return to_json_resp(
@@ -87,7 +87,7 @@ def export(id_export, format, id_role=1):
                     [c.name for c in columns],
                     separator=',')
 
-            if (format == 'shp' and geometry):
+            if (format == 'shp' and has_geometry):
                 from geojson.geometry import Point, Polygon, MultiPolygon
                 from geonature.utils.utilsgeometry import FionaShapeService as ShapeService  # noqa: E501
                 from geonature.utils import filemanager
@@ -120,6 +120,9 @@ def export(id_export, format, id_role=1):
 
                 return send_from_directory(
                     SHAPEFILES_DIR, fname + '.zip', as_attachment=True)
+            else:
+                return to_json_resp(
+                    {'api_error': 'NonTransformableError'}, status=404)
 
     except NoResultFound as e:
         return to_json_resp({'api_error': 'NoResultFound',
@@ -137,7 +140,7 @@ def export(id_export, format, id_role=1):
         return to_json_resp({'api_error': 'LoggedError'}, status=400)
 
 
-@blueprint.route('/<int:id_export>', methods=['POST', 'PUT'])
+@blueprint.route('/<int:id_export>', methods=['POST'])
 @fnauth.check_auth(1, True)
 @json_resp
 def update(id_export, id_role):
@@ -191,7 +194,7 @@ def delete_export(id_export, id_role):
         return {'result': 'success'}, 204
 
 
-@blueprint.route('/', methods=['POST', 'PUT'])
+@blueprint.route('/', methods=['POST'])
 @fnauth.check_auth(1, True)
 @json_resp
 def create(id_role):
@@ -229,7 +232,6 @@ def create(id_role):
     # except ValidationError as e:
     #     return jsonify(e.messages), 400
 
-
     if not(label and schema_name and view_name):
         return {
             'error': 'MissingParameter',
@@ -257,9 +259,9 @@ def create(id_role):
 
 
 @blueprint.route('/', methods=['GET'])
-@fnauth.check_auth(2, True)
+# @fnauth.check_auth(2, True)
 @json_resp
-def getExports(id_role):
+def getExports(id_role=1):
     repo = ExportRepository()
     try:
         exports = repo.list()
@@ -281,18 +283,12 @@ def getCollections():
     return repo.getCollections()
 
 
-@blueprint.route('/testerror')
-def test_error():
-    return to_json_resp(
-        {'api_error': 'SomeApiError'}, status=500)
-
-
 @blueprint.route('/testview')
 def test_view():
     from sqlalchemy.sql import Selectable as Selectable
-    from sqlalchemy.sql.expression import select
+    # from sqlalchemy.sql.expression import select
     from geonature.utils.env import DB
-    from .utils.views import mkView, slugify
+    from .utils.views import mkView
     from .utils.query import ExportQuery
     # from geonature.utils.utilssqlalchemy import GenericQuery
 
@@ -306,9 +302,7 @@ def test_view():
 
     metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
 
-    def create_view(
-            view_name: str, selectable: Selectable) -> DB.Model:
-        name = slugify(view_name)
+    def create_view(name: str, selectable: Selectable) -> DB.Model:
         model = mkView(name, metadata, selectable)
         metadata.create_all()
         return model
@@ -337,8 +331,9 @@ def test_view():
 
         # select model otherwise stuff_view might end up with no pk
         # selectable = select([src_model.__table__.c.nom_francais_cite])\
-        selectable = select([src_model])\
-            .where(src_model.__table__.c.nom_francais_cite == DB.bindparam('nom'))  # .bindparams(nom='canard siffleur')
+        # selectable = select([src_model])\
+        #     .where(src_model.__table__.c.nom_francais_cite == DB.bindparam('nom'))
+        # .bindparams(nom='canard siffleur')
 
         # DB.bindparam('canard', type_=DB.String) + DB.text("'%'")).compile().params)
 
@@ -356,10 +351,12 @@ def test_view():
         #         src_model.nom_francais_cite.like('canard%'),
         #         src_model.precisions.isnot(None)))
 
-        # selectable = DB.session.query(src_model)\
-        #                        .filter(DB.and_(
-        #                            src_model.nom_francais_cite.isnot(None),
-        #                            src_model.precisions.isnot(None))).selectable
+        # # try labels
+        selectable = DB.session\
+                       .query(src_model)\
+                       .filter(DB.and_(
+                           src_model.nom_francais_cite.isnot(None),
+                           src_model.precisions.isnot(None))).selectable
 
         if persisted and view_model_name:
             logger.debug('selectable: %s', selectable)
@@ -387,5 +384,3 @@ def test_view():
 # TypeError(b"\x01\x06\x00\x00 j\x08\x00\x00\x01\x00
 # [...]
 # \x01\x03\x00\x00\x00|\xbf+A\x00\x00\x00@MBZA" is not JSON serializable
-# model: DefaultsNomenclaturesValue
-# ERREUR:  la colonne defaults_nomenclatures_value.id_type n'existe pas

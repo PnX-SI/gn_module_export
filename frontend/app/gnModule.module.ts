@@ -8,7 +8,6 @@ import {
 } from '@angular/common/http'
 import { GN2CommonModule } from '@geonature_common/GN2Common.module'
 import { TranslateHttpLoader } from '@ngx-translate/http-loader'
-import { TreeModule } from 'angular-tree-component'
 import {
   ExportListComponent,
   NgPBar,
@@ -22,7 +21,6 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    TreeModule,
     HttpClientXsrfModule.withOptions({
       cookieName: 'token',
       headerName: 'token'
@@ -33,8 +31,7 @@ const routes: Routes = [
   ],
   declarations: [
     ExportListComponent,
-    NgPBar,
-    CollectionsComponent
+    NgPBar
   ],
   providers: [
     ExportService,
@@ -42,6 +39,4 @@ const routes: Routes = [
   bootstrap: []
 })
 
-export class GeonatureModule {
-
-}
+export class GeonatureModule { }

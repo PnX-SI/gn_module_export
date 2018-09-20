@@ -25,12 +25,12 @@ import { ToastrService } from 'ngx-toastr'
 import { CommonService } from "@geonature_common/service/common.service"
 // import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component"
 // import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service"
-import {
-  TreeComponent,
-  TreeModel,
-  TreeNode,
-  ITreeOption
-} from 'angular-tree-component'
+// import {
+//   TreeComponent,
+//   TreeModel,
+//   TreeNode,
+//   ITreeOption
+// } from 'angular-tree-component'
 import { Export, ExportService } from "../services/export.service"
 
 @Component({
@@ -59,55 +59,12 @@ export class NgPBar {
 }
 
 @Component({
-  selector: 'selectable-collections',
-  template: `<tree-root #collectionTree [nodes]="nodes" [options]="options"></tree-root>`
+  selector: 'select-collections',
+  template: `re engineering ...`
 })
 export class CollectionsComponent {
-  // options: ITreeOptions = {
-  //   useCheckbox: true,
-  //   useTriState: true,
-  //   // getChildren: this.getChildren.bind(this)
-  // }
-  options = {
-    // useCheckbox: true,
-    // useTriState: true,
-    // useVirtualScroll: true
-  }
-  nodes: any[] = []
-
-  constructor(private _exportService: ExportService) {
-    this.nodes = [
-      {
-        id: 1,
-        name: 'root1',
-        children: [
-          { id: 2, name: 'child1' },
-          { id: 3, name: 'child2' }
-        ]
-      },
-      {
-        id: 4,
-        name: 'root2',
-        children: [
-          { id: 5, name: 'child2.1' },
-          {
-            id: 6,
-            name: 'child2.2',
-            children: [
-              { id: 7, name: 'subsub' }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-
-  // getChildren(node: any) {
-  //   const c = this._exportService.getCollections()
-  //   console.debug('collections:', c)
-  // }
+  constructor(private _exportService: ExportService) { }
 }
-
 
 @Component({
   selector: "pnx-export-list",
@@ -123,7 +80,7 @@ export class ExportListComponent {
   public closeResult: string
   private _export: Export
 
-  @ViewChild('collectionTree') collectionTree: TreeComponent
+  // @ViewChild('collections') collections: ElementRef
   @ViewChild('content') FormatSelector: ElementRef
   @ViewChild('contentApi') DatasetComposer: ElementRef
 

@@ -27,14 +27,14 @@ export interface Export {
 }
 
 export interface ApiErrorResponse extends HttpErrorResponse {
-   api_error?: {
-      error: string
-      message?: string
-      // links?: { about: string }
-    }
-    name: string
-    message: string
-    status: number
+  name: string
+  message: string
+  error: any | null
+  status: number
+  ok: false
+  statusText: string
+  url: string | null
+  type: HttpEventType.Response | HttpEventType.ResponseHeader
 }
 
 const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`
@@ -60,12 +60,12 @@ export class ExportService {
   getExports() {
     this._api.get(`${apiEndpoint}/`).subscribe(
       (exports: Export[]) => this.exports.next(exports),
-      (e: ApiErrorResponse) => {
+      (response: ApiErrorResponse) => {
         this.toastr.error(
-          (e.api_error) ? e.api_error.message : e.message,
-          (e.api_error) ? e.api_error.error : e.name,
+          (response.error.message) ? response.error.message : response.message,
+          (response.error.api_error) ? response.error.api_error : response.name,
           {timeOut: 0})
-        console.error('api error:', e.api_error)
+        console.error('api error:', response)
       },
       () => {
         console.info(`export service: ${this.exports.value.length} exports`)
@@ -81,12 +81,12 @@ export class ExportService {
         selectables.push(collections)
         console.debug('collections:',  selectables)
       },
-      (e: ApiErrorResponse) => {
+      (response: ApiErrorResponse) => {
         this.toastr.error(
-          (e.api_error) ? e.api_error.message : e.message,
-          (e.api_error) ? e.api_error.error : e.name,
+          (response.error.message) ? response.error.message : response.message,
+          (response.error.api_error) ? response.error.api_error : response.name,
           {timeOut: 0})
-        console.error('api error:', e.api_error)
+        console.error('api error:', response)
       },
       () => {
         console.debug('collections:',  selectables)
@@ -119,9 +119,11 @@ export class ExportService {
             break
 
           case(HttpEventType.ResponseHeader):
-            const disposition = event.headers.get('Content-Disposition')
-            const match = disposition ? /filename="?([^"]*)"?;?/g.exec(disposition) : undefined;
-            fileName = match && match.length > 1 ? match[1] : undefined;
+            if (event.ok) {
+              const disposition = event.headers.get('Content-Disposition')
+              const match = disposition ? /filename="?([^"]*)"?;?/g.exec(disposition) : undefined;
+              fileName = match && match.length > 1 ? match[1] : undefined;
+            }
             break
 
           case(HttpEventType.Response):
@@ -129,12 +131,12 @@ export class ExportService {
             break
         }
     },
-    (e: ApiErrorResponse) => {
+    (response: ApiErrorResponse) => {
       this.toastr.error(
-        (e.api_error) ? e.api_error.message : e.api_error.error,
-        (e.api_error) ? e.message : e.name,
+        (response.error.message) ? response.error.message : response.message,
+        (response.error.api_error) ? response.error.api_error : response.name,
         {timeOut: 0})
-      console.error('api error:', e)
+      console.error('api error:', response)
     },
     () => {
       this.saveBlob(this._blob, fileName)
