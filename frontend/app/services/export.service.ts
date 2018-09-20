@@ -26,16 +26,7 @@ export interface Export {
   geometry_srid: number
 }
 
-export interface ApiErrorResponse extends HttpErrorResponse {
-  name: string
-  message: string
-  error: any | null
-  status: number
-  ok: false
-  statusText: string
-  url: string | null
-  type: HttpEventType.Response | HttpEventType.ResponseHeader
-}
+export interface ApiErrorResponse extends HttpErrorResponse { }
 
 const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`
 
