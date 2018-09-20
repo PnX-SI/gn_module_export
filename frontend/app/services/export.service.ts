@@ -27,14 +27,9 @@ export interface Export {
 }
 
 export interface ApiErrorResponse extends HttpErrorResponse {
-  name: string
-  message: string
   error: any | null
-  status: number
-  ok: false
-  statusText: string
-  url: string | null
-  type: HttpEventType.Response | HttpEventType.ResponseHeader
+  message: string
+  name: string
 }
 
 const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`
