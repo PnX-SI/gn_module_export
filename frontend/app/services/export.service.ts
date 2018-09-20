@@ -75,10 +75,11 @@ export class ExportService {
   }
 
   getCollections() {
-    let selectables = undefined
-    this._api.get(`${apiEndpoint}/Collections`).subscribe(
+    let selectables = []
+    this._api.get(`${apiEndpoint}/Collections/`).subscribe(
       (collections: any[]) => {
-        selectables = collections
+        selectables.push(collections)
+        console.debug('collections:',  selectables)
       },
       (e: ApiErrorResponse) => {
         this.toastr.error(
@@ -89,9 +90,9 @@ export class ExportService {
       },
       () => {
         console.debug('collections:',  selectables)
-        return selectables
       }
     )
+    return selectables
   }
 
   downloadExport(x: Export, format: string) {

@@ -12,7 +12,7 @@ import { TreeModule } from 'angular-tree-component'
 import {
   ExportListComponent,
   NgPBar,
-  Collections
+  CollectionsComponent
 } from './export-list/export-list.component'
 import { ExportService } from './services/export.service'
 
@@ -22,19 +22,19 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
+    TreeModule,
     HttpClientXsrfModule.withOptions({
       cookieName: 'token',
       headerName: 'token'
     }),
     CommonModule,
     GN2CommonModule,
-    RouterModule.forChild(routes),
-    TreeModule
+    RouterModule.forChild(routes)
   ],
   declarations: [
     ExportListComponent,
     NgPBar,
-    Collections
+    CollectionsComponent
   ],
   providers: [
     ExportService,
