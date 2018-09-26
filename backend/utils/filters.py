@@ -74,7 +74,7 @@ class Filter():
                 return query.filter(filter)
 
     @staticmethod
-    def process(context, field): # -> DB.Column[field]
+    def process(context, field):  # -> DB.Column[field]
         # type_coerce() ?
         def dt_cast(column):
             if (isinstance(column, (
