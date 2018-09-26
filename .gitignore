@@ -18,4 +18,6 @@ tmp_*
 .ipynb_checkpoints
 .flake8
 .pylintrc
-backlog*
+
+# generated with geonature install_gn_module
+conf_gn_module.toml
