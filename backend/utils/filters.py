@@ -33,7 +33,7 @@ def model_by_ns(ns):
         # TODO: resolve relation
         name = ns[-1]
     else:
-        raise Exception(
+        raise TypeError(
             'model_by_ns(): unexpected param type: "{}" "{}".'.format(
                 type(ns), ns))
 
@@ -42,7 +42,7 @@ def model_by_ns(ns):
             return m
 
     if logger.level == logging.DEBUG:
-        raise Exception(
+        raise ValueError(
             'model_by_ns(): could not find model "{}".'.format(ns))
 
 
