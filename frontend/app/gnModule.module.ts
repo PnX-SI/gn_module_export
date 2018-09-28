@@ -14,6 +14,8 @@ import {
   CollectionsComponent
 } from './export-list/export-list.component'
 import { ExportService } from './services/export.service'
+import { Constants } from './const'
+
 
 const routes: Routes = [
   { path: '', component: ExportListComponent }
@@ -35,6 +37,7 @@ const routes: Routes = [
   ],
   providers: [
     ExportService,
+    Constants
   ],
   bootstrap: []
 })

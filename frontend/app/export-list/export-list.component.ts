@@ -25,13 +25,10 @@ import { ToastrService } from 'ngx-toastr'
 import { CommonService } from "@geonature_common/service/common.service"
 // import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component"
 // import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service"
-// import {
-//   TreeComponent,
-//   TreeModel,
-//   TreeNode,
-//   ITreeOption
-// } from 'angular-tree-component'
+
+import { Constants } from '../const'
 import { Export, ExportService } from "../services/export.service"
+
 
 @Component({
   selector: 'ng-pbar',
@@ -96,7 +93,6 @@ export class ExportListComponent {
   ) {}
 
   ngOnInit() {
-
     this.modalForm = this._fb.group({
       formatSelection:['', Validators.required],
     })

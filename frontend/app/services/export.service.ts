@@ -11,10 +11,9 @@ import { Observable } from 'rxjs/Observable'
 import { BehaviorSubject } from 'rxjs/BehaviorSubject'
 import { filter } from 'rxjs/operator/filter'
 import { map } from 'rxjs/operator/map'
-
 import { ToastrService } from 'ngx-toastr'
-import { AppConfig } from '@geonature_config/app.config'
 
+import { Constants } from '../const'
 
 export interface Export {
   id: number
@@ -32,7 +31,6 @@ export interface ApiErrorResponse extends HttpErrorResponse {
   name: string
 }
 
-const apiEndpoint=`${AppConfig.API_ENDPOINT}/exports`
 
 export const FormatMapMime = new Map([
   ['csv', 'text/csv'],
@@ -53,7 +51,7 @@ export class ExportService {
   }
 
   getExports() {
-    this._api.get(`${apiEndpoint}/`).subscribe(
+    this._api.get(`${Constants.API_ENDPOINT}/`).subscribe(
       (exports: Export[]) => this.exports.next(exports),
       (response: ApiErrorResponse) => {
         this.toastr.error(
@@ -71,7 +69,7 @@ export class ExportService {
 
   getCollections() {
     let selectables = []
-    this._api.get(`${apiEndpoint}/Collections/`).subscribe(
+    this._api.get(`${Constants.API_ENDPOINT}/Collections/`).subscribe(
       (collections: any[]) => {
         selectables.push(collections)
         console.debug('collections:',  selectables)
@@ -91,7 +89,7 @@ export class ExportService {
   }
 
   downloadExport(x: Export, format: string) {
-    let downloadExportURL = `${apiEndpoint}/${x.id}/${format}`
+    let downloadExportURL = `${Constants.API_ENDPOINT}/${x.id}/${format}`
     let fileName = undefined
 
     let source = this._api.get(downloadExportURL, {
@@ -142,7 +140,7 @@ export class ExportService {
   saveBlob(blob, filename) {
     let link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.setAttribute('visibility','hidden')
+    link.setAttribute('visibility', 'hidden')
     link.download = filename
     link.onload = function() { URL.revokeObjectURL(link.href) }
     document.body.appendChild(link)
