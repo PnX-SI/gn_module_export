@@ -177,20 +177,50 @@ class ExportRepository(object):
     def getCollections(self):
         from sqlalchemy.engine import reflection
 
-        DODGED_SCHEMAS = ['information_schema', 'public']
+        IGNORE_SCHEMAS = ['information_schema', 'public']
         inspection = reflection.Inspector.from_engine(DB.engine)
         schemas = {}
-        schema_names = [schema for schema in inspection.get_schema_names()
-                        if schema not in DODGED_SCHEMAS]
+        schema_names = [
+            schema
+            for schema in inspection.get_schema_names()
+            if schema not in IGNORE_SCHEMAS
+        ]
         for schema in schema_names:
             tables = {}
             mapped_tables = inspection.get_table_names(schema=schema)
             for table in mapped_tables:
                 columns = {}
                 mapped_columns = inspection.get_columns(table, schema=schema)
+                fks = inspection.get_foreign_keys(table, schema)
+                fk_constraints = {
+                    k: fk
+                    for fk in fks for k in fk['constrained_columns']
+                }
+                pk_constraints = inspection.get_primary_keys(
+                    table, schema=schema)
+
                 for c in mapped_columns:
                     c['type'] = str(c['type'])
+
+                    if c['name'] in fk_constraints.keys():
+                        c['fk_constraints'] = {
+                            'referred_schema': fk_constraints[c['name']]['referred_schema'],  # noqa: E501
+                            'referred_table': fk_constraints[c['name']]['referred_table'],  # noqa: E501
+                            'referred_columns': fk_constraints[c['name']]['referred_columns']  # noqa: E501
+                        }
+
+                    if c['name'] in pk_constraints:
+                        c['is_primary_key'] = True
+
                     columns.update({c['name']: c})
                 tables.update({table: columns})
             schemas.update({schema: tables})
-        return schemas
+        return [
+            {
+                'name': s,
+                'tables': [
+                    {
+                        'name': t,
+                        'fields': schemas[s][t]
+                    } for t in schemas[s]]
+            } for s in schemas]
