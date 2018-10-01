@@ -232,15 +232,16 @@ class ExportRepository(object):
                 if (hasattr(m, '__name__')
                     and hasattr(m, '__tablename__')
                     and m.__tablename__ == tablename
-                    and m.__table_args__['schema'] == schema):
+                    and m.__table__.schema == schema):  # noqa: E129
                     return m.__name__
+            return ''
 
         return [{
                 'name': s,
                 'tables': [
                     {
                         'name': t,
-                        'fields': schemas[s][t],
-                        'model': modelname_from_tablename(s, t) or ''
+                        'fields': [f for f in schemas[s][t]],
+                        'model': modelname_from_tablename(s, t)
                     } for t in schemas[s]]
                 } for s in schemas]
