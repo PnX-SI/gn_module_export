@@ -51,12 +51,16 @@
         </div>
 
         <div id="readlicence">
-          <!-- <div id="choiceAdmin">
-            <button id="AccueilButtonAdmin"
+          <div id="choiceAdmin">
+            <button id="to_entitySelection"
               type="submit"
               class="btn btn-outline-secondary btn-sm pull-left"
-              (click)="open(contentApi)">api mockup</button>
-          </div> -->
+              (click)="open(entitySelection)">Collections</button>
+            <button id="to_contentApi"
+              type="submit"
+              class="btn btn-outline-secondary btn-sm pull-left"
+              (click)="open(contentApi)">API mockup</button>
+          </div>
           <a href="external_assets/exports/licence.pdf" download="licence.pdf" type="application/octet-stream">
             <input type="button" class="btn btn-outline-secondary btn-sm pull-right" value="Lire la licence">
           </a>
@@ -71,11 +75,17 @@
         <h4 class="modal-title" style="text-indent: 25px;"> - Collections - </h4>
       </div>
       <div class="modal-body">
-        <!-- <select-collections></select-collections> -->
+        <select-collections></select-collections>
       </div>
-      <div class="modal-footer" id="choicePopup">
-        <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close collections')">Fermer</button>
-        <button id="widthButton" type="submit" class="btn btn-success">OK</button>
+      <div class="modal-footer" id="collectionsCTA">
+        <button type="submit"
+                class="btn btn-danger"
+                data-dismiss="modal"
+                (click)="c('Close collections')">Fermer</button>
+        <button id="collectionsOK"
+                type="submit"
+                class="btn btn-success"
+                (click)="collectionsSelected()">OK</button>
       </div>
     </ng-template>
 

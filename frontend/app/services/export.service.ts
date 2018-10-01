@@ -25,6 +25,11 @@ export interface Export {
   geometry_srid: number
 }
 
+export interface Collection {
+  name: string
+  tables: any[]
+}
+
 export interface ApiErrorResponse extends HttpErrorResponse {
   error: any | null
   message: string
@@ -42,11 +47,13 @@ export const FormatMapMime = new Map([
 @Injectable()
 export class ExportService {
   exports: BehaviorSubject<Export[]>
+  collections: BehaviorSubject<Collection[]>
   downloadProgress: BehaviorSubject<number>
   private _blob: Blob
 
   constructor(private _api: HttpClient, private toastr: ToastrService) {
     this.exports = <BehaviorSubject<Export[]>>new BehaviorSubject([])
+    this.collections = <BehaviorSubject<Collection[]>>new BehaviorSubject([])
     this.downloadProgress = <BehaviorSubject<number>>new BehaviorSubject(0.0)
   }
 
@@ -68,24 +75,21 @@ export class ExportService {
   }
 
   getCollections() {
-    let selectables = []
-    this._api.get(`${Constants.API_ENDPOINT}/Collections/`).subscribe(
-      (collections: any[]) => {
-        selectables.push(collections)
-        console.debug('collections:',  selectables)
-      },
-      (response: ApiErrorResponse) => {
-        this.toastr.error(
-          (response.error.message) ? response.error.message : response.message,
-          (response.error.api_error) ? response.error.api_error : response.name,
-          {timeOut: 0})
+    this._api.get(`${Constants.API_ENDPOINT}/Collections/`)
+      .subscribe(
+        (collections: Collection[]) => this.collections.next(collections),
+        (response: ApiErrorResponse) => {
+          this.toastr.error(
+            (response.error.message) ? response.error.message : response.message,
+            (response.error.api_error) ? response.error.api_error : response.name,
+            {timeOut: 0})
         console.error('api error:', response)
       },
       () => {
-        console.debug('collections:',  selectables)
+        console.info(`export service: ${this.collections.value.length} collections`)
+        console.debug('collections:',  this.collections.value)
       }
     )
-    return selectables
   }
 
   downloadExport(x: Export, format: string) {
