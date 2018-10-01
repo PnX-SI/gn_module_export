@@ -10,7 +10,7 @@ import { GN2CommonModule } from '@geonature_common/GN2Common.module'
 import { TranslateHttpLoader } from '@ngx-translate/http-loader'
 import {
   ExportListComponent,
-  NgPBar,
+  ProgressComponent,
   CollectionsComponent
 } from './export-list/export-list.component'
 import { ExportService } from './services/export.service'
@@ -33,7 +33,9 @@ const routes: Routes = [
   ],
   declarations: [
     ExportListComponent,
-    NgPBar
+    CollectionsComponent,
+    ProgressComponent,
+
   ],
   providers: [
     ExportService,
