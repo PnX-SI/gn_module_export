@@ -286,11 +286,16 @@ def getCollections():
 @blueprint.route('/testview')
 def test_view():
     from sqlalchemy.sql import Selectable as Selectable
-    # from sqlalchemy.sql.expression import select
+    from sqlalchemy.sql.expression import select
+    from geoalchemy2 import Geometry
     from geonature.utils.env import DB
     from .utils.views import mkView
-    from .utils.query import ExportQuery
-    # from geonature.utils.utilssqlalchemy import GenericQuery
+    # from .utils.query import ExportQuery
+    from geonature.utils.utilssqlalchemy import (
+        GenericQuery,
+        serializable,
+        geoserializable
+        )
 
     filters = None
     # filters = [
@@ -321,8 +326,10 @@ def test_view():
         # selectable = select([column(c) for c in columns]).\
         #     select_from(some_table)
         # selectable = DB.session.query(random_model.__table__).selectable
+        # src_model = [m for m in models if m.__name__ == 'Synthese'][0]  # noqa: E501
         # src_model = [m for m in models if m.__name__ == 'BibNoms'][0]
-        src_model = [m for m in models if m.__name__ == 'TaxrefProtectionEspeces'][0]  # noqa: E501
+        # src_model = [m for m in models if m.__name__ == 'TaxrefProtectionEspeces'][0]  # noqa: E501
+        src_model = [m for m in models if m.__name__ == 'VReleveOccurrence'][0]  # noqa: E501
         # selectable = DB.session.query(src_model).selectable
         # selectable = select([src_model])
         # .where(src_model.nom_francais=='Cicindela hybrida').compile().params
@@ -351,29 +358,42 @@ def test_view():
         #         src_model.nom_francais_cite.like('canard%'),
         #         src_model.precisions.isnot(None)))
 
-        # # try labels
-        selectable = DB.session\
-                       .query(src_model)\
-                       .filter(DB.and_(
-                           src_model.nom_francais_cite.isnot(None),
-                           src_model.precisions.isnot(None))).selectable
+        # selectable = select([src_model])
+        # TODO: try labels
+        # FIXME: geometry != bytearray, ST_AsEWKB() -> ST_GeomFromEWKT(%(geom)s)) ?
+        selectable = DB.session.query(src_model).selectable
+        # raise
+        # .filter(DB.and_(
+        #     src_model.nom_francais_cite.isnot(None),
+        #     src_model.precisions.isnot(None))).selectable
 
-        if persisted and view_model_name:
+        if selectable is not None and view_model_name and persisted:
             logger.debug('selectable: %s', selectable)
             model = create_view(view_model_name, selectable)
-
-            # q = GenericQuery(
-            q = ExportQuery(
-                1,
+            model = serializable(model)
+            geoms = [
+                c.name
+                for c in selectable.c
+                if isinstance(c.type, Geometry)]
+            if len(geoms) > 0:
+                model = geoserializable(model)
+                logger.debug('%s geom%s found: %s',
+                             len(geoms), 's' if len(geoms) > 1 else '', geoms)
+            # q = ExportQuery(
+            #     1,
+            q = GenericQuery(
                 DB.session,
                 model.__tablename__,
                 model.__table__.schema,
-                geometry_field=None,
-                filters=filters,
+                geometry_field='pr_occtax_v_releve_occtax_geom_4326',
+                # geometry_field=None,
+                # geometry_field='geom_4326',
+                filters=[],
+                # filters=filters,
                 # filters={'filter_n_up_id_nomenclature': 1},
                 limit=1000, offset=0)
-            return to_json_resp({
-                'model': src_model.__name__, **q.return_query()})
+            return to_json_resp(
+                {'model': src_model.__name__, **q.return_query()})
     except Exception as e:
         logger.critical('error: %s', str(e))
         raise
