@@ -127,18 +127,19 @@ export class ExportService {
             break
         }
       },
-    (response: ApiErrorResponse) => {
-      this.toastr.error(
-        (response.error.message) ? response.error.message : response.message,
-        (response.error.api_error) ? response.error.api_error : response.name,
-        {timeOut: 0})
-      console.error('api error:', response)
-    },
-    () => {
-      this.saveBlob(this._blob, fileName)
-      subscription.unsubscribe()
-    }
-  )}
+      (response: ApiErrorResponse) => {
+        this.toastr.error(
+          (response.error.message) ? response.error.message : response.message,
+          (response.error.api_error) ? response.error.api_error : response.name,
+          {timeOut: 0})
+        console.error('api error:', response)
+      },
+      () => {
+        this.saveBlob(this._blob, fileName)
+        subscription.unsubscribe()
+      }
+    )
+  }
 
   saveBlob(blob, filename) {
     let link = document.createElement('a')
