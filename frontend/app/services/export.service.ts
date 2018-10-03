@@ -104,41 +104,41 @@ export class ExportService {
     })
     let subscription = source.subscribe(
       event => {
-        if (event.ok) {
-          switch(event.type) {
-            case(HttpEventType.DownloadProgress):
-              if (event.hasOwnProperty('total')) {
-                const percentage = Math.round((100 / event.total) * event.loaded)
-                this.downloadProgress.next(percentage)
-              } else {
-                const kb = (event.loaded / 1024).toFixed(2)
-                this.downloadProgress.next(parseFloat(kb))
-              }
-              break
+        switch(event.type) {
+          case(HttpEventType.DownloadProgress):
+            if (event.hasOwnProperty('total')) {
+              const percentage = Math.round((100 / event.total) * event.loaded)
+              this.downloadProgress.next(percentage)
+            } else {
+              const kb = (event.loaded / 1024).toFixed(2)
+              this.downloadProgress.next(parseFloat(kb))
+            }
+            break
 
-            case(HttpEventType.ResponseHeader):
+          case(HttpEventType.ResponseHeader):
+            if (event.ok) {
               const disposition = event.headers.get('Content-Disposition')
               const match = disposition ? /filename="?([^"]*)"?;?/g.exec(disposition) : undefined;
               fileName = match && match.length > 1 ? match[1] : undefined;
-              break
+            }
+            break
 
-            case(HttpEventType.Response):
-              this._blob = new Blob([event.body], {type: event.headers.get('Content-Type')})
-              break
-          }
+          case(HttpEventType.Response):
+            this._blob = new Blob([event.body], {type: event.headers.get('Content-Type')})
+            break
         }
-    },
-    (response: ApiErrorResponse) => {
-      this.toastr.error(
-        (response.error.message) ? response.error.message : response.message,
-        (response.error.api_error) ? response.error.api_error : response.name,
-        {timeOut: 0})
-      console.error('api error:', response)
-    },
-    () => {
-      this.saveBlob(this._blob, fileName)
-      subscription.unsubscribe()
-    }
+      },
+      (response: ApiErrorResponse) => {
+        this.toastr.error(
+          (response.error.message) ? response.error.message : response.message,
+          (response.error.api_error) ? response.error.api_error : response.name,
+          {timeOut: 0})
+        console.error('api error:', response)
+      },
+      () => {
+        this.saveBlob(this._blob, fileName)
+        subscription.unsubscribe()
+      }
   )}
 
   saveBlob(blob, filename) {
