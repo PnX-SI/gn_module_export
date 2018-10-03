@@ -190,7 +190,7 @@ class ExportRepository(object):
         ]
         for schema in schema_names:
             tables = {}
-            mapped_tables = inspection.get_table_names(schema=schema)
+            mapped_tables = inspection.get_table_names(schema=schema) + inspection.get_view_names(schema=schema)
             mapped_tables = [
                 t for t in mapped_tables
                 if not(IGNORE.get(schema, False) and t in IGNORE.get(schema))]
