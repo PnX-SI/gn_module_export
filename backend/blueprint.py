@@ -285,7 +285,7 @@ def getCollections():
 
 @blueprint.route('/testview')
 def test_view():
-    from sqlalchemy.sql import Selectable as Selectable
+    from sqlalchemy.sql import Selectable as Selectable, func
     from sqlalchemy.sql.expression import select
     from geoalchemy2 import Geometry
     from geonature.utils.env import DB
@@ -315,57 +315,20 @@ def test_view():
     try:
         models = [m for m in DB.Model._decl_class_registry.values()
                   if hasattr(m, '__name__')]
-        # from random import choice
-        # random_model = choice(models)
-        # while random_model.__name__ in ['LAreas']:
-        #     random_model = choice(models)
-        # logger.debug('model: %s', random_model.__name__)
-        # selectable = select([random_model])
-
         # columns = request.get_json('columns')
         # selectable = select([column(c) for c in columns]).\
         #     select_from(some_table)
         # selectable = DB.session.query(random_model.__table__).selectable
-        # src_model = [m for m in models if m.__name__ == 'Synthese'][0]  # noqa: E501
-        # src_model = [m for m in models if m.__name__ == 'BibNoms'][0]
-        # src_model = [m for m in models if m.__name__ == 'TaxrefProtectionEspeces'][0]  # noqa: E501
-        src_model = [m for m in models if m.__name__ == 'VReleveOccurrence'][0]  # noqa: E501
         # selectable = DB.session.query(src_model).selectable
         # selectable = select([src_model])
-        # .where(src_model.nom_francais=='Cicindela hybrida').compile().params
-        # => literals ?
-        # =>join with where clause
+        src_model = [m for m in models if m.__name__ == 'VReleveOccurrence'][0]  # noqa: E501
 
-        # select model otherwise stuff_view might end up with no pk
-        # selectable = select([src_model.__table__.c.nom_francais_cite])\
-        # selectable = select([src_model])\
-        #     .where(src_model.__table__.c.nom_francais_cite == DB.bindparam('nom'))
-        # .bindparams(nom='canard siffleur')
-
-        # DB.bindparam('canard', type_=DB.String) + DB.text("'%'")).compile().params)
-
-        # selectable = select([src_model])\
-        #     .where(
-        #         DB.and_(
-        #             src_model.nom_francais_cite.isnot(None),
-        #             src_model.precisions.isnot(None)))
-
-        # .where(src_model.nom_francais_cite.like(
-        #     DB.bindparam('canard', type_=DB.String) + DB.text("'%'")))
-
-        # selectable = select([src_model]).where(
-        #     DB.and_(
-        #         src_model.nom_francais_cite.like('canard%'),
-        #         src_model.precisions.isnot(None)))
-
-        # selectable = select([src_model])
-        # TODO: try labels
-        # FIXME: geometry != bytearray, ST_AsEWKB() -> ST_GeomFromEWKT(%(geom)s)) ?
-        selectable = DB.session.query(src_model).selectable
-        # raise
-        # .filter(DB.and_(
-        #     src_model.nom_francais_cite.isnot(None),
-        #     src_model.precisions.isnot(None))).selectable
+        selectable = select(
+            [
+                func.ST_GeomFromEWKB(src_model.__table__.c.geom_4326).label('geom_4326')
+            ] + [
+                c for c in src_model.__table__.c
+                if not isinstance(c.type, Geometry)])
 
         if selectable is not None and view_model_name and persisted:
             logger.debug('selectable: %s', selectable)
@@ -385,9 +348,9 @@ def test_view():
                 DB.session,
                 model.__tablename__,
                 model.__table__.schema,
-                geometry_field='pr_occtax_v_releve_occtax_geom_4326',
+                # geometry_field='pr_occtax_v_releve_occtax_geom_4326',
                 # geometry_field=None,
-                # geometry_field='geom_4326',
+                geometry_field='geom_4326',
                 filters=[],
                 # filters=filters,
                 # filters={'filter_n_up_id_nomenclature': 1},
