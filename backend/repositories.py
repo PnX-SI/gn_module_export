@@ -190,7 +190,8 @@ class ExportRepository(object):
         ]
         for schema in schema_names:
             tables = {}
-            mapped_tables = inspection.get_table_names(schema=schema) + inspection.get_view_names(schema=schema)
+            mapped_tables = (inspection.get_table_names(schema=schema)
+                             + inspection.get_view_names(schema=schema))
             mapped_tables = [
                 t for t in mapped_tables
                 if not(IGNORE.get(schema, False) and t in IGNORE.get(schema))]
@@ -220,7 +221,7 @@ class ExportRepository(object):
                     if c['name'] in pk_constraints:
                         c['is_primary_key'] = True
 
-                    columns.update({c['name']: c})
+                    columns.update({c['name']: [{k: v} for k, v in c.items() if k != 'name']})
                 tables.update({table: columns})
             schemas.update({schema: tables})
 
@@ -230,18 +231,17 @@ class ExportRepository(object):
         def modelname_from_tablename(schema, tablename):
             for m in models:
                 if (hasattr(m, '__name__')
-                    and hasattr(m, '__tablename__')
-                    and m.__tablename__ == tablename
-                    and m.__table__.schema == schema):  # noqa: E129
+                        and hasattr(m, '__tablename__')
+                        and m.__table__.schema == schema
+                        and m.__tablename__ == tablename):
                     return m.__name__
             return ''
-
         return [{
                 'name': s,
                 'tables': [
                     {
                         'name': t,
-                        'fields': [f for f in schemas[s][t]],
+                        'fields': [{k: v} for k, v in schemas[s][t].items()],
                         'model': modelname_from_tablename(s, t)
                     } for t in schemas[s]]
                 } for s in schemas]
