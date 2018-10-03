@@ -30,35 +30,28 @@ def visit_create_view(element, compiler, **kw):
         compiler.sql_compiler.process(element.selectable))
 
 
-# class DropView(DDLElement):
-#     def __init__(self, name):
-#         self.name = name
-
-
-# @compiles(DropView)
-# def visit_drop_view(element, compiler, **kw):
-#     if hasattr(element.target, 'schema') and element.target.schema:
-#         schema = element.target.schema
-#         schema_dot_view = '.'.join([schema, element.name])
-#     return "DROP VIEW %s" % (schema_dot_view)
-
-
 def View(name, metadata, selectable):
     t = DB.table(name)
     if hasattr(metadata, 'schema') and not t.schema:
         t.schema = metadata.schema  # otherwise the view lands in 'public'.
     for c in selectable.c:
         c._make_proxy(t)
-    # TODO: if no pk in selection, make all attributes pks
+
+    # TODO: if no pk in selection, make all fields pks
+    t.primary_key_constraints = {c for c in t.columns
+                                 if isinstance(c, DB.PrimaryKeyConstraint)}
+    if len(t.primary_key_constraints) == 0:
+        t.primary_key_constraints = {c for c in t.columns}
+
     t.foreign_key_constraints = {c for c in t.columns
                                  if isinstance(c, DB.ForeignKeyConstraint)}
     t._extra_dependencies = set()
     # TODO: view indexes
     # logger.debug('indexes: %s', {c for c in t.columns
     #                              if isinstance(c, DB.Index)})
-    # FIXME: deprecated execute_at -> use DB.event ?
+    # FIXME: deprecated execute_at -> use DB.event
+    # DB.event.listen(metadata, 'after_create',
     CreateView(t.name, selectable).execute_at('after-create', metadata)
-    # DropView(t.name).execute_at('before-drop', metadata)  # freeze
     return t
 
 
