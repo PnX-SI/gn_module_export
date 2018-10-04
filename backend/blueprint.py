@@ -313,15 +313,14 @@ def test_view():
         return model
 
     try:
+        # columns = request.get_json('columns')
+        # selection = [c for c in columns]
         models = [m for m in DB.Model._decl_class_registry.values()
                   if hasattr(m, '__name__')]
-        # columns = request.get_json('columns')
-        # selectable = select([column(c) for c in columns]).\
-        #     select_from(some_table)
-        # selectable = DB.session.query(random_model.__table__).selectable
-        # selectable = DB.session.query(src_model).selectable
-        # selectable = select([src_model])
-        src_model = [m for m in models if m.__name__ == 'VReleveOccurrence'][0]  # noqa: E501
+        # src_model = [m for m in models if m.__name__ == 'VReleveOccurrence'][0]  # noqa: E501
+        from random import choice
+        src_model = choice(models)
+        logger.debug('model: %s', src_model.__name__)
         selection = [src_model]
 
         if selection is not None and view_model_name and persisted:
@@ -329,7 +328,7 @@ def test_view():
             selectable = select(selection).alias('selection')
             logger.debug('selectable: %s', selectable)
 
-            geoms = [
+            geometries = [
                 c
                 for c in selectable.c
                 if isinstance(c.type, Geometry)]
@@ -337,12 +336,12 @@ def test_view():
             _selectable = select(
                 [
                     c for c in selectable.c
-                    if c not in geoms
+                    if c not in geometries
                 ] + [
                     func.ST_GeomFromEWKB(
                         getattr(selectable.c, c.name)).label(c.name)
                     for c in selectable.c
-                    if c in geoms
+                    if c in geometries
                 ])
 
             # raise
@@ -350,23 +349,21 @@ def test_view():
 
             model = create_view(view_model_name, _selectable)
             model = serializable(model)
-            if len(geoms) > 0:
+            if len(geometries) > 0:
                 model = geoserializable(model)
                 logger.debug(
                     '%s geom%s found: %s',
-                    len(geoms), 's' if len(geoms) > 1 else '',
-                    [g.name for g in geoms])
+                    len(geometries), 's' if len(geometries) > 1 else '',
+                    [g.name for g in geometries])
             # q = ExportQuery(
             #     1,
             q = GenericQuery(
                 DB.session,
                 model.__tablename__,
                 model.__table__.schema,
-                # geometry_field='pr_occtax_v_releve_occtax_geom_4326',
-                # geometry_field=None,
-                geometry_field='geom_4326',
-                filters=[],
-                # filters=filters,
+                geometry_field=geometries[0].name if len(geometries) > 0 else None,
+                # filters=[],
+                filters=filters,
                 # filters={'filter_n_up_id_nomenclature': 1},
                 limit=1000, offset=0)
             return to_json_resp(
@@ -377,7 +374,14 @@ def test_view():
         return to_json_resp({'error': str(e),
                              'model': src_model.__name__}, status=400)
 
-# model: LAreas
-# TypeError(b"\x01\x06\x00\x00 j\x08\x00\x00\x01\x00
-# [...]
-# \x01\x03\x00\x00\x00|\xbf+A\x00\x00\x00@MBZA" is not JSON serializable
+# model: TIndividuals
+# selectable: SELECT pr_cmr.t_individuals.id_individual, pr_cmr.t_individuals.cd_nom, pr_cmr.t_individuals.tag_code, pr_cmr.t_individuals.tag_location, pr_cmr.t_individuals.id_site_tag, pr_cmr.t_individuals.id_nomenclature_sex
+# FROM pr_cmr.t_individuals
+# error: Foreign key associated with column 't_individuals.id_nomenclature_sex' could not find table 'ref_nomenclatures.t_nomenclatures' with which to generate a foreign key to target column 'id_nomenclature'
+# Foreign key associated with column 't_individuals.id_nomenclature_sex' could not find table 'ref_nomenclatures.t_nomenclatures' with which to generate a foreign key to target column 'id_nomenclature'
+
+# model: CorAcquisitionFrameworkVoletSINP
+# selectable: SELECT gn_meta.cor_acquisition_framework_voletsinp.id_acquisition_framework, gn_meta.cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp
+# FROM gn_meta.cor_acquisition_framework_voletsinp
+# error: Foreign key associated with column 'cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp' could not find table 'ref_nomenclatures.t_nomenclatures' with which to generate a foreign key to target column 'id_nomenclature'
+# Foreign key associated with column 'cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp' could not find table 'ref_nomenclatures.t_nomenclatures' with which to generate a foreign key to target column 'id_nomenclature'

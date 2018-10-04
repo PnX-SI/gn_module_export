@@ -9,10 +9,11 @@ logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
 # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html?highlight=column%20operator#sqlalchemy.sql.operators.ColumnOperators
-# map encoding to orm defined column operator names
-FilterOpMap = {
-    'EQUALS': '__eq__',
-    'NOT_EQUALS': '__ne__',
+# map encoding to orm defin
+ed column operator names
+
+FilterOps = {
+    'EQUALS': '__eq_ 'NOT_EQUALS': '__ne__',
     'GREATER_THAN': '__gt__',
     'GREATER_OR_EQUALS': '__ge__',
     'LESS_THAN': '__lt__',
@@ -48,29 +49,55 @@ def model_by_ns(ns):
 
 class Filter():
     # QUESTION: check column type so (User.name, 'EQUALS', 5, (basestring,)) doesn't get through  # noqa: E501
-    # TODO: {rel: (field, cond), ...} cf @20cents
-    #
     # rule_set = [
-    #     ((User.name, 'EQUALS', new_person2.name), 'OR', (User.name, 'EQUALS', new_person1.name)),  # noqa: E501
-    #     (User.name, 'CONTAINS', 'user%2'),
-    #     ('Country.zone', 'EQUALS', 'Oceania'),
+    #     {
+    #         'OR':
+    #         [{
+    #             'EQUALS':
+    #             {
+    #                 'field': 'User.name',
+    #                 'condition': new_person2.name
+    #             }
+    #         }, {
+    #             'EQUALS':
+    #             {
+    #                 'field': 'User.name',
+    #                 'condition': new_person1.name
+    #             }
+    #         }]
+    #     }, {
+    #         'CONTAINS':
+    #         {
+    #             'field': 'User.name',
+    #             'condition': 'user%2'
+    #         }
+    #     }, {
+    #         'EQUALS':
+    #         {
+    #             'field': 'Country.zone',
+    #             'condition': 'Oceania'
+    #         }
+    #     }
     # ]
     # q = session.query(User)
-    # # print(Filter.apply(None, q, filter=('Address.user_id', 'EQUALS', 1)))
+    # print(Filter.apply(None, q, filter={'EQUALS': {
+    #     'field': 'Address.user_id', 'condition': 1}})
     # stmt = CompositeFilter.apply(None, q, filters=rule_set)
     # print(stmt)
     # assert stmt.all()[0] == new_person2
     @staticmethod
     def apply(context, query, filter=None):
         if filter:
-            field, relation, condition = filter
+            field, relation, condition = next(
+                (v['field'], k, v['condition']) for k, v in filter.items())
 
             if Filter.is_boolean(filter):
                 return Filter.apply_boolean(context, query, filter)
 
             else:
                 field = Filter.process(context, field)
-                filter = getattr(field, FilterOpMap[relation])(condition)
+
+                filter = getattr(field, FilterOps[relation])(condition)
                 return query.filter(filter)
 
     @staticmethod
@@ -82,7 +109,7 @@ class Filter():
                     sa_types.TIME, sa_types.TIMESTAMP))
                 or any([
                     f in column.name
-                    for f in set('heure', 'date', 'timestamp', 'time')])):
+                    for f in {'heure', 'date', 'timestamp', 'time'}])):
                 logger.debug(
                     'dt_cast: %s, %s', column.name, DB.func.date(column))
                 return DB.func.date(column)
@@ -117,14 +144,17 @@ class Filter():
 
     @staticmethod
     def is_boolean(filter):
-        return filter[1] in FilterBooleanOpMap
+        return next(k for k, v in filter.items()) in FilterBooleanOpMap
 
     @staticmethod
     def apply_boolean(context, query, filter):
-        expr_left, bool_op, expr_right = filter
-        return query.filter(FilterBooleanOpMap[bool_op](
-            *list([getattr(Filter.process(expr1_), FilterOpMap[relation])(expr2_)  # noqa: E501
-                   for expr1_, relation, expr2_ in [expr_left, expr_right]])))
+        left, op, right = next(
+            (v['field'], k, v['condition']) for k, v in filter.items())
+        return query.filter(FilterBooleanOpMap[op](
+            *list([
+                getattr(
+                    Filter.process(subject), FilterOps[relation])(condition)
+                for subject, relation, condition in [left, right]])))
 
 
 class CompositeFilter(Filter):
