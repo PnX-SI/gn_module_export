@@ -286,7 +286,7 @@ def getCollections():
 @blueprint.route('/testview')
 def test_view():
     from sqlalchemy.sql import Selectable as Selectable, func
-    from sqlalchemy.sql.expression import select
+    from sqlalchemy.sql.expression import select, alias
     from geoalchemy2 import Geometry
     from geonature.utils.env import DB
     from .utils.views import mkView
