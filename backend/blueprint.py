@@ -322,26 +322,40 @@ def test_view():
         # selectable = DB.session.query(src_model).selectable
         # selectable = select([src_model])
         src_model = [m for m in models if m.__name__ == 'VReleveOccurrence'][0]  # noqa: E501
+        selection = [src_model]
 
-        selectable = select(
-            [
-                func.ST_GeomFromEWKB(src_model.__table__.c.geom_4326).label('geom_4326')
-            ] + [
-                c for c in src_model.__table__.c
-                if not isinstance(c.type, Geometry)])
+        if selection is not None and view_model_name and persisted:
 
-        if selectable is not None and view_model_name and persisted:
+            selectable = select(selection).alias('selection')
             logger.debug('selectable: %s', selectable)
-            model = create_view(view_model_name, selectable)
-            model = serializable(model)
+
             geoms = [
-                c.name
+                c
                 for c in selectable.c
                 if isinstance(c.type, Geometry)]
+
+            _selectable = select(
+                [
+                    c for c in selectable.c
+                    if c not in geoms
+                ] + [
+                    func.ST_GeomFromEWKB(
+                        getattr(selectable.c, c.name)).label(c.name)
+                    for c in selectable.c
+                    if c in geoms
+                ])
+
+            # raise
+            logger.debug('selectable after geom processing: %s', _selectable)
+
+            model = create_view(view_model_name, _selectable)
+            model = serializable(model)
             if len(geoms) > 0:
                 model = geoserializable(model)
-                logger.debug('%s geom%s found: %s',
-                             len(geoms), 's' if len(geoms) > 1 else '', geoms)
+                logger.debug(
+                    '%s geom%s found: %s',
+                    len(geoms), 's' if len(geoms) > 1 else '',
+                    [g.name for g in geoms])
             # q = ExportQuery(
             #     1,
             q = GenericQuery(
