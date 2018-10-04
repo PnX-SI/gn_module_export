@@ -13,7 +13,8 @@ logger.setLevel(logging.DEBUG)
 ed column operator names
 
 FilterOps = {
-    'EQUALS': '__eq_ 'NOT_EQUALS': '__ne__',
+    'EQUALS': '__eq_ ',
+    'NOT_EQUALS': '__ne__',
     'GREATER_THAN': '__gt__',
     'GREATER_OR_EQUALS': '__ge__',
     'LESS_THAN': '__lt__',
@@ -96,7 +97,6 @@ class Filter():
 
             else:
                 field = Filter.process(context, field)
-
                 filter = getattr(field, FilterOps[relation])(condition)
                 return query.filter(filter)
 
