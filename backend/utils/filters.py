@@ -9,8 +9,7 @@ logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 
 # http://docs.sqlalchemy.org/en/latest/core/sqlelement.html?highlight=column%20operator#sqlalchemy.sql.operators.ColumnOperators
-# map encoding to orm defin
-ed column operator names
+# map encoding to orm defined column operator names
 
 FilterOps = {
     'EQUALS': '__eq_ ',
