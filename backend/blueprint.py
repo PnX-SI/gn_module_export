@@ -285,8 +285,9 @@ def getCollections():
 
 @blueprint.route('/testview')
 def test_view():
+    from sqlalchemy import inspect
     from sqlalchemy.sql import Selectable as Selectable, func
-    from sqlalchemy.sql.expression import select, alias
+    from sqlalchemy.sql.expression import select
     from geoalchemy2 import Geometry
     from geonature.utils.env import DB
     from .utils.views import mkView
@@ -299,8 +300,14 @@ def test_view():
 
     filters = None
     # filters = [
-    #     ('dateDebut', 'GREATER_OR_EQUALS', datetime(2017, 1, 1, 0, 0, 0))
-    #     ]
+    #     {
+    #         'GREATER_OR_EQUALS':
+    #             {
+    #                 'field': 'dateDebut',
+    #                 'condition': datetime(2017, 1, 1, 0, 0, 0)
+    #             }
+    #     }
+    # ]
     # -> datetime.strptime(value[0], '%Y-%m-%dT%H:%M:%S.%fZ').date()
     persisted = True
     view_model_name = 'StuffView'
@@ -335,14 +342,34 @@ def test_view():
 
             _selectable = select(
                 [
-                    c for c in selectable.c
-                    if c not in geometries
-                ] + [
-                    func.ST_GeomFromEWKB(
+                    c if c not in geometries
+                    else func.ST_GeomFromEWKB(
                         getattr(selectable.c, c.name)).label(c.name)
                     for c in selectable.c
-                    if c in geometries
-                ])
+                    ])
+
+            # # should iterate over selection
+            # # alternative for model free selection
+            # if isinstance(selection[0], DB.Model):
+            #
+            #     def walk_modelzz(model):
+            #         models = []
+            #
+            #         def explore(model):
+            #             if model in models:
+            #                 return
+            #             models.append(model)
+            #             insp = inspect(model)
+            #             for relationship in insp.mapper.relationships:
+            #                 related = getattr(model, relationship.key)
+            #                 if related:
+            #                     explore(related.mapper.class_)
+            #         explore(model)
+            #         return models
+            #
+            #     models = walk_modelzz(selection)
+            #     joins = {m for m in models if m != selection[0]}
+            #     _selectable = _selectable.join(joins)
 
             # raise
             logger.debug('selectable after geom processing: %s', _selectable)
