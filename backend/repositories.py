@@ -176,6 +176,7 @@ class ExportRepository(object):
 
     def getCollections(self):
         from sqlalchemy.engine import reflection
+        from pypnnomenclature.models import TNomenclatures
 
         IGNORE = {
             'information_schema': '*',

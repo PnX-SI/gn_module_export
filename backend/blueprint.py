@@ -286,8 +286,9 @@ def getCollections():
 @blueprint.route('/testview')
 def test_view():
     from sqlalchemy import inspect
+    from sqlalchemy.exc import NoReferencedTableError
     from sqlalchemy.sql import Selectable as Selectable, func
-    from sqlalchemy.sql.expression import select
+    from sqlalchemy.sql.expression import select, join
     from geoalchemy2 import Geometry
     from geonature.utils.env import DB
     from .utils.views import mkView
@@ -297,6 +298,7 @@ def test_view():
         serializable,
         geoserializable
         )
+    from pypnnomenclature.models import TNomenclatures
 
     filters = None
     # filters = [
@@ -324,20 +326,36 @@ def test_view():
         # selection = [c for c in columns]
         models = [m for m in DB.Model._decl_class_registry.values()
                   if hasattr(m, '__name__')]
-        # src_model = [m for m in models if m.__name__ == 'VReleveOccurrence'][0]  # noqa: E501
-        from random import choice
-        src_model = choice(models)
+        src_model = [m for m in models if m.__name__ == 'CorAcquisitionFrameworkVoletSINP'][0]  # noqa: E501
+        # from random import choice
+        # src_model = choice(models)
         logger.debug('model: %s', src_model.__name__)
+        # src_model.children = DB.relationship(
+        #     TNomenclatures,
+        #     # foreign_keys=[src_model.id_nomenclature_voletsinp],
+        #     # primaryjoin=(
+        #     #     src_model.id_nomenclature_voletsinp == TNomenclatures.id_nomenclature)
+        #     backref=TNomenclatures.__tablename__
+        #     )
+        # selection = [src_model, src_model.children]
         selection = [src_model]
 
         if selection is not None and view_model_name and persisted:
 
             selectable = select(selection).alias('selection')
-            logger.debug('selectable: %s', selectable)
+            #q = DB.session.query(src_model)
+
+            # raise
+            # selectable = select(selection).select_from(
+            #     selection[0].join(
+            #         TNomenclatures.__table__,
+            #         selection[0].c.id_nomenclature_voletsinp == TNomenclatures.__table__.c.id_nomenclature  # noqa: E501
+            #     )).alias('selection')
+
+            logger.debug('processing geometries: %s', selectable)
 
             geometries = [
-                c
-                for c in selectable.c
+                c for c in selectable.c
                 if isinstance(c.type, Geometry)]
 
             _selectable = select(
@@ -346,30 +364,7 @@ def test_view():
                     else func.ST_GeomFromEWKB(
                         getattr(selectable.c, c.name)).label(c.name)
                     for c in selectable.c
-                    ])
-
-            # # should iterate over selection
-            # # alternative for model free selection
-            # if isinstance(selection[0], DB.Model):
-            #
-            #     def walk_modelzz(model):
-            #         models = []
-            #
-            #         def explore(model):
-            #             if model in models:
-            #                 return
-            #             models.append(model)
-            #             insp = inspect(model)
-            #             for relationship in insp.mapper.relationships:
-            #                 related = getattr(model, relationship.key)
-            #                 if related:
-            #                     explore(related.mapper.class_)
-            #         explore(model)
-            #         return models
-            #
-            #     models = walk_modelzz(selection)
-            #     joins = {m for m in models if m != selection[0]}
-            #     _selectable = _selectable.join(joins)
+                ])
 
             # raise
             logger.debug('selectable after geom processing: %s', _selectable)
@@ -402,13 +397,27 @@ def test_view():
                              'model': src_model.__name__}, status=400)
 
 # model: TIndividuals
-# selectable: SELECT pr_cmr.t_individuals.id_individual, pr_cmr.t_individuals.cd_nom, pr_cmr.t_individuals.tag_code, pr_cmr.t_individuals.tag_location, pr_cmr.t_individuals.id_site_tag, pr_cmr.t_individuals.id_nomenclature_sex
-# FROM pr_cmr.t_individuals
-# error: Foreign key associated with column 't_individuals.id_nomenclature_sex' could not find table 'ref_nomenclatures.t_nomenclatures' with which to generate a foreign key to target column 'id_nomenclature'
-# Foreign key associated with column 't_individuals.id_nomenclature_sex' could not find table 'ref_nomenclatures.t_nomenclatures' with which to generate a foreign key to target column 'id_nomenclature'
-
+# selectable:
+#     SELECT
+#         pr_cmr.t_individuals.id_individual,
+#         pr_cmr.t_individuals.cd_nom,
+#         pr_cmr.t_individuals.tag_code,
+#         pr_cmr.t_individuals.tag_location,
+#         pr_cmr.t_individuals.id_site_tag,
+#         pr_cmr.t_individuals.id_nomenclature_sex
+#     FROM pr_cmr.t_individuals
+# error:
+#     Foreign key associated with column 't_individuals.id_nomenclature_sex'
+#     could not find table 'ref_nomenclatures.t_nomenclatures'
+#     with which to generate a foreign key to target column 'id_nomenclature'
+#
 # model: CorAcquisitionFrameworkVoletSINP
-# selectable: SELECT gn_meta.cor_acquisition_framework_voletsinp.id_acquisition_framework, gn_meta.cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp
-# FROM gn_meta.cor_acquisition_framework_voletsinp
-# error: Foreign key associated with column 'cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp' could not find table 'ref_nomenclatures.t_nomenclatures' with which to generate a foreign key to target column 'id_nomenclature'
-# Foreign key associated with column 'cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp' could not find table 'ref_nomenclatures.t_nomenclatures' with which to generate a foreign key to target column 'id_nomenclature'
+# selectable:
+#     SELECT
+#         gn_meta.cor_acquisition_framework_voletsinp.id_acquisition_framework,
+#         gn_meta.cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp
+#         FROM gn_meta.cor_acquisition_framework_voletsinp
+# error:
+#     Foreign key associated with column 'cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp'
+#     could not find table 'ref_nomenclatures.t_nomenclatures'
+#     with which to generate a foreign key to target column 'id_nomenclature'
