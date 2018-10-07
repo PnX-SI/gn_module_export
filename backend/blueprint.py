@@ -49,9 +49,9 @@ def swagger_api_yml():
 
 
 def export_filename(export):
-    return '_'.join([
+    return '{}_{}'.format(
         removeDisallowedFilenameChars(export.get('label')),
-        datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')])
+        datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S'))
 
 
 @blueprint.route('/<int:id_export>/<format>', methods=['GET'])
@@ -343,7 +343,7 @@ def test_view():
         if selection is not None and view_model_name and persisted:
 
             selectable = select(selection).alias('selection')
-            #q = DB.session.query(src_model)
+            # q = DB.session.query(src_model)
 
             # raise
             # selectable = select(selection).select_from(
@@ -364,7 +364,7 @@ def test_view():
                     else func.ST_GeomFromEWKB(
                         getattr(selectable.c, c.name)).label(c.name)
                     for c in selectable.c
-                ])
+                ])  # noqa: E133
 
             # raise
             logger.debug('selectable after geom processing: %s', _selectable)
