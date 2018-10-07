@@ -51,7 +51,7 @@
         </div>
 
         <div id="readlicence">
-          <div id="choiceAdmin">
+          <!-- <div id="choiceAdmin">
             <button id="to_entitySelection"
               type="submit"
               class="btn btn-outline-secondary btn-sm pull-left"
@@ -60,7 +60,7 @@
               type="submit"
               class="btn btn-outline-secondary btn-sm pull-left"
               (click)="open(contentApi)">API mockup</button>
-          </div>
+          </div> -->
           <a href="external_assets/exports/licence.pdf" download="licence.pdf" type="application/octet-stream">
             <input type="button" class="btn btn-outline-secondary btn-sm pull-right" value="Lire la licence">
           </a>
@@ -391,9 +391,8 @@
 
         <!-- Lien vers la documentation API -->
         <br><br>
-        <!-- FIXME: Constants.API_ENDPOINT -->
-        <!-- <a href="{{Constants.API_ENDPOINT}}/swagger_ui/index.html" class="btn btn-outline-secondary"  target="_blank">Documentation</a> -->
-        <a href="http://localhost:8000/exports/swagger-ui/index.html" class="btn btn-outline-secondary"  target="_blank">Documentation</a>
+        <!-- FIXME: API_ENDPOINT -->
+        <a href="${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}/swagger-ui/index.html" class="btn btn-outline-secondary"  target="_blank">Documentation</a>
 
       </div>
 
@@ -426,7 +425,7 @@
         </select>
         <!-- Affichage d'une barre de progression lors du téléchargement du fichier -->
         <div *ngIf="downloading">
-          <ng-pbar></ng-pbar>
+          <download-progress-bar></download-progress-bar>
         </div>
         <br>
       </div>
