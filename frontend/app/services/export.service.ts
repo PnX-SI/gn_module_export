@@ -13,7 +13,9 @@ import { filter } from 'rxjs/operator/filter'
 import { map } from 'rxjs/operator/map'
 import { ToastrService } from 'ngx-toastr'
 
-import { Constants } from '../const'
+import { AppConfig } from '@geonature_config/app.config'
+
+import { ModuleConfig } from '../module.config'
 
 export interface Export {
   id: number
@@ -27,7 +29,8 @@ export interface Export {
 
 export interface Collection {
   name: string
-  tables: any[]
+  tables?: Collection[]
+  fields?: Collection[]
 }
 
 export interface ApiErrorResponse extends HttpErrorResponse {
@@ -36,13 +39,6 @@ export interface ApiErrorResponse extends HttpErrorResponse {
   name: string
 }
 
-
-export const FormatMapMime = new Map([
-  ['csv', 'text/csv'],
-  ['json', 'application/json'],
-  ['shp', 'application/zip'],
-  ['rdf', 'application/rdf+xml']
-])
 
 @Injectable()
 export class ExportService {
@@ -58,7 +54,7 @@ export class ExportService {
   }
 
   getExports() {
-    this._api.get(`${Constants.API_ENDPOINT}/`).subscribe(
+    this._api.get(`${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}/`).subscribe(
       (exports: Export[]) => this.exports.next(exports),
       (response: ApiErrorResponse) => {
         this.toastr.error(
@@ -75,7 +71,7 @@ export class ExportService {
   }
 
   getCollections() {
-    this._api.get(`${Constants.API_ENDPOINT}/Collections/`)
+    this._api.get(`${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}/Collections/`)
       .subscribe(
         (collections: Collection[]) => this.collections.next(collections),
         (response: ApiErrorResponse) => {
@@ -93,11 +89,11 @@ export class ExportService {
   }
 
   downloadExport(x: Export, format: string) {
-    let downloadExportURL = `${Constants.API_ENDPOINT}/${x.id}/${format}`
+    let downloadExportURL = `${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}/${x.id}/${format}`
     let fileName = undefined
 
     let source = this._api.get(downloadExportURL, {
-      headers: new HttpHeaders().set('Content-Type', `${FormatMapMime.get(format)}`),
+      headers: new HttpHeaders().set('Content-Type', `${ModuleConfig.export_format_map[format]}`),
       observe: 'events',
       responseType: 'blob',
       reportProgress: true,
@@ -105,6 +101,7 @@ export class ExportService {
     let subscription = source.subscribe(
       event => {
         switch(event.type) {
+
           case(HttpEventType.DownloadProgress):
             if (event.hasOwnProperty('total')) {
               const percentage = Math.round((100 / event.total) * event.loaded)
@@ -124,7 +121,9 @@ export class ExportService {
             break
 
           case(HttpEventType.Response):
-            this._blob = new Blob([event.body], {type: event.headers.get('Content-Type')})
+            if (event.ok) {
+              this._blob = new Blob([event.body], {type: event.headers.get('Content-Type')})
+            }
             break
         }
       },
