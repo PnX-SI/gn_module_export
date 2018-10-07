@@ -20,5 +20,5 @@ tmp_*
 .pylintrc
 
 # generated with geonature install_gn_module
-conf_gn_module.toml
-module.config.ts
+config/conf_gn_module.toml
+frontend/app/module.config.ts
