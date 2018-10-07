@@ -93,7 +93,7 @@ export class ExportService {
     let fileName = undefined
 
     let source = this._api.get(downloadExportURL, {
-      headers: new HttpHeaders().set('Content-Type', `${ModuleConfig.export_format_map[format]}`),
+      headers: new HttpHeaders().set('Content-Type', `${ModuleConfig.export_format_map[format].mime}`),
       observe: 'events',
       responseType: 'blob',
       reportProgress: true,
