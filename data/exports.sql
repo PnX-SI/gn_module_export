@@ -13,7 +13,7 @@ CREATE TABLE gn_exports.t_exports
     CONSTRAINT uniq_label UNIQUE (label)
 );
 
-COMMENT ON TABLE gn_exports.t_exports IS 'this table is used to declare views intended for export.';
+COMMENT ON TABLE gn_exports.t_exports IS 'This table is used to declare views intended for export.';
 COMMENT ON COLUMN gn_exports.t_exports.id IS 'Internal value for primary keys';
 COMMENT ON COLUMN gn_exports.t_exports.schema_name IS 'Schema name where the view is stored';
 COMMENT ON COLUMN gn_exports.t_exports.view_name IS 'The view name';
@@ -59,7 +59,7 @@ CREATE TABLE gn_exports.t_exports_logs
         ON DELETE NO ACTION
 );
 
-COMMENT ON TABLE gn_exports.t_exports_logs IS 'this table is used to log all the realised exports.';
+COMMENT ON TABLE gn_exports.t_exports_logs IS 'This table is used to log all the realised exports.';
 COMMENT ON COLUMN gn_exports.t_exports_logs.id_role IS 'Role who realize export';
 COMMENT ON COLUMN gn_exports.t_exports_logs.id_export IS 'Export type';
 COMMENT ON COLUMN gn_exports.t_exports_logs.format IS 'The exported format (csv, json, shp, geojson)';
@@ -67,6 +67,14 @@ COMMENT ON COLUMN gn_exports.t_exports_logs.start_time IS 'When the export proce
 COMMENT ON COLUMN gn_exports.t_exports_logs.end_time IS 'When the export process finish';
 COMMENT ON COLUMN gn_exports.t_exports_logs.status IS 'Status of the process : 1 ok: -2 error';
 COMMENT ON COLUMN gn_exports.t_exports_logs.log IS 'Holds export failure message';
+
+-- Create a view to list Exports LOGS with users names and exports labels
+CREATE OR REPLACE VIEW gn_exports.v_exports_logs AS 
+ SELECT r.nom_role ||' '||r.prenom_role AS utilisateur, e.label, l.format, l.start_time, l.end_time, l.status, l.log
+ FROM gn_exports.t_exports_logs l
+ JOIN utilisateurs.t_roles r ON r.id_role = l.id_role
+ JOIN gn_exports.t_exports e ON e.id = l.id_export
+ ORDER BY start_time
 
 
 CREATE OR REPLACE FUNCTION gn_exports.logs_delete_function()
