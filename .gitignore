@@ -19,6 +19,9 @@ tmp_*
 .flake8
 .pylintrc
 
+# instance tunable
+config/settings.ini
+
 # generated with geonature install_gn_module
 config/conf_schema_toml.py
 frontend/app/module.config.ts
