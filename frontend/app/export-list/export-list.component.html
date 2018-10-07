@@ -391,9 +391,8 @@
 
         <!-- Lien vers la documentation API -->
         <br><br>
-        <!-- FIXME: Constants.API_ENDPOINT -->
-        <!-- <a href="{{Constants.API_ENDPOINT}}/swagger_ui/index.html" class="btn btn-outline-secondary"  target="_blank">Documentation</a> -->
-        <a href="http://localhost:8000/exports/swagger-ui/index.html" class="btn btn-outline-secondary"  target="_blank">Documentation</a>
+        <!-- FIXME: API_ENDPOINT -->
+        <a href="${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}/swagger-ui/index.html" class="btn btn-outline-secondary"  target="_blank">Documentation</a>
 
       </div>
 
@@ -426,7 +425,7 @@
         </select>
         <!-- Affichage d'une barre de progression lors du téléchargement du fichier -->
         <div *ngIf="downloading">
-          <ng-pbar></ng-pbar>
+          <download-progress-bar></download-progress-bar>
         </div>
         <br>
       </div>

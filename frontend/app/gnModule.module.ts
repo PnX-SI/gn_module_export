@@ -8,13 +8,13 @@ import {
 } from '@angular/common/http'
 import { GN2CommonModule } from '@geonature_common/GN2Common.module'
 import { TranslateHttpLoader } from '@ngx-translate/http-loader'
+
 import {
   ExportListComponent,
   ProgressComponent,
   CollectionsComponent
 } from './export-list/export-list.component'
 import { ExportService } from './services/export.service'
-import { Constants } from './const'
 
 
 const routes: Routes = [
@@ -39,7 +39,6 @@ const routes: Routes = [
   ],
   providers: [
     ExportService,
-    Constants
   ],
   bootstrap: []
 })

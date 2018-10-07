@@ -26,12 +26,14 @@ import { CommonService } from "@geonature_common/service/common.service"
 // import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component"
 // import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service"
 
-import { Constants } from '../const'
+import { AppConfig } from '@geonature_config/app.config'
+
+import { ModuleConfig } from '../module.config'
 import { Export, ExportService, Collection } from "../services/export.service"
 
 
 @Component({
-  selector: 'ng-pbar',
+  selector: 'download-progress-bar',
   template: `<div class="telechargement">{{message}}</div>
 <p><ngb-progressbar [type]="type" [value]="progress$ | async" [striped]="true" [animated]="animated"></ngb-progressbar></p>`
 })
