@@ -1,22 +1,23 @@
 #!/bin/bash
-set -v
-# Make sure only root can run our script
-if [ "$(id -u)" == "0" ]; then
-   echo "This script must not be run as root" 1>&2
-   exit 1
+. config/settings.ini
+
+# Create log folder in module folders if it don't already exists
+if [ ! -d 'var' ]
+then
+  mkdir var
 fi
 
-# FIXME: config path
-. ~/geonature/config/settings.ini
+if [ ! -d 'var/log' ]
+then
+  mkdir var/log
+fi
 
 mkdir -p /tmp/geonature
 
 echo "Create exports schema..."
-echo "--------------------" &> /var/log/geonature/install_exports_schema.log
-echo "" &>> /var/log/geonature/install_exports_schema.log
 cp data/exports.sql /tmp/geonature/exports.sql
-sudo sed -i "s/MYLOCALSRID/$srid_local/g" /tmp/geonature/exports.sql
-export PGPASSWORD=$user_pg_pass;psql -h $db_host -U $user_pg -d $db_name -f /tmp/geonature/exports.sql  &>> /var/log/geonature/install_exports_schema.log
+# sudo sed -i "s/MY_LOCAL_SRID/$srid_local/g" /tmp/geonature/exports.sql
+export PGPASSWORD=$user_pg_pass;psql -h $db_host -U $user_pg -d $db_name -f /tmp/geonature/exports.sql  &>> var/log/install_gn_module_exports.log
 
 echo "Cleaning files..."
     rm /tmp/geonature/*.sql
