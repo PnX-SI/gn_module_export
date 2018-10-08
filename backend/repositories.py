@@ -120,9 +120,16 @@ class ExportRepository(object):
             else:
                 return result
 
-    def list(self):
+    def list(self, **kwargs):
         # TODO: list(self, filters)
-        result = Export.query.all()
+        q = Export.query
+        # while kwargs:
+        #     k, v = kwargs.popitem()
+        #     logger.debug(str(q.join(DB.text('gn_exports.cor_exports_roles'))
+        #                       .filter('gn_exports.cor_exports_roles'.id_role == v)))
+        #
+        # logger.debug(str(q))
+        result = q.all()
         if not result:
             raise NoResultFound('No configured export')
         return result
@@ -237,6 +244,8 @@ class ExportRepository(object):
                         and m.__tablename__ == tablename):
                     return m.__name__
             return ''
+
+        # FIXME: sync walk with last changes.
         return [{
                 'name': s,
                 'tables': [

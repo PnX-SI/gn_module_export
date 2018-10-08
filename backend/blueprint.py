@@ -264,7 +264,7 @@ def create(id_role):
 def getExports(id_role=1):
     repo = ExportRepository()
     try:
-        exports = repo.list()
+        exports = repo.list(id_role=id_role)
         logger.debug(exports)
     except NoResultFound:
         return {'api_error': 'NoResultFound',
@@ -358,8 +358,7 @@ def test_view():
                 c for c in selectable.c
                 if isinstance(c.type, Geometry)]
 
-            _selectable = select(
-                [
+            _selectable = select([
                     c if c not in geometries
                     else func.ST_GeomFromEWKB(
                         getattr(selectable.c, c.name)).label(c.name)
