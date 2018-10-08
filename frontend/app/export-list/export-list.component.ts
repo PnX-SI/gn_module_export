@@ -72,10 +72,7 @@ export class ExportListComponent implements OnInit {
   public closeResult: string
   private _export: Export
 
-  @ViewChild('entitySelection') entitySelection: ElementRef
   @ViewChild('content') FormatSelector: ElementRef
-  @ViewChild('contentApi') DatasetComposer: ElementRef
-
   constructor(
     private _exportService: ExportService,
     private _commonService: CommonService,
@@ -154,5 +151,8 @@ export class ExportListComponent implements OnInit {
     }
   }
 
-  openAPIDocumentation() { window.open(`${this.api_endpoint}/swagger-ui/index.html`) }
+  openAPIDocumentation() {
+    let docs = window.open(`${this.api_endpoint}/swagger-ui/index.html`)
+    docs.focus()
+  }
 }
