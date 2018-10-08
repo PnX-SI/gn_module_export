@@ -7,7 +7,7 @@ from flask import current_app
 from geonature.utils.env import DB
 from pypnusershub.db.tools import InsufficientRightsError
 
-from .models import (Export, ExportLog)
+from .models import (Export, ExportLog, CorExportsRoles)
 from .utils.query import ExportQuery
 
 
@@ -121,14 +121,17 @@ class ExportRepository(object):
                 return result
 
     def list(self, **kwargs):
-        # TODO: list(self, filters)
         q = Export.query
-        # while kwargs:
-        #     k, v = kwargs.popitem()
-        #     logger.debug(str(q.join(DB.text('gn_exports.cor_exports_roles'))
-        #                       .filter('gn_exports.cor_exports_roles'.id_role == v)))
-        #
-        # logger.debug(str(q))
+        if 'id_role' in kwargs.keys():
+            id_role = kwargs.pop('id_role')
+            q = q.join(CorExportsRoles)\
+                 .filter(CorExportsRoles.id_role == id_role)
+        # FIXME: #14 organism
+        while kwargs:
+            k, v = kwargs.popitem()
+            q = q.filter(getattr(Export, k) == v)
+
+        logger.debug('query: %s', str(q))
         result = q.all()
         if not result:
             raise NoResultFound('No configured export')
