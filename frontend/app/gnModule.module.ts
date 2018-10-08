@@ -12,7 +12,6 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader'
 import {
   ExportListComponent,
   ProgressComponent,
-  CollectionsComponent
 } from './export-list/export-list.component'
 import { ExportService } from './services/export.service'
 
@@ -33,7 +32,6 @@ const routes: Routes = [
   ],
   declarations: [
     ExportListComponent,
-    CollectionsComponent,
     ProgressComponent,
 
   ],

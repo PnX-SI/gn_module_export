@@ -36,7 +36,7 @@
                   <button id="api_id_{{value}}"
                           class="btn btn-outline-warning"
                           [disabled]="!buttonDisabled"
-                          (click)=open(contentApi)>API</button>
+                          (click)=openAPIDocumentation()>API</button>
                   <button id="{{value}}" type="submit"
                           class="btn btn-outline-primary"
                           [disabled]="!buttonDisabled"
@@ -51,16 +51,6 @@
         </div>
 
         <div id="readlicence">
-          <!-- <div id="choiceAdmin">
-            <button id="to_entitySelection"
-              type="submit"
-              class="btn btn-outline-secondary btn-sm pull-left"
-              (click)="open(entitySelection)">Collections</button>
-            <button id="to_contentApi"
-              type="submit"
-              class="btn btn-outline-secondary btn-sm pull-left"
-              (click)="open(contentApi)">API mockup</button>
-          </div> -->
           <a href="external_assets/exports/licence.pdf" download="licence.pdf" type="application/octet-stream">
             <input type="button" class="btn btn-outline-secondary btn-sm pull-right" value="Lire la licence">
           </a>
@@ -68,26 +58,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Modal exportable collections -->
-    <ng-template #entitySelection let-c="close" let-d="dismiss">
-      <div class="modal-header">
-        <h4 class="modal-title" style="text-indent: 25px;"> - Collections - </h4>
-      </div>
-      <div class="modal-body">
-        <select-collections></select-collections>
-      </div>
-      <div class="modal-footer" id="collectionsCTA">
-        <button type="submit"
-                class="btn btn-danger"
-                data-dismiss="modal"
-                (click)="c('Close collections')">Fermer</button>
-        <button id="collectionsOK"
-                type="submit"
-                class="btn btn-success"
-                (click)="collectionsSelected()">OK</button>
-      </div>
-    </ng-template>
 
     <!-- Modal Choix API - Interface graphique -->
     <ng-template #contentApi let-c="close" let-d="dismiss">
@@ -388,12 +358,6 @@
           </div>
           </section>
         </div>
-
-        <!-- Lien vers la documentation API -->
-        <br><br>
-        <!-- FIXME: API_ENDPOINT -->
-        <a href="${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}/swagger-ui/index.html" class="btn btn-outline-secondary"  target="_blank">Documentation</a>
-
       </div>
 
       <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->

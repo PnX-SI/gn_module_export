@@ -58,48 +58,6 @@ export class ProgressComponent {
 }
 
 @Component({
-  selector: 'select-collections',
-  template: `
-<div *ngFor="let collection of collections$ | async">
-  <a class="btn btn-outline-primary btn-block"
-     href="#{{ collection.name }}Collapse"
-     data-toggle="collapse"
-     aria-expanded="false"
-     attr.aria-controls="{{collection.name}}Collapse">{{ collection.name }}</a>
-  <section id="{{ collection.name }}Collapse" class="collapse">
-    <div *ngFor="let table of collection.tables">
-      <a class="btn btn-outline-secondary btn-block"
-         href="#{{ table.name }}Collapse"
-         data-toggle="collapse"
-         aria-expanded="true"
-         attr.aria-controls="{{ table.name }}Collapse">{{ table.name }}</a>
-      <section id="{{ table.name }}Collapse" class="collapse">
-        <div *ngFor="let field of table.fields">
-          <input type="checkbox" class="form-control"
-                 id="{{ collection.name }}_{{ table.name }}_{{ field }}"/>&nbsp;
-          <label for="{{ collection.name }}_{{ table.name }}_{{ field }}">{{ field }}</label>
-        </div>
-      </section>
-    </div>
-  </section>
-</div>
-`
-})
-export class CollectionsComponent implements OnInit {
-  collections$: Observable<Collection[]>
-
-  constructor(
-    private _exportService: ExportService,
-    private _fb: FormBuilder
-  ) { }
-
-  ngOnInit() {
-    this._exportService.getCollections()
-    this.collections$ = this._exportService.collections
-  }
-}
-
-@Component({
   selector: "pnx-export-list",
   templateUrl: "export-list.component.html",
   styleUrls: ["./export-list.component.scss"],
@@ -107,6 +65,7 @@ export class CollectionsComponent implements OnInit {
 })
 export class ExportListComponent implements OnInit {
   exports$: Observable<Export[]>
+  public api_endpoint = `${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}`
   public modalForm : FormGroup
   public buttonDisabled: boolean = false
   public downloading: boolean = false
@@ -195,8 +154,5 @@ export class ExportListComponent implements OnInit {
     }
   }
 
-  collectionsSelected() {
-    console.debug('hello')
-    console.warn(this.modalForm.value)
-  }
+  openAPIDocumentation() { window.open(`${this.api_endpoint}/swagger-ui/index.html`) }
 }
