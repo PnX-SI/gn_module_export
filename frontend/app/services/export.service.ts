@@ -27,12 +27,6 @@ export interface Export {
   geometry_srid: number
 }
 
-export interface Collection {
-  name: string
-  tables?: Collection[]
-  fields?: Collection[]
-}
-
 export interface ApiErrorResponse extends HttpErrorResponse {
   error: any | null
   message: string
@@ -43,13 +37,11 @@ export interface ApiErrorResponse extends HttpErrorResponse {
 @Injectable()
 export class ExportService {
   exports: BehaviorSubject<Export[]>
-  collections: BehaviorSubject<Collection[]>
   downloadProgress: BehaviorSubject<number>
   private _blob: Blob
 
   constructor(private _api: HttpClient, private toastr: ToastrService) {
     this.exports = <BehaviorSubject<Export[]>>new BehaviorSubject([])
-    this.collections = <BehaviorSubject<Collection[]>>new BehaviorSubject([])
     this.downloadProgress = <BehaviorSubject<number>>new BehaviorSubject(0.0)
   }
 
@@ -66,24 +58,6 @@ export class ExportService {
       () => {
         console.info(`export service: ${this.exports.value.length} exports`)
         console.debug('exports:',  this.exports.value)
-      }
-    )
-  }
-
-  getCollections() {
-    this._api.get(`${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}/Collections/`)
-      .subscribe(
-        (collections: Collection[]) => this.collections.next(collections),
-        (response: ApiErrorResponse) => {
-          this.toastr.error(
-            (response.error.message) ? response.error.message : response.message,
-            (response.error.api_error) ? response.error.api_error : response.name,
-            {timeOut: 0})
-        console.error('api error:', response)
-      },
-      () => {
-        console.info(`export service: ${this.collections.value.length} collections`)
-        console.debug('collections:',  this.collections.value)
       }
     )
   }
