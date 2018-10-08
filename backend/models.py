@@ -1,8 +1,6 @@
 from flask import current_app
 from geonature.utils.env import DB
-from geonature.utils.utilssqlalchemy import (
-    # geoserializable,
-    serializable)
+from geonature.utils.utilssqlalchemy import serializable
 from geonature.core.users.models import TRoles
 
 

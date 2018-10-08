@@ -8,7 +8,7 @@ from geonature.utils.env import DB
 from pypnusershub.db.tools import InsufficientRightsError
 
 from .models import (Export, ExportLog, CorExportsRoles)
-from .utils.query import ExportQuery
+from geonature.utils.utilssqlalchemy import GenericQuery
 
 
 logger = current_app.logger
@@ -36,8 +36,9 @@ class ExportRepository(object):
 
         logger.debug('Querying "%s"."%s"', schema, view)
 
-        query = ExportQuery(
-            id_role, self.session, view, schema, geom_column_header,
+        # TODO: id_role
+        query = GenericQuery(
+            self.session, view, schema, geom_column_header,
             filters, limit, paging)
 
         data = query.return_query()
@@ -183,78 +184,3 @@ class ExportRepository(object):
             self.session.rollback()
             logger.critical('%s', str(e))
             raise
-
-    def getCollections(self):
-        from sqlalchemy.engine import reflection
-        from pypnnomenclature.models import TNomenclatures
-
-        IGNORE = {
-            'information_schema': '*',
-            'public': ['spatial_ref_sys']
-        }
-        inspection = reflection.Inspector.from_engine(DB.engine)
-        schemas = {}
-        schema_names = [
-            schema
-            for schema in inspection.get_schema_names()
-            if IGNORE.get(schema, None) != '*'
-        ]
-        for schema in schema_names:
-            tables = {}
-            mapped_tables = (inspection.get_table_names(schema=schema)
-                             + inspection.get_view_names(schema=schema))
-            mapped_tables = [
-                t for t in mapped_tables
-                if not(IGNORE.get(schema, False) and t in IGNORE.get(schema))]
-            for table in mapped_tables:
-                columns = {}
-                mapped_columns = inspection.get_columns(table, schema=schema)
-                pk_constraints = inspection.get_primary_keys(
-                    table, schema=schema)
-                fks = inspection.get_foreign_keys(table, schema)
-                fk_constraints = {
-                    k: fk
-                    for fk in fks for k in fk['constrained_columns']}
-
-                for c in mapped_columns:
-
-                    c['type'] = str(c['type'])
-
-                    if c['name'] in fk_constraints.keys():
-                        c['fk_constraints'] = {
-                            key: fk_constraints[c['name']][key]
-                            for key in {
-                                'referred_schema',
-                                'referred_table',
-                                'referred_columns'}
-                        }
-
-                    if c['name'] in pk_constraints:
-                        c['is_primary_key'] = True
-
-                    columns.update({c['name']: [{k: v} for k, v in c.items() if k != 'name']})
-                tables.update({table: columns})
-            schemas.update({schema: tables})
-
-        models = [m for m in DB.Model._decl_class_registry.values()
-                  if hasattr(m, '__name__')]
-
-        def modelname_from_tablename(schema, tablename):
-            for m in models:
-                if (hasattr(m, '__name__')
-                        and hasattr(m, '__tablename__')
-                        and m.__table__.schema == schema
-                        and m.__tablename__ == tablename):
-                    return m.__name__
-            return ''
-
-        # FIXME: sync walk with last changes.
-        return [{
-                'name': s,
-                'tables': [
-                    {
-                        'name': t,
-                        'fields': [{k: v} for k, v in schemas[s][t].items()],
-                        'model': modelname_from_tablename(s, t)
-                    } for t in schemas[s]]
-                } for s in schemas]

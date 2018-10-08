@@ -11,9 +11,11 @@ from flask import (
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
+from geonature.utils.env import get_module_id
 from geonature.utils.filemanager import removeDisallowedFilenameChars
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub import routes as fnauth
+# get_or_fetch_user_cruved
 
 from .repositories import ExportRepository, EmptyDataSetError
 
@@ -31,6 +33,7 @@ SWAGGER_API_YAML = 'api.yaml'
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 
 DEFAULT_SCHEMA = 'gn_exports'
+ID_MODULE = get_module_id('exports')
 
 
 @blueprint.route('/swagger-ui/')
@@ -59,7 +62,7 @@ def export_filename(export):
     supports_credentials=True,
     allow_headers=['content-type', 'content-disposition'],
     expose_headers=['Content-Type', 'Content-Disposition', 'Authorization'])
-# @fnauth.check_auth(2, True)
+@fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
 def export(id_export, format, id_role=1):
     if id_export < 1:
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
@@ -141,9 +144,9 @@ def export(id_export, format, id_role=1):
 
 
 @blueprint.route('/<int:id_export>', methods=['POST'])
-@fnauth.check_auth(1, True)
+@fnauth.check_auth_cruved('U', True, id_app=ID_MODULE)
 @json_resp
-def update(id_export, id_role):
+def update(id_export, info_role):
     payload = request.get_json()
     label = payload.get('label', None)
     view_name = payload.get('view_name', None)
@@ -176,12 +179,12 @@ def update(id_export, id_role):
 
 
 @blueprint.route('/<int:id_export>', methods=['DELETE'])
-@fnauth.check_auth(3, True)
+@fnauth.check_auth_cruved('D', True, id_app=ID_MODULE)
 @json_resp
-def delete_export(id_export, id_role):
+def delete_export(id_export, info_role):
     repo = ExportRepository()
     try:
-        repo.delete(id_role, id_export)
+        repo.delete(info_role.id_role, id_export)
     except NoResultFound as e:
         logger.warn('%s', str(e))
         return {'api_error': 'NoResultFound',
@@ -195,9 +198,9 @@ def delete_export(id_export, id_role):
 
 
 @blueprint.route('/', methods=['POST'])
-@fnauth.check_auth(1, True)
+@fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
 @json_resp
-def create(id_role):
+def create(info_role):
     payload = request.get_json()
     label = payload.get('label', None)
     view_name = payload.get('view_name', None)
@@ -259,12 +262,12 @@ def create(id_role):
 
 
 @blueprint.route('/', methods=['GET'])
-# @fnauth.check_auth(2, True)
+@fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
 @json_resp
-def getExports(id_role=1):
+def getExports(info_role):
     repo = ExportRepository()
     try:
-        exports = repo.list(id_role=id_role)
+        exports = repo.list(id_role=info_role.id_role)
         logger.debug(exports)
     except NoResultFound:
         return {'api_error': 'NoResultFound',
@@ -274,149 +277,3 @@ def getExports(id_role=1):
         return {'api_error': 'LoggedError'}, 400
     else:
         return [export.as_dict() for export in exports]
-
-
-@blueprint.route('/Collections/')
-@json_resp
-def getCollections():
-    repo = ExportRepository()
-    return repo.getCollections()
-
-
-@blueprint.route('/testview')
-def test_view():
-    from sqlalchemy import inspect
-    from sqlalchemy.exc import NoReferencedTableError
-    from sqlalchemy.sql import Selectable as Selectable, func
-    from sqlalchemy.sql.expression import select, join
-    from geoalchemy2 import Geometry
-    from geonature.utils.env import DB
-    from .utils.views import mkView
-    # from .utils.query import ExportQuery
-    from geonature.utils.utilssqlalchemy import (
-        GenericQuery,
-        serializable,
-        geoserializable
-        )
-    from pypnnomenclature.models import TNomenclatures
-
-    filters = None
-    # filters = [
-    #     {
-    #         'GREATER_OR_EQUALS':
-    #             {
-    #                 'field': 'dateDebut',
-    #                 'condition': datetime(2017, 1, 1, 0, 0, 0)
-    #             }
-    #     }
-    # ]
-    # -> datetime.strptime(value[0], '%Y-%m-%dT%H:%M:%S.%fZ').date()
-    persisted = True
-    view_model_name = 'StuffView'
-
-    metadata = DB.MetaData(schema=DEFAULT_SCHEMA, bind=DB.engine)
-
-    def create_view(name: str, selectable: Selectable) -> DB.Model:
-        model = mkView(name, metadata, selectable)
-        metadata.create_all()
-        return model
-
-    try:
-        # columns = request.get_json('columns')
-        # selection = [c for c in columns]
-        models = [m for m in DB.Model._decl_class_registry.values()
-                  if hasattr(m, '__name__')]
-        src_model = [m for m in models if m.__name__ == 'CorAcquisitionFrameworkVoletSINP'][0]  # noqa: E501
-        # from random import choice
-        # src_model = choice(models)
-        logger.debug('model: %s', src_model.__name__)
-        # src_model.children = DB.relationship(
-        #     TNomenclatures,
-        #     # foreign_keys=[src_model.id_nomenclature_voletsinp],
-        #     # primaryjoin=(
-        #     #     src_model.id_nomenclature_voletsinp == TNomenclatures.id_nomenclature)
-        #     backref=TNomenclatures.__tablename__
-        #     )
-        # selection = [src_model, src_model.children]
-        selection = [src_model]
-
-        if selection is not None and view_model_name and persisted:
-
-            selectable = select(selection).alias('selection')
-            # q = DB.session.query(src_model)
-
-            # raise
-            # selectable = select(selection).select_from(
-            #     selection[0].join(
-            #         TNomenclatures.__table__,
-            #         selection[0].c.id_nomenclature_voletsinp == TNomenclatures.__table__.c.id_nomenclature  # noqa: E501
-            #     )).alias('selection')
-
-            logger.debug('processing geometries: %s', selectable)
-
-            geometries = [
-                c for c in selectable.c
-                if isinstance(c.type, Geometry)]
-
-            _selectable = select([
-                    c if c not in geometries
-                    else func.ST_GeomFromEWKB(
-                        getattr(selectable.c, c.name)).label(c.name)
-                    for c in selectable.c
-                ])  # noqa: E133
-
-            # raise
-            logger.debug('selectable after geom processing: %s', _selectable)
-
-            model = create_view(view_model_name, _selectable)
-            model = serializable(model)
-            if len(geometries) > 0:
-                model = geoserializable(model)
-                logger.debug(
-                    '%s geom%s found: %s',
-                    len(geometries), 's' if len(geometries) > 1 else '',
-                    [g.name for g in geometries])
-            # q = ExportQuery(
-            #     1,
-            q = GenericQuery(
-                DB.session,
-                model.__tablename__,
-                model.__table__.schema,
-                geometry_field=geometries[0].name if len(geometries) > 0 else None,
-                # filters=[],
-                filters=filters,
-                # filters={'filter_n_up_id_nomenclature': 1},
-                limit=1000, offset=0)
-            return to_json_resp(
-                {'model': src_model.__name__, **q.return_query()})
-    except Exception as e:
-        logger.critical('error: %s', str(e))
-        raise
-        return to_json_resp({'error': str(e),
-                             'model': src_model.__name__}, status=400)
-
-# model: TIndividuals
-# selectable:
-#     SELECT
-#         pr_cmr.t_individuals.id_individual,
-#         pr_cmr.t_individuals.cd_nom,
-#         pr_cmr.t_individuals.tag_code,
-#         pr_cmr.t_individuals.tag_location,
-#         pr_cmr.t_individuals.id_site_tag,
-#         pr_cmr.t_individuals.id_nomenclature_sex
-#     FROM pr_cmr.t_individuals
-# error:
-#     Foreign key associated with column 't_individuals.id_nomenclature_sex'
-#     could not find table 'ref_nomenclatures.t_nomenclatures'
-#     with which to generate a foreign key to target column 'id_nomenclature'
-#
-# model: CorAcquisitionFrameworkVoletSINP
-# selectable:
-#     SELECT
-#         gn_meta.cor_acquisition_framework_voletsinp.id_acquisition_framework,
-#         gn_meta.cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp
-#         FROM gn_meta.cor_acquisition_framework_voletsinp
-# error:
-#     Foreign key associated with column 'cor_acquisition_framework_voletsinp.id_nomenclature_voletsinp'
-#     could not find table 'ref_nomenclatures.t_nomenclatures'
-#     with which to generate a foreign key to target column 'id_nomenclature'
