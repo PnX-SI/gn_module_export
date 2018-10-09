@@ -63,7 +63,7 @@ def export_filename(export):
     allow_headers=['content-type', 'content-disposition'],
     expose_headers=['Content-Type', 'Content-Disposition', 'Authorization'])
 @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
-def export(id_export, format, id_role=1):
+def export(id_export, format, info_role):
     if id_export < 1:
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
@@ -71,7 +71,7 @@ def export(id_export, format, id_role=1):
         assert format in {'csv', 'json', 'shp'}
         repo = ExportRepository()
         export, columns, data = repo.get_by_id(
-            id_role, id_export, with_data=True, format=format)
+            info_role.id_role, id_export, with_data=True, format=format)
         if export:
             fname = export_filename(export)
             has_geometry = export.get('geometry_field', None)
