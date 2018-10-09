@@ -1,4 +1,13 @@
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
 CREATE SCHEMA IF NOT EXISTS gn_exports;
+
+SET search_path = gn_exports, pg_catalog;
 
 DROP TABLE IF EXISTS gn_exports.t_exports;
 CREATE TABLE gn_exports.t_exports
@@ -69,20 +78,9 @@ COMMENT ON COLUMN gn_exports.t_exports_logs.status IS 'Status of the process : 1
 COMMENT ON COLUMN gn_exports.t_exports_logs.log IS 'Holds export failure message';
 
 -- Create a view to list Exports LOGS with users names and exports labels
-CREATE OR REPLACE VIEW gn_exports.v_exports_logs AS 
+CREATE OR REPLACE VIEW gn_exports.v_exports_logs AS
  SELECT r.nom_role ||' '||r.prenom_role AS utilisateur, e.label, l.format, l.start_time, l.end_time, l.status, l.log
  FROM gn_exports.t_exports_logs l
  JOIN utilisateurs.t_roles r ON r.id_role = l.id_role
  JOIN gn_exports.t_exports e ON e.id = l.id_export
  ORDER BY start_time
-
-
-CREATE OR REPLACE FUNCTION gn_exports.logs_delete_function()
-    RETURNS void
-    LANGUAGE sql
-AS $body$
-
-DELETE FROM gn_exports.t_exports_logs
-WHERE start_time < now() - interval '6 months';
-
-$body$;
