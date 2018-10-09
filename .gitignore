@@ -22,6 +22,9 @@ tmp_*
 # instance tunable
 config/settings.ini
 
-# generated with geonature install_gn_module
+# generated/updated with geonature commands
 config/conf_gn_module.toml
 frontend/app/module.config.ts
+
+# logs
+var/
