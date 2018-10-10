@@ -67,8 +67,9 @@ export class ExportListComponent implements OnInit {
   exports$: Observable<Export[]>
   public api_endpoint = `${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}`
   public modalForm : FormGroup
-  public buttonDisabled: boolean = false
-  public downloading: boolean = false
+  public buttonDisabled = false
+  public downloading = false
+  public loadingIndicator = false
   public closeResult: string
   private _export: Export
 
@@ -90,8 +91,10 @@ export class ExportListComponent implements OnInit {
 
     })
 
+    this.loadingIndicator = true
     this._exportService.getExports()
     this.exports$ = this._exportService.exports
+    this.loadingIndicator = false
   }
 
   get formatSelection() {

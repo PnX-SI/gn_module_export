@@ -15,6 +15,7 @@
         <!-- Liste des exports disponibles au téléchargement -->
         <div>
           <ngx-datatable
+            [loadingIndicator]="loadingIndicator"
             [rows]="exports$ | async"
             [columnMode]="'flex'"
             [rowHeight]="'auto'"
