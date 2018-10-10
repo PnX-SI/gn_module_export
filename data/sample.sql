@@ -11,4 +11,5 @@ SET row_security = off;
 INSERT INTO gn_exports.t_exports (label, schema_name, view_name, "desc", geometry_field, geometry_srid) VALUES ('OccTax - DLB', 'pr_occtax', 'export_occtax_dlb', 'Dépôt Légal de Biodiversité', 'geom_4326', 4326);
 INSERT INTO gn_exports.t_exports (label, schema_name, view_name, "desc", geometry_field, geometry_srid) VALUES ('OccTax - SINP', 'pr_occtax', 'export_occtax_sinp', 'SINP compliant dataset', NULL, NULL);
 
-SELECT pg_catalog.setval('gn_exports.t_exports_id_seq', 1, false);
+INSERT INTO gn_exports.cor_exports_roles (id_export, id_role) VALUES (1, 1);
+INSERT INTO gn_exports.cor_exports_roles (id_export, id_role) VALUES (2, 1);
