@@ -1,168 +1,180 @@
 swagger: "2.0"
 info:
-  title: "Personnalisation des exports Géonature"
-  description: "Permet d'effectuer des exports spécifiques à la demande"
   version: "1.0.0"
+  title: "Occurences de taxon - SINP"
+  description: "Export de JDD d'occurences format SINP"
+  termsOfService: http://example.com/terms/
+  contact:
+    name: API Support
+    url: http://www.example.com/support
+    email: support@example.com
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
 tags:
-- name: "Classification"
-  description: "Ensemble des termes de classification des taxons"
-- name: "Reconnaissance"
-  description: "Critères de reconnaissances des taxons"
-- name: "Geo-localisation"
-  description: "Opérations de localisation autour des taxons"
-- name: "Temporelle"
-  description: "Opérations temporelle autour des taxons"
-- name: "Observateur"
-  description: "Operations autour de l'observateur"
-host: "rest-api.local"
+  - name: "Classification"
+    description: "Ensemble des termes de classification des taxons"
+  - name: "Reconnaissance"
+    description: "Critères de reconnaissances des taxons"
+  - name: "Geo-localisation"
+    description: "Opérations de localisation autour des taxons"
+  - name: "Temporelle"
+    description: "Opérations temporelle autour des taxons"
+  - name: "Observateur"
+    description: "Operations autour de l'observateur"
+# host: "localhost:8000"
+servers:
+  - url: http://localhost:4200/#/exports/  # FIXME: API_ENDPOINT + api_url
+    description: Development server
+  - url: http://http://demo.geonature.fr/geonature/#/
+    description: Production server
+basePath: "/exports/"
 schemes:
   - "http"
 produces:
   - "application/json"
-  - "application/xml"
+  - "application/csv"
+  - "application/zip"
 consumes:
   - "application/json"
-  - "application/xml"
 paths:
   /cdRef:
-    get: 
+    get:
       tags:
       - "Classification"
       responses:
         405:
           description: "Invalid input"
   /cdNom:
-    get: 
+    get:
       tags:
       - "Classification"
       responses:
         405:
           description: "Invalid input"
   /regne:
-    get: 
+    get:
       tags:
       - "Classification"
       responses:
         405:
           description: "Invalid input"
   /famille:
-    get: 
+    get:
       tags:
       - "Classification"
       responses:
         405:
           description: "Invalid input"
   /groupe:
-    get: 
+    get:
       tags:
       - "Classification"
       responses:
         405:
           description: "Invalid input"
   /obsTechnique:
-    get: 
+    get:
       tags:
       - "Reconnaissance"
       responses:
         405:
-          description: "Invalid input"        
+          description: "Invalid input"
   /bioStatus:
-    get: 
+    get:
       tags:
       - "Reconnaissance"
       responses:
         405:
-          description: "Invalid input"        
+          description: "Invalid input"
   /bioCondition:
-    get: 
+    get:
       tags:
       - "Reconnaissance"
       responses:
         405:
-          description: "Invalid input" 
+          description: "Invalid input"
   /sex:
-    get: 
+    get:
       tags:
       - "Reconnaissance"
       responses:
         405:
           description: "Invalid input"
   /blurring:
-    get: 
+    get:
       tags:
       - "Reconnaissance"
       responses:
         405:
           description: "Invalid input"
   /existProof:
-    get: 
+    get:
       tags:
       - "Reconnaissance"
       responses:
         405:
           description: "Invalid input"
   /altitudeMin:
-    get: 
+    get:
       tags:
       - "Geo-localisation"
       responses:
         405:
           description: "Invalid input"
   /altitudeMax:
-    get: 
+    get:
       tags:
       - "Geo-localisation"
       responses:
         405:
           description: "Invalid input"
   /municipality:
-    get: 
+    get:
       tags:
       - "Geo-localisation"
       responses:
         405:
           description: "Invalid input"
   /dateMin:
-    get: 
+    get:
       tags:
       - "Temporelle"
       responses:
         405:
           description: "Invalid input"
   /dateMax:
-    get: 
+    get:
       tags:
       - "Temporelle"
       responses:
         405:
           description: "Invalid input"
   /hourMin:
-    get: 
+    get:
       tags:
       - "Temporelle"
       responses:
         405:
           description: "Invalid input"
   /hourMax:
-    get: 
+    get:
       tags:
       - "Temporelle"
       responses:
         405:
-          description: "Invalid input"        
+          description: "Invalid input"
   /observers:
-    get: 
+    get:
       tags:
       - "Observateur"
       responses:
         405:
           description: "Invalid input"
   /determiner:
-    get: 
+    get:
       tags:
       - "Observateur"
       responses:
         405:
           description: "Invalid input"
-    
-    
