@@ -14,12 +14,11 @@ externalDocs:
   description: "Find out more about GéoNature"
   url: "http://geonature.fr"
 servers:
-  # FIXME: API_ENDPOINT + api_url
   - url: http://{api_endpoint}/{api_url}/
     description: Development server
     variables:
-      api_endpoint: localhost:8000
-      api_url: exports
+      api_endpoint: {{API_ENDPOINT}}
+      api_url: {{API_URL}}
   # - url: http://{api_endpoint}/{api_url}/
   #   description: Demo server
   #   variables:
@@ -55,8 +54,7 @@ components:
         scheme: bearer
         bearerFormat: JWT
 paths:
-  # FIXME: api_url
-  /exports/:
+  /{{API_URL}}/:
     get:
       description: Returns all exports from the system that the user has access to
       responses:
@@ -67,14 +65,14 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/export'
+                  $ref: '#/components/schemas/Export'
         '404':
           description: No configured exports
         '400':
           description: Unexpected usage
         '403':
           description: Unauthenticated
-  /exports/{id}/{format}:
+  /{{API_URL}}/{id}/{format}:
     get:
       description: Returns the format-specified data from the export the user has access to
       parameters:
@@ -167,4 +165,4 @@ paths:
         '400':
           description: Unexpected usage
         '403':
-          description: Unauthenticated | Insufficient rights
+          description: Unauthenticated | Insufficient rights

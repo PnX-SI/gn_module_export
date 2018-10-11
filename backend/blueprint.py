@@ -14,8 +14,7 @@ from geonature.utils.utilssqlalchemy import (
 from geonature.utils.env import get_module_id
 from geonature.utils.filemanager import removeDisallowedFilenameChars
 from pypnusershub.db.tools import InsufficientRightsError
-from pypnusershub import routes as fnauth
-# get_or_fetch_user_cruved
+from pypnusershub import routes as fnauth  # get_or_fetch_user_cruved
 
 from .repositories import ExportRepository, EmptyDataSetError
 
@@ -28,12 +27,27 @@ blueprint = Blueprint('exports', __name__)
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 # extracted from dummy npm install
 SWAGGER_UI_DIST_DIR = os.path.join(ASSETS, 'swagger-ui-dist')
+SWAGGER_API_SAMPLE_YAML = 'api_sample.yaml'
 SWAGGER_API_YAML = 'api.yaml'
 
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 
 DEFAULT_SCHEMA = 'gn_exports'
 ID_MODULE = get_module_id('exports')
+
+
+with open(os.path.join(ASSETS, SWAGGER_API_SAMPLE_YAML), 'r') as input:
+    from geonature.utils.utilstoml import load_toml
+    content = input.read()
+    for k, v in ({
+            'API_ENDPOINT': current_app.config['API_ENDPOINT'],
+            'API_URL': load_toml(
+                    os.path.join('config', 'conf_gn_module.toml')
+                ).get('api_url').replace('/', '')
+            }).items():
+        content = content.replace('{{{{{}}}}}'.format(k), v)
+        with open(os.path.join(ASSETS, SWAGGER_API_YAML), 'w') as output:
+            output.write(content)
 
 
 @blueprint.route('/swagger-ui/')
@@ -266,6 +280,8 @@ def create(info_role):
 @json_resp
 def getExports(info_role):
     repo = ExportRepository()
+    # from time import sleep
+    # sleep(2)
     try:
         exports = repo.list(id_role=info_role.id_role)
         logger.debug(exports)

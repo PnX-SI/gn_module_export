@@ -22,6 +22,9 @@ tmp_*
 # instance tunable
 config/settings.ini
 
+# Overwritten with app start
+backend/assets/api.yaml
+
 # generated/updated with geonature commands
 config/conf_gn_module.toml
 frontend/app/module.config.ts
