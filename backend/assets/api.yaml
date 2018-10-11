@@ -105,7 +105,7 @@ paths:
             'application/zip': {}
           examples:
             application/json: |
-              {
+              [{
                 "obsMeth": "23",                                           # some comment on this particular field
                 "preuvNum": "",
                 "permIdGrp": "51bd7642-512f-49aa-a917-cd2fcb8da1e3",
@@ -156,7 +156,7 @@ paths:
                 "natObjGeo": "In"
               }, {
                 "...": "..."
-              }
+              }]
             text/csv: |
               permId,statObs,nomCite,dateDebut,dateFin,heureDebut,heureFin,altMax,altMin,cdNom,cdRef,versionTAXREF,datedet,comment,dSPublique,jddMetadonneeDEEId,statSource,diffusionNiveauPrecision,idOrigine,jddCode,jddId,refBiblio,obsMeth,ocEtatBio,ocNat,ocSex,ocStade,ocBiogeo,ocStatBio,preuveOui,ocMethDet,preuvNum,preuvNoNum,obsCtx,permIdGrp,methGrp,typGrp,denbrMax,denbrMin,objDenbr,typDenbr,obsId,obsNomOrg,detId,detNomOrg,orgGestDat,WKT,natObjGeo
               "5ce538fd-8143-4810-a6c8-7a98cf14f879","Pr","Grenouille rousse","2017-01-01 00:00:00","2017-01-01 00:00:00","12:05:02","12:05:02","1565","1500","351","351","Taxref V11.0","2017-01-01 00:00:00","Autre test","NSP","4d331cae-65e4-4948-b0b2-a11bc5bb46c2","","0","5ce538fd-8143-4810-a6c8-7a98cf14f879","Contact aléatoire tous règnes confondus","4d331cae-65e4-4948-b0b2-a11bc5bb46c2","","23","1","1","2","4","0","1","0","Autre méthode de détermination","","Poils de plumes","Exemple test","51bd7642-512f-49aa-a917-cd2fcb8da1e3","Relevé","OBS","1","1","IND","Co","Administrateur test","Autre","Théo","NSP","NSP","POINT(6.5 44.85)","In"
