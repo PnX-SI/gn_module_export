@@ -40,7 +40,8 @@ with open(os.path.join(ASSETS, SWAGGER_API_SAMPLE_YAML), 'r') as input:
     from geonature.utils.utilstoml import load_toml
     content = input.read()
     for k, v in ({
-            'API_ENDPOINT': current_app.config['API_ENDPOINT'],
+            'API_ENDPOINT': current_app.config['API_ENDPOINT']
+                                       .replace('http://', ''),
             'API_URL': load_toml(
                     os.path.join('config', 'conf_gn_module.toml')
                 ).get('api_url').replace('/', '')

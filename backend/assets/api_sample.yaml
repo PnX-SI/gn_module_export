@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  version: "1.0.0"
+  version: "0.1.0"
   title: "Exports de JDD concernant la biodiversité"
   description: "Export de vos jeux de données GéoNature aux formats geojson, csv et shapefile"
   contact:
