@@ -1,7 +1,6 @@
 import sys
 import logging
 from datetime import datetime
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from flask import current_app
 from geonature.utils.env import DB
@@ -123,11 +122,12 @@ class ExportRepository(object):
 
     def list(self, **kwargs):
         q = Export.query
-        if 'id_role' in kwargs.keys():
-            id_role = kwargs.pop('id_role')
-            q = q.join(CorExportsRoles)\
-                 .filter(CorExportsRoles.id_role == id_role)
-        # FIXME: #14 organism
+
+        # FIXME: #14 id_role in groups 'Grp_en_poste', 'Grp_admin'
+        id_role = kwargs.pop('id_role')
+        q = q.join(CorExportsRoles)\
+             .filter(CorExportsRoles.id_role == id_role)
+
         while kwargs:
             k, v = kwargs.popitem()
             q = q.filter(getattr(Export, k) == v)
@@ -138,49 +138,47 @@ class ExportRepository(object):
             raise NoResultFound('No configured export')
         return result
 
-    def create(self, adict):
-        # TODO: adict.pop('selectable') and create_view(selectable)
-        try:
-            x = Export.from_dict(adict)
-            self.session.add(x)
-            self.session.flush()
-        except IntegrityError as e:
-            self.session.rollback()
-            logger.warn('%s', str(e))
-            raise e
-        except Exception as e:
-            self.session.rollback()
-            logger.warn('%s', str(e))
-            raise e
-        else:
-            return x
-
-    def update(self, adict):
-        # TODO: drop/recreate/refresh view
-        x = self.get_by_id(adict['id_export'])
-        if not x:
-            raise NoResultFound(
-                'Unknown export id: {}'.format(adict['id_export']))
-        try:
-            x.__dict__.update(
-                (k, v)
-                for k, v in adict.items()
-                if k in x.__dict__ and not callable(v))
-            self.session.add(x)
-            self.session.flush()
-        except Exception as e:
-            self.session.rollback()
-            logger.warn('%s', str(e))
-            raise e
-        else:
-            return x
-
-    def delete(self, id_role, id_export):
-        try:
-            self.get_by_id(id_export).delete()
-            # TODO: drop view if view.schema == DEFAULT_SCHEMA
-            self.session.commit()
-        except Exception as e:
-            self.session.rollback()
-            logger.critical('%s', str(e))
-            raise
+    # def create(self, adict):
+    #     from sqlalchemy.exc import IntegrityError
+    #     try:
+    #         x = Export.from_dict(adict)
+    #         self.session.add(x)
+    #         self.session.flush()
+    #     except IntegrityError as e:
+    #         self.session.rollback()
+    #         logger.warn('%s', str(e))
+    #         raise e
+    #     except Exception as e:
+    #         self.session.rollback()
+    #         logger.warn('%s', str(e))
+    #         raise e
+    #     else:
+    #         return x
+    #
+    # def update(self, adict):
+    #     x = self.get_by_id(adict['id_export'])
+    #     if not x:
+    #         raise NoResultFound(
+    #             'Unknown export id: {}'.format(adict['id_export']))
+    #     try:
+    #         x.__dict__.update(
+    #             (k, v)
+    #             for k, v in adict.items()
+    #             if k in x.__dict__ and not callable(v))
+    #         self.session.add(x)
+    #         self.session.flush()
+    #     except Exception as e:
+    #         self.session.rollback()
+    #         logger.warn('%s', str(e))
+    #         raise e
+    #     else:
+    #         return x
+    #
+    # def delete(self, id_role, id_export):
+    #     try:
+    #         self.get_by_id(id_export).delete()
+    #         self.session.commit()
+    #     except Exception as e:
+    #         self.session.rollback()
+    #         logger.critical('%s', str(e))
+    #         raise

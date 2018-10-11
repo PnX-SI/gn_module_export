@@ -44,7 +44,7 @@ with open(os.path.join(ASSETS, SWAGGER_API_SAMPLE_YAML), 'r') as input:
                                        .replace('http://', ''),
             'API_URL': load_toml(
                     os.path.join('config', 'conf_gn_module.toml')
-                ).get('api_url').replace('/', '')
+                ).get('api_url').lstrip('/')
             }).items():
         content = content.replace('{{{{{}}}}}'.format(k), v)
         with open(os.path.join(ASSETS, SWAGGER_API_YAML), 'w') as output:
@@ -158,128 +158,11 @@ def export(id_export, format, info_role):
         return to_json_resp({'api_error': 'LoggedError'}, status=400)
 
 
-@blueprint.route('/<int:id_export>', methods=['POST'])
-@fnauth.check_auth_cruved('U', True, id_app=ID_MODULE)
-@json_resp
-def update(id_export, info_role):
-    payload = request.get_json()
-    label = payload.get('label', None)
-    view_name = payload.get('view_name', None)
-    schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
-    desc = payload.get('desc', None)
-
-    if not all(label, schema_name, view_name, desc):
-        return {
-            'api_error': 'MissingParameter',
-            'message': 'Missing parameter: {}'. format(
-                'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
-
-    repo = ExportRepository()
-    try:
-        export = repo.update(
-            id_export=id_export,
-            label=label,
-            schema_name=schema_name,
-            view_name=view_name,
-            desc=desc)
-    except NoResultFound as e:
-        logger.warn('%s', e)
-        return {'api_error': 'NoResultFound',
-                'message': str(e)}, 404
-    except Exception as e:
-        logger.critical('%s', e)
-        return {'api_error': 'LoggedError'}, 400
-    else:
-        return export.as_dict(), 201
-
-
-@blueprint.route('/<int:id_export>', methods=['DELETE'])
-@fnauth.check_auth_cruved('D', True, id_app=ID_MODULE)
-@json_resp
-def delete_export(id_export, info_role):
-    repo = ExportRepository()
-    try:
-        repo.delete(info_role.id_role, id_export)
-    except NoResultFound as e:
-        logger.warn('%s', str(e))
-        return {'api_error': 'NoResultFound',
-                'message': str(e)}, 404
-    except Exception as e:
-        logger.critical('%s', str(e))
-        return {'api_error': 'LoggedError'}, 400
-    else:
-        # return '', 204 -> 404 client side, interceptors ?
-        return {'result': 'success'}, 204
-
-
-@blueprint.route('/', methods=['POST'])
-@fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
-@json_resp
-def create(info_role):
-    payload = request.get_json()
-    label = payload.get('label', None)
-    view_name = payload.get('view_name', None)
-    schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
-    desc = payload.get('desc', None)
-    geometry_field = payload.get('geometry_field'),
-    geometry_srid = payload.get('geometry_srid')
-
-    # ERROR_UNKNOWN_FIELD = "unknown field"
-    # ERROR_REQUIRED_FIELD = "required field"
-    # from marshmallow import Schema, fields, ValidationError
-    #
-    # def must_not_be_blank(data):
-    #     if not data:
-    #         raise ValidationError('Data not provided.')
-    #
-    # class ExportSchema(Schema):
-    #     id = fields.Integer(dump_only=True)
-    #     label = fields.String(required=True, validate=[must_not_be_blank])
-    #     view_name = fields.String(required=True, validate=[must_not_be_blank])
-    #     schema_name = fields.String(required=True)
-    #     desc = fields.String(required=False)
-    #     geometry_field = fields.Geometry(required=False),
-    #     geometry_srid = fields.Integer(required=False)
-    #
-    # export_schema = ExportSchema()
-    # exportsSchema = ExportSchema(many=True)
-    # # , only=('label', 'view_name', 'schema_name', 'desc')
-    #
-    # try:
-    #     data, errors = export_schema.load(request.get_json())
-    # except ValidationError as e:
-    #     return jsonify(e.messages), 400
-
-    if not(label and schema_name and view_name):
-        return {
-            'error': 'MissingParameter',
-            'message': 'Missing parameter: {}'. format(
-                'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
-
-    repo = ExportRepository()
-    try:
-        export = repo.create({
-            'label': label,
-            'schema_name': schema_name,
-            'view_name': view_name,
-            'desc': desc,
-            'geometry_field': geometry_field,
-            'geometry_srid': geometry_srid})
-    except IntegrityError as e:
-        if '(label)=({})'.format(label) in str(e):
-            return {'api_error': 'RegisteredLabel',
-                    'message': 'Label {} is already registered.'.format(label)}, 400  # noqa: E501
-        else:
-            logger.critical('%s', str(e))
-            raise
-    else:
-        return export.as_dict(), 201
-
-
 @blueprint.route('/', methods=['GET'])
 @fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
 @json_resp
 def getExports(info_role):
+    logger.debug('info_role: %s', info_role)
     repo = ExportRepository()
     # from time import sleep
     # sleep(2)
@@ -294,3 +177,94 @@ def getExports(info_role):
         return {'api_error': 'LoggedError'}, 400
     else:
         return [export.as_dict() for export in exports]
+
+# @blueprint.route('/<int:id_export>', methods=['POST'])
+# @fnauth.check_auth_cruved('U', True, id_app=ID_MODULE)
+# @json_resp
+# def update(id_export, info_role):
+#     payload = request.get_json()
+#     label = payload.get('label', None)
+#     view_name = payload.get('view_name', None)
+#     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
+#     desc = payload.get('desc', None)
+#
+#     if not all(label, schema_name, view_name, desc):
+#         return {
+#             'api_error': 'MissingParameter',
+#             'message': 'Missing parameter: {}'. format(
+#                 'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
+#
+#     repo = ExportRepository()
+#     try:
+#         export = repo.update(
+#             id_export=id_export,
+#             label=label,
+#             schema_name=schema_name,
+#             view_name=view_name,
+#             desc=desc)
+#     except NoResultFound as e:
+#         logger.warn('%s', e)
+#         return {'api_error': 'NoResultFound',
+#                 'message': str(e)}, 404
+#     except Exception as e:
+#         logger.critical('%s', e)
+#         return {'api_error': 'LoggedError'}, 400
+#     else:
+#         return export.as_dict(), 201
+#
+#
+# @blueprint.route('/<int:id_export>', methods=['DELETE'])
+# @fnauth.check_auth_cruved('D', True, id_app=ID_MODULE)
+# @json_resp
+# def delete_export(id_export, info_role):
+#     repo = ExportRepository()
+#     try:
+#         repo.delete(info_role.id_role, id_export)
+#     except NoResultFound as e:
+#         logger.warn('%s', str(e))
+#         return {'api_error': 'NoResultFound',
+#                 'message': str(e)}, 404
+#     except Exception as e:
+#         logger.critical('%s', str(e))
+#         return {'api_error': 'LoggedError'}, 400
+#     else:
+#         # return '', 204 -> 404 client side, interceptors ?
+#         return {'result': 'success'}, 204
+#
+#
+# @blueprint.route('/', methods=['POST'])
+# @fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
+# @json_resp
+# def create(info_role):
+#     payload = request.get_json()
+#     label = payload.get('label', None)
+#     view_name = payload.get('view_name', None)
+#     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
+#     desc = payload.get('desc', None)
+#     geometry_field = payload.get('geometry_field'),
+#     geometry_srid = payload.get('geometry_srid')
+#
+#     if not(label and schema_name and view_name):
+#         return {
+#             'error': 'MissingParameter',
+#             'message': 'Missing parameter: {}'. format(
+#                 'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
+#
+#     repo = ExportRepository()
+#     try:
+#         export = repo.create({
+#             'label': label,
+#             'schema_name': schema_name,
+#             'view_name': view_name,
+#             'desc': desc,
+#             'geometry_field': geometry_field,
+#             'geometry_srid': geometry_srid})
+#     except IntegrityError as e:
+#         if '(label)=({})'.format(label) in str(e):
+#             return {'api_error': 'RegisteredLabel',
+#                     'message': 'Label {} is already registered.'.format(label)}, 400  # noqa: E501
+#         else:
+#             logger.critical('%s', str(e))
+#             raise
+#     else:
+#         return export.as_dict(), 201
