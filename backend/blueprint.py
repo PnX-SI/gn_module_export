@@ -47,8 +47,8 @@ with open(os.path.join(ASSETS, SWAGGER_API_SAMPLE_YAML), 'r') as input:
                 ).get('api_url').lstrip('/')
             }).items():
         content = content.replace('{{{{{}}}}}'.format(k), v)
-        with open(os.path.join(ASSETS, SWAGGER_API_YAML), 'w') as output:
-            output.write(content)
+    with open(os.path.join(ASSETS, SWAGGER_API_YAML), 'w') as output:
+        output.write(content)
 
 
 @blueprint.route('/swagger-ui/')
