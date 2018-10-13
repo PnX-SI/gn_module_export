@@ -14,15 +14,15 @@ externalDocs:
   description: "Find out more about GéoNature"
   url: "http://geonature.fr"
 servers:
-  - url: http://{api_endpoint}/{api_url}/
+  - url: "{api_endpoint}/{api_url}/"
     description: Development server
     variables:
       api_endpoint: {{API_ENDPOINT}}
       api_url: {{API_URL}}
-  # - url: http://{api_endpoint}/{api_url}/
+  # - url: "{api_endpoint}/{api_url}/"
   #   description: Demo server
   #   variables:
-  #     api_endpoint: demo.geonature.fr/geonature/api
+  #     api_endpoint: http://demo.geonature.fr/geonature/api
   #     api_url: exports
 schemes:
   - http

@@ -27,8 +27,10 @@ blueprint = Blueprint('exports', __name__)
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 # extracted from dummy npm install
 SWAGGER_UI_DIST_DIR = os.path.join(ASSETS, 'swagger-ui-dist')
+SWAGGER_UI_SAMPLE_INDEXHTML = 'index.sample.html'
+SWAGGER_UI_INDEXHTML = 'index.html'
 SWAGGER_API_SAMPLE_YAML = 'api_sample.yaml'
-SWAGGER_API_YAML = 'api.yaml'
+SWAGGER_API_YAML = 'api.yml'
 
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 
@@ -36,19 +38,27 @@ DEFAULT_SCHEMA = 'gn_exports'
 ID_MODULE = get_module_id('exports')
 
 
-with open(os.path.join(ASSETS, SWAGGER_API_SAMPLE_YAML), 'r') as input:
-    from geonature.utils.utilstoml import load_toml
-    content = input.read()
-    for k, v in ({
-            'API_ENDPOINT': current_app.config['API_ENDPOINT']
-                                       .replace('http://', ''),
-            'API_URL': load_toml(
-                    os.path.join('config', 'conf_gn_module.toml')
-                ).get('api_url').lstrip('/')
-            }).items():
-        content = content.replace('{{{{{}}}}}'.format(k), v)
-    with open(os.path.join(ASSETS, SWAGGER_API_YAML), 'w') as output:
-        output.write(content)
+for template, serving in {
+        os.path.join(
+            ASSETS, SWAGGER_API_SAMPLE_YAML): os.path.join(
+                ASSETS, SWAGGER_API_YAML),
+        os.path.join(
+            SWAGGER_UI_DIST_DIR, SWAGGER_UI_SAMPLE_INDEXHTML): os.path.join(
+                SWAGGER_UI_DIST_DIR, SWAGGER_UI_INDEXHTML)
+        }.items():
+    with open(template, 'r') as input:
+        from geonature.utils.utilstoml import load_toml
+        content = input.read()
+        for k, v in ({
+                'API_ENDPOINT': current_app.config['API_ENDPOINT'],
+                'API_URL': load_toml(
+                        os.path.join('config', 'conf_gn_module.toml')
+                    ).get('api_url').lstrip('/'),
+                'API_YAML': SWAGGER_API_YAML
+                }).items():
+            content = content.replace('{{{{{}}}}}'.format(k), v)
+        with open(serving, 'w') as output:
+            output.write(content)
 
 
 @blueprint.route('/swagger-ui/')
@@ -61,7 +71,7 @@ def swagger_assets(asset):
     return send_from_directory(SWAGGER_UI_DIST_DIR, asset)
 
 
-@blueprint.route('/api.yml')
+@blueprint.route('/' + SWAGGER_API_YAML)
 def swagger_api_yml():
     return send_from_directory(ASSETS, SWAGGER_API_YAML)
 

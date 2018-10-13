@@ -23,7 +23,8 @@ tmp_*
 config/settings.ini
 
 # Overwritten with app start
-backend/assets/api.yaml
+backend/assets/api.yml
+backend/assets/swagger-ui-dist/index.html
 
 # generated/updated with geonature commands
 config/conf_gn_module.toml
