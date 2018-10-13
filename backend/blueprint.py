@@ -48,18 +48,18 @@ for template, serving in {
     with open(template, 'r') as input:
         from geonature.utils.utilstoml import load_toml
         content = input.read()
+        host, base_path, *_ = current_app.config['API_ENDPOINT']\
+                                         .replace('https://', '')\
+                                         .replace('http://', '')\
+                                         .split('/', 1) + ['']
         for k, v in ({
                 'API_ENDPOINT': current_app.config['API_ENDPOINT'],
-                'HOST': current_app.config['API_ENDPOINT']
-                                   .replace('https://', '')
-                                   .replace('http://', '')
-                                   .split('/', 1)[0],
-                'BASE_PATH': '/' + current_app.config['API_ENDPOINT']
-                                   .replace('https://', '')
-                                   .replace('http://', '')
-                                   .split('/', 1)[1],
+                'HOST': host,
+                'BASE_PATH': '/' + base_path if base_path else '',
                 'API_URL': load_toml(
-                        os.path.join(blueprint.root_path, '..', 'config', 'conf_gn_module.toml')
+                        os.path.join(
+                            blueprint.root_path, '..', 'config',
+                            'conf_gn_module.toml')
                     ).get('api_url').lstrip('/'),
                 'API_YAML': SWAGGER_API_YAML
                 }).items():
