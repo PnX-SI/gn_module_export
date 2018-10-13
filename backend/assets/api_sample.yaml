@@ -48,15 +48,17 @@ paths:
   /{{API_URL}}/:
     get:
       description: Returns all exports from the system that the user has access to
+      tags:
+        - Exports
       responses:
         '200':
           description: A list of exports
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Export'
+          # content:
+          #   application/json:
+          #     schema:
+          #       type: array
+          #       items:
+          #         $ref: '#/components/schemas/Export'
         '404':
           description: No configured exports
         '400':
@@ -66,6 +68,8 @@ paths:
   /{{API_URL}}/{id}/{format}:
     get:
       description: Returns the format-specified data from the export the user has access to
+      tags:
+        - Exports
       parameters:
         - name: id
           in: path
