@@ -59,7 +59,7 @@ for template, serving in {
                                    .replace('http://', '')
                                    .split('/', 1)[1],
                 'API_URL': load_toml(
-                        os.path.join('config', 'conf_gn_module.toml')
+                        os.path.join(blueprint.root_path, '..', 'config', 'conf_gn_module.toml')
                     ).get('api_url').lstrip('/'),
                 'API_YAML': SWAGGER_API_YAML
                 }).items():
