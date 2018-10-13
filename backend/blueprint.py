@@ -24,6 +24,11 @@ logger.setLevel(logging.DEBUG)
 
 blueprint = Blueprint('exports', __name__)
 
+SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
+
+DEFAULT_SCHEMA = 'gn_exports'
+ID_MODULE = get_module_id('exports')
+
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 # extracted from dummy npm install
 SWAGGER_UI_DIST_DIR = os.path.join(ASSETS, 'swagger-ui-dist')
@@ -32,18 +37,12 @@ SWAGGER_UI_INDEXHTML = 'index.html'
 SWAGGER_API_SAMPLE_YAML = 'api_sample.yaml'
 SWAGGER_API_YAML = 'api.yml'
 
-SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
-
-DEFAULT_SCHEMA = 'gn_exports'
-ID_MODULE = get_module_id('exports')
-
-
 for template, serving in {
         os.path.join(
             ASSETS, SWAGGER_API_SAMPLE_YAML): os.path.join(
                 ASSETS, SWAGGER_API_YAML),
         os.path.join(
-            SWAGGER_UI_DIST_DIR, SWAGGER_UI_SAMPLE_INDEXHTML): os.path.join(
+            ASSETS, SWAGGER_UI_SAMPLE_INDEXHTML): os.path.join(
                 SWAGGER_UI_DIST_DIR, SWAGGER_UI_INDEXHTML)
         }.items():
     with open(template, 'r') as input:
@@ -51,6 +50,14 @@ for template, serving in {
         content = input.read()
         for k, v in ({
                 'API_ENDPOINT': current_app.config['API_ENDPOINT'],
+                'HOST': current_app.config['API_ENDPOINT']
+                                   .replace('https://', '')
+                                   .replace('http://', '')
+                                   .split('/', 1)[0],
+                'BASE_PATH': '/' + current_app.config['API_ENDPOINT']
+                                   .replace('https://', '')
+                                   .replace('http://', '')
+                                   .split('/', 1)[1],
                 'API_URL': load_toml(
                         os.path.join('config', 'conf_gn_module.toml')
                     ).get('api_url').lstrip('/'),
@@ -89,11 +96,10 @@ def export_filename(export):
     expose_headers=['Content-Type', 'Content-Disposition', 'Authorization'])
 @fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
 def export(id_export, format, info_role):
-    if id_export < 1:
+    if id_export < 1 or format not in {'csv', 'json', 'shp'}:
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
     try:
-        assert format in {'csv', 'json', 'shp'}
         repo = ExportRepository()
         export, columns, data = repo.get_by_id(
             info_role.id_role, id_export, with_data=True, format=format)
