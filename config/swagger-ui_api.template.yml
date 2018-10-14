@@ -17,48 +17,146 @@ host: {{HOST}}
 basePath: {{BASE_PATH}}
 schemes:
   - http
-security:
-  - bearerAuth: []
 produces:
   - application/json
 consumes:
   - application/json
-components:
-  schemas:
-    Export:
-      type: object
-      properties:
-        id:
-          type: integer
-          minimum: 1
-        label:
-          type: string
-        schema_name:
-          type: string
-        view_name:
-          type: string
-      required:
-        - id
-    securitySchemes:
-      bearerAuth:
-        type: http
-        scheme: bearer
-        bearerFormat: JWT
+definitions:
+  Export:
+    type: object
+    properties:
+      id:
+        type: integer
+        minimum: 1
+      label:
+        type: string
+      schema_name:
+        type: string
+      view_name:
+        type: string
+    required:
+      - id
+  Login:
+    type: object
+    properties:
+      login:
+        type: string
+        default: "admin"
+      password:
+        type: string
+        format: password
+        default: "admin"
+      id_application:
+        type: integer
+        default: 3
+      with_cruved:
+        type: boolean
+        default: true
+  Cruved:
+    type: object
+    properties:
+      user:
+        type: object
+        properties:
+          id_application:
+            type: integer  # 3
+          id_tag_action:
+            type: integer  # 11
+          nom_role:
+            type: string  # "Administrateur"
+          identifiant:
+            type: string  # "admin"
+          rights:
+            type: object
+            properties:
+              "3":
+                type: object
+                properties:
+                  "R":
+                    type: string  # "3"
+                  "D":
+                    type: string  # "3"
+                  "E":
+                    type: string  # "3"
+                  "C":
+                    type: string  # "3"
+                  "V":
+                    type: string  # "3"
+                  "U":
+                    type: string  # "3"
+          id_organisme:
+            type: integer  # -1
+          tag_action_code:
+            type: string  # "C"
+          prenom_role:
+            type: string  # "test"
+          id_role:
+            type: integer  # 1
+          id_tag_object:
+            type: integer  # 23
+          tag_object_code:
+            type: string  # "3"
+      expires:
+        type: string  # "2018-10-16 00:36:15.491613"
+        format: datetime
+  Error:
+    type: object
+    properties:
+     message:
+      type: string
+     error:
+      type: string
+securityDefinitions:
+  # tokenAuth:
+  #   type: apiKey
+  #   in: cookie
+  #   name: token
+  bearerAuth:
+    type: apiKey
+    in: header
+    name: Authorization
 paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentification
+      security:
+        - bearerAuth: []
+      description: |
+        Allow users to log in and to receive a token
+      parameters:
+        -
+         in: body
+         name: body
+         description: username/password combination
+         required: true
+         schema:
+           $ref: '#/definitions/Login'
+      responses:
+        '200':
+           description: Login Success
+           schema:
+             $ref: '#/definitions/Cruved'
+        '500':
+           description:
+             If supplied with invalid credentials
+           schema:
+             $ref: '#/definitions/Error'
   /{{API_URL}}/:
     get:
+      security:
+        # - tokenAuth: []
+        - bearerAuth: []
       description: Returns all exports from the system that the user has access to
       tags:
         - Exports
       responses:
         '200':
-          description: A list of exports
-          # content:
-          #   application/json:
-          #     schema:
-          #       type: array
-          #       items:
-          #         $ref: '#/components/schemas/Export'
+          description: A list of export
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Export'
         '404':
           description: No configured exports
         '400':
@@ -67,6 +165,9 @@ paths:
           description: Unauthenticated
   /{{API_URL}}/{id}/{format}:
     get:
+      security:
+        # - tokenAuth: []
+        - bearerAuth: []
       description: Returns the format-specified data from the export the user has access to
       tags:
         - Exports
@@ -78,24 +179,30 @@ paths:
           type: integer
         - name: format
           in: path
-          description: |
-            The data format:
-              - json: w/o geographic information
-              - csv: w/o geographic information
-              - shp: with geographic information
+          description: >
+            Data format:
+              * `json` - w/o geographic information
+              * `csv` - w/o geographic information
+              * `shp` - with geographic information
+          type: string
           enum:
             - json
             - csv
             - shp
           required: true
-          type: string
+      produces:
+        - application/json
+        - text/csv
+        - application/zip
       responses:
         '200':
-          description: A file
-          content:
-            'application/json': {}
-            'text/csv': {}
-            'application/zip': {}
+          description: Export data into a file
+          schema:
+            type: file
+          headers:
+            Content-Disposition:
+              type: string
+              description: attachment; filename=export_{Export.label}_{datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')}.{extension}
           examples:
             application/json: |
               [{
@@ -156,7 +263,7 @@ paths:
               "9f42bc38-2cae-4bb9-af2c-f76ef732b571","Pr","Lynx Boréal","2017-01-01 00:00:00","2017-01-01 00:00:00","12:05:02","12:05:02","1565","1500","60612","60612","Taxref V11.0","2017-01-01 00:00:00","Test","NSP","4d331cae-65e4-4948-b0b2-a11bc5bb46c2","","0","9f42bc38-2cae-4bb9-af2c-f76ef732b571","Contact aléatoire tous règnes confondus","4d331cae-65e4-4948-b0b2-a11bc5bb46c2","","23","1","1","2","2","0","1","0","Autre méthode de détermination","","Poil","Exemple test","51bd7642-512f-49aa-a917-cd2fcb8da1e3","Relevé","OBS","5","5","IND","Co","Administrateur test","Autre","Gil","NSP","NSP","POINT(6.5 44.85)","In"
               "eb67d3a2-c7f2-4340-820c-5c710b45bdf0","Pr","Ablette","2017-01-08 00:00:00","2017-01-08 00:00:00","20:00:00","23:00:00","1600","1600","67111","67111","Taxref V11.0","2017-01-08 00:00:00","Troisieme test","NSP","4d331cae-65e4-4948-b0b2-a11bc5bb46c2","","0","eb67d3a2-c7f2-4340-820c-5c710b45bdf0","Contact aléatoire tous règnes confondus","4d331cae-65e4-4948-b0b2-a11bc5bb46c2","","23","1","1","2","3","0","1","0","Autre méthode de détermination","","Poils de plumes","Autre exemple test","cb0b1e2e-9cb4-4714-baa8-9c293059a423","Relevé","OBS","1","1","IND","Co","Administrateur test","Autre","Donovan","NSP","NSP","POINT(6.5 44.85)","In"
         '404':
-          description: No configured export | Empty dataset
+          description: No configured export | Empty dataset | Unsuitable format
         '400':
           description: Unexpected usage
         '403':
