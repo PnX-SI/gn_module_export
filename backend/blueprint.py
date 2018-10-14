@@ -29,20 +29,21 @@ SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 DEFAULT_SCHEMA = 'gn_exports'
 ID_MODULE = get_module_id('exports')
 
+CONF_PATH = os.path.join(blueprint.root_path, '..', 'config')
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 # extracted from dummy npm install
 SWAGGER_UI_DIST_DIR = os.path.join(ASSETS, 'swagger-ui-dist')
-SWAGGER_UI_SAMPLE_INDEXHTML = 'index.sample.html'
+SWAGGER_UI_SAMPLE_INDEXHTML = 'swagger-ui_index.template.html'
 SWAGGER_UI_INDEXHTML = 'index.html'
-SWAGGER_API_SAMPLE_YAML = 'api_sample.yaml'
+SWAGGER_API_SAMPLE_YAML = 'swagger-ui_api.template.yml'
 SWAGGER_API_YAML = 'api.yml'
 
 for template, serving in {
         os.path.join(
-            ASSETS, SWAGGER_API_SAMPLE_YAML): os.path.join(
+            CONF_PATH, SWAGGER_API_SAMPLE_YAML): os.path.join(
                 ASSETS, SWAGGER_API_YAML),
         os.path.join(
-            ASSETS, SWAGGER_UI_SAMPLE_INDEXHTML): os.path.join(
+            CONF_PATH, SWAGGER_UI_SAMPLE_INDEXHTML): os.path.join(
                 SWAGGER_UI_DIST_DIR, SWAGGER_UI_INDEXHTML)
         }.items():
     with open(template, 'r') as input:
