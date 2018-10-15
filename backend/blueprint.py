@@ -195,6 +195,13 @@ def getExports(info_role):
     else:
         return [export.as_dict() for export in exports]
 
+
+@blueprint.route('/etalab_export', methods=['GET'])
+def etalab_export():
+    return send_from_directory(
+        os.path.join(current_app.static_folder, 'exports'), 'export_sinp.json')
+
+
 # @blueprint.route('/<int:id_export>', methods=['POST'])
 # @fnauth.check_auth_cruved('U', True, id_app=ID_MODULE)
 # @json_resp
