@@ -9,13 +9,13 @@ db_host=localhost
 db_port=5432
 
 # GeoNature database name
-db_name=geonature2db
+db_name=geonaturedb
 
 # GeoNature database owner username
 user_pg=geonatuser
 
 # GeoNature database owner password
-user_pg_pass=my_password
+user_pg_pass=monpassachanger
 
 # Insert sample data (ZP and grids on PnEcrins)
 insert_sample_data=true

@@ -23,4 +23,6 @@ export_format_map = {
 
 
 class GnModuleSchemaConf(GnModuleProdConf):
+    api_url = fields.String(required=True)
+    id_application = fields.Integer(required=True)
     export_format_map = fields.Dict(missing=export_format_map)

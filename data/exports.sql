@@ -5,8 +5,6 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-CREATE SCHEMA IF NOT EXISTS gn_exports;
-
 SET search_path = gn_exports, pg_catalog;
 
 DROP TABLE IF EXISTS gn_exports.t_exports;
@@ -83,4 +81,4 @@ CREATE OR REPLACE VIEW gn_exports.v_exports_logs AS
  FROM gn_exports.t_exports_logs l
  JOIN utilisateurs.t_roles r ON r.id_role = l.id_role
  JOIN gn_exports.t_exports e ON e.id = l.id_export
- ORDER BY start_time
+ ORDER BY start_time;

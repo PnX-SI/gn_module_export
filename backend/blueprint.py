@@ -1,17 +1,16 @@
 import os
 from datetime import datetime
 import logging
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
-    request,
+    # request,
     current_app,
     send_from_directory)
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
-from geonature.utils.env import get_module_id
+from geonature.utils.utilstoml import load_toml
 from geonature.utils.filemanager import removeDisallowedFilenameChars
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub import routes as fnauth  # get_or_fetch_user_cruved
@@ -27,10 +26,12 @@ blueprint = Blueprint('exports', __name__)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 
 DEFAULT_SCHEMA = 'gn_exports'
-ID_MODULE = get_module_id('exports')
-
-CONF_PATH = os.path.join(blueprint.root_path, '..', 'config')
+MOD_CONF_PATH = os.path.abspath(os.path.join(
+    blueprint.root_path, os.pardir, 'config'))
+MOD_CONF = load_toml(os.path.join(MOD_CONF_PATH, 'conf_gn_module.toml'))
+ID_MODULE, API_URL = (MOD_CONF.get(k) for k in ('id_application', 'api_url'))
 ASSETS = os.path.join(blueprint.root_path, 'assets')
+
 # extracted from dummy npm install
 SWAGGER_UI_DIST_DIR = os.path.join(ASSETS, 'swagger-ui-dist')
 SWAGGER_UI_SAMPLE_INDEXHTML = 'swagger-ui_index.template.html'
@@ -40,14 +41,13 @@ SWAGGER_API_YAML = 'api.yml'
 
 for template, serving in {
         os.path.join(
-            CONF_PATH, SWAGGER_API_SAMPLE_YAML): os.path.join(
+            MOD_CONF_PATH, SWAGGER_API_SAMPLE_YAML): os.path.join(
                 ASSETS, SWAGGER_API_YAML),
         os.path.join(
-            CONF_PATH, SWAGGER_UI_SAMPLE_INDEXHTML): os.path.join(
+            MOD_CONF_PATH, SWAGGER_UI_SAMPLE_INDEXHTML): os.path.join(
                 SWAGGER_UI_DIST_DIR, SWAGGER_UI_INDEXHTML)
         }.items():
     with open(template, 'r') as input:
-        from geonature.utils.utilstoml import load_toml
         content = input.read()
         host, base_path, *_ = current_app.config['API_ENDPOINT']\
                                          .replace('https://', '')\
@@ -57,11 +57,7 @@ for template, serving in {
                 'API_ENDPOINT': current_app.config['API_ENDPOINT'],
                 'HOST': host,
                 'BASE_PATH': '/' + base_path if base_path else '',
-                'API_URL': load_toml(
-                        os.path.join(
-                            blueprint.root_path, '..', 'config',
-                            'conf_gn_module.toml')
-                    ).get('api_url').lstrip('/'),
+                'API_URL': API_URL.lstrip('/') if API_URL else '',
                 'API_YAML': SWAGGER_API_YAML
                 }).items():
             content = content.replace('{{{{{}}}}}'.format(k), v)
@@ -181,8 +177,6 @@ def export(id_export, format, info_role):
 def getExports(info_role):
     logger.debug('info_role: %s', info_role)
     repo = ExportRepository()
-    # from time import sleep
-    # sleep(2)
     try:
         exports = repo.list(id_role=info_role.id_role)
         logger.debug(exports)
@@ -196,7 +190,7 @@ def getExports(info_role):
         return [export.as_dict() for export in exports]
 
 
-@blueprint.route('/etalab_export', methods=['GET'])
+@blueprint.route('/etalab', methods=['GET'])
 def etalab_export():
     return send_from_directory(
         os.path.join(current_app.static_folder, 'exports'), 'export_sinp.json')
@@ -268,11 +262,14 @@ def etalab_export():
 #     geometry_field = payload.get('geometry_field'),
 #     geometry_srid = payload.get('geometry_srid')
 #
+#
 #     if not(label and schema_name and view_name):
 #         return {
 #             'error': 'MissingParameter',
 #             'message': 'Missing parameter: {}'. format(
 #                 'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
+#
+#     from sqlalchemy.exc import IntegrityError
 #
 #     repo = ExportRepository()
 #     try:
