@@ -18,7 +18,7 @@ check_psql_status() {
   fi
 }
 
-if [ $(basename "$0") = 'uninstall_db.sh' ]; then
+if [ $(basename "$0") = 'uninstall.sh' ]; then
   set -x
   . ~/geonature/external_modules/exports/config/settings.ini
   set +x
@@ -31,6 +31,8 @@ fi
 set -x
 . config/settings.ini
 set +x
+
+touch config/conf_gn_module.toml
 
 echo -n "Create gn_exports schema"
 PGPASSWORD=$user_pg_pass;psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -c 'DROP SCHEMA IF EXISTS gn_exports CASCADE; CREATE SCHEMA gn_exports;' &>> var/log/install_gn_module_exports.log
