@@ -23,12 +23,11 @@ logger.setLevel(logging.DEBUG)
 
 blueprint = Blueprint('exports', __name__)
 
+DEFAULT_SCHEMA = 'gn_exports'
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
-DEFAULT_SCHEMA = 'gn_exports'
-MOD_CONF_PATH = os.path.abspath(os.path.join(
-    blueprint.root_path, os.pardir, 'config'))
+MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
 MOD_CONF = load_toml(os.path.join(MOD_CONF_PATH, 'conf_gn_module.toml'))
 ID_MODULE, API_URL = (MOD_CONF.get(k) for k in ('id_application', 'api_url'))
 ASSETS = os.path.join(blueprint.root_path, 'assets')
