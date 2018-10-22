@@ -155,12 +155,12 @@ class ExportRepository(object):
                 return result
 
     def list(self, info_role):
-        # from geonature.utils.utilstoml import load_toml
+        from geonature.utils.utilstoml import load_toml
         # # FIXME: #14 id_role in groups 'Grp_en_poste', 'Grp_admin'
         #
-        # _id_app = load_toml(os.path.join(
-        #     os.path.dirname(os.path.realpath(os.path.basename(__file__))),
-        #     'config', 'conf_gn_module.toml')).get('id_application')
+        _id_app = load_toml(os.path.join(
+            os.path.dirname(os.path.realpath(os.path.basename(__file__))),
+            'config', 'conf_gn_module.toml')).get('id_application')
         # cruved = get_or_fetch_user_cruved(
         #     session=flask_session,
         #     id_role=info_role.id_role,
@@ -194,8 +194,8 @@ UNION
     JOIN utilisateurs.cor_roles g ON g.id_role_utilisateur = u.id_role
     WHERE u.groupe = false) a
 JOIN utilisateurs.cor_app_privileges c ON c.id_role = a.id_role
-WHERE c.id_tag_action = 12 AND c.id_application = 3 AND c.id_tag_object > 20
-GROUP BY a.groupe, a.id_role, a.identifiant, a.nom_role, a.id_organisme''')
+WHERE c.id_tag_action = 12 AND c.id_application = ''' + _id_app + ''' AND c.id_tag_object > 20
+GROUP BY a.groupe, a.id_role, a.identifiant, a.nom_role, a.id_organisme''')  # noqa: E501
         for row in users_groups:
             logger.debug(row)
         # (False, 1, 'admin', 'Administrateur', -1)
