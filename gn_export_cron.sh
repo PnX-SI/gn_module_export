@@ -142,6 +142,7 @@ login() {
     [ "_${TOKEN}" = "_" ] && echo 'ERROR: Failed to obtain api token for endpoint $ENDPOINT.' && exit 127
 }
 
+# TODO: source env conf
 USERNAME=${USERNAME:-'admin'}
 PASSWORD=${PASSWORD:-'admin'}
 X_ID=${X_ID:-2}

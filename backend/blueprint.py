@@ -4,6 +4,7 @@ import logging
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
+    session,
     # request,
     current_app,
     send_from_directory)
@@ -11,15 +12,19 @@ from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
 from geonature.utils.utilstoml import load_toml
-from geonature.utils.filemanager import removeDisallowedFilenameChars
+from geonature.utils.filemanager import (
+    removeDisallowedFilenameChars, delete_recursively)
 from pypnusershub.db.tools import InsufficientRightsError
-from pypnusershub import routes as fnauth  # get_or_fetch_user_cruved
+from pypnusershub import routes as fnauth
+from pypnusershub.db.tools import get_or_fetch_user_cruved  # dbg
+
 
 from .repositories import ExportRepository, EmptyDataSetError
 
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 blueprint = Blueprint('exports', __name__)
 
@@ -99,7 +104,7 @@ def export(id_export, format, info_role):
     try:
         repo = ExportRepository()
         export, columns, data = repo.get_by_id(
-            info_role.id_role, id_export, with_data=True, format=format)
+            info_role, id_export, with_data=True, format=format)
         if export:
             fname = export_filename(export)
             has_geometry = export.get('geometry_field', None)
@@ -121,9 +126,8 @@ def export(id_export, format, info_role):
             if (format == 'shp' and has_geometry):
                 from geojson.geometry import Point, Polygon, MultiPolygon
                 from geonature.utils.utilsgeometry import FionaShapeService as ShapeService  # noqa: E501
-                from geonature.utils import filemanager
 
-                filemanager.delete_recursively(
+                delete_recursively(
                     SHAPEFILES_DIR, excluded_files=['.gitkeep'])
 
                 ShapeService.create_shapes_struct(
@@ -178,7 +182,7 @@ def getExports(info_role):
     logger.debug('info_role: %s', info_role)
     repo = ExportRepository()
     try:
-        exports = repo.list(id_role=info_role.id_role)
+        exports = repo.list(info_role)
         logger.debug(exports)
     except NoResultFound:
         return {'api_error': 'NoResultFound',
@@ -193,98 +197,3 @@ def getExports(info_role):
 @blueprint.route('/etalab', methods=['GET'])
 def etalab_export():
     return send_from_directory(EXPORTS_DIR, 'export_sinp.json')
-
-
-# @blueprint.route('/<int:id_export>', methods=['POST'])
-# @fnauth.check_auth_cruved('U', True, id_app=ID_MODULE)
-# @json_resp
-# def update(id_export, info_role):
-#     payload = request.get_json()
-#     label = payload.get('label', None)
-#     view_name = payload.get('view_name', None)
-#     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
-#     desc = payload.get('desc', None)
-#
-#     if not all(label, schema_name, view_name, desc):
-#         return {
-#             'api_error': 'MissingParameter',
-#             'message': 'Missing parameter: {}'. format(
-#                 'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
-#
-#     repo = ExportRepository()
-#     try:
-#         export = repo.update(
-#             id_export=id_export,
-#             label=label,
-#             schema_name=schema_name,
-#             view_name=view_name,
-#             desc=desc)
-#     except NoResultFound as e:
-#         logger.warn('%s', e)
-#         return {'api_error': 'NoResultFound',
-#                 'message': str(e)}, 404
-#     except Exception as e:
-#         logger.critical('%s', e)
-#         return {'api_error': 'LoggedError'}, 400
-#     else:
-#         return export.as_dict(), 201
-#
-#
-# @blueprint.route('/<int:id_export>', methods=['DELETE'])
-# @fnauth.check_auth_cruved('D', True, id_app=ID_MODULE)
-# @json_resp
-# def delete_export(id_export, info_role):
-#     repo = ExportRepository()
-#     try:
-#         repo.delete(info_role.id_role, id_export)
-#     except NoResultFound as e:
-#         logger.warn('%s', str(e))
-#         return {'api_error': 'NoResultFound',
-#                 'message': str(e)}, 404
-#     except Exception as e:
-#         logger.critical('%s', str(e))
-#         return {'api_error': 'LoggedError'}, 400
-#     else:
-#         # return '', 204 -> 404 client side, interceptors ?
-#         return {'result': 'success'}, 204
-#
-#
-# @blueprint.route('/', methods=['POST'])
-# @fnauth.check_auth_cruved('C', True, id_app=ID_MODULE)
-# @json_resp
-# def create(info_role):
-#     payload = request.get_json()
-#     label = payload.get('label', None)
-#     view_name = payload.get('view_name', None)
-#     schema_name = payload.get('schema_name', DEFAULT_SCHEMA)
-#     desc = payload.get('desc', None)
-#     geometry_field = payload.get('geometry_field'),
-#     geometry_srid = payload.get('geometry_srid')
-#
-#
-#     if not(label and schema_name and view_name):
-#         return {
-#             'error': 'MissingParameter',
-#             'message': 'Missing parameter: {}'. format(
-#                 'label' if not label else 'view name' if not view_name else 'desc')}, 400  # noqa: E501
-#
-#     from sqlalchemy.exc import IntegrityError
-#
-#     repo = ExportRepository()
-#     try:
-#         export = repo.create({
-#             'label': label,
-#             'schema_name': schema_name,
-#             'view_name': view_name,
-#             'desc': desc,
-#             'geometry_field': geometry_field,
-#             'geometry_srid': geometry_srid})
-#     except IntegrityError as e:
-#         if '(label)=({})'.format(label) in str(e):
-#             return {'api_error': 'RegisteredLabel',
-#                     'message': 'Label {} is already registered.'.format(label)}, 400  # noqa: E501
-#         else:
-#             logger.critical('%s', str(e))
-#             raise
-#     else:
-#         return export.as_dict(), 201
