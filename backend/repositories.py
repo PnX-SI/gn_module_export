@@ -194,7 +194,7 @@ UNION
     JOIN utilisateurs.cor_roles g ON g.id_role_utilisateur = u.id_role
     WHERE u.groupe = false) a
 JOIN utilisateurs.cor_app_privileges c ON c.id_role = a.id_role
-WHERE c.id_tag_action = 12 AND c.id_application = ''' + _id_app + ''' AND c.id_tag_object > 20
+WHERE c.id_tag_action = 12 AND c.id_application = ''' + str(_id_app) + ''' AND c.id_tag_object > 20
 GROUP BY a.groupe, a.id_role, a.identifiant, a.nom_role, a.id_organisme''')  # noqa: E501
         for row in users_groups:
             logger.debug(row)
