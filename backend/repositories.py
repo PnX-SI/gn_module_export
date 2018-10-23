@@ -155,72 +155,17 @@ class ExportRepository(object):
                 return result
 
     def list(self, info_role):
-        from geonature.utils.utilstoml import load_toml
-        # # FIXME: #14 id_role in groups 'Grp_en_poste', 'Grp_admin'
-        #
-        _id_app = load_toml(os.path.join(
-            os.path.dirname(os.path.realpath(os.path.basename(__file__))),
-            'config', 'conf_gn_module.toml')).get('id_application')
-        # cruved = get_or_fetch_user_cruved(
-        #     session=flask_session,
-        #     id_role=info_role.id_role,
-        #     id_application=_id_app,
-        #     id_application_parent=current_app.config['ID_APPLICATION_GEONATURE']  # noqa: E501
-        # )
-        # logger.debug('cruved: %s', cruved)
-        # logger.debug('info_role: %s', info_role.__dict__)
-
-        users_groups = DB.engine.execute('''
-SELECT  a.groupe,
-        a.id_role,
-        a.identifiant,
-        a.nom_role,
-        a.id_organisme
-FROM (
-    SELECT  u.groupe,
-            u.id_role,
-            u.identifiant,
-            u.nom_role,
-            u.id_organisme
-    FROM utilisateurs.t_roles u
-    WHERE u.groupe = true
-UNION
-    SELECT  u.groupe,
-            u.id_role,
-            u.identifiant,
-            u.nom_role,
-            u.id_organisme
-    FROM utilisateurs.t_roles u
-    JOIN utilisateurs.cor_roles g ON g.id_role_utilisateur = u.id_role
-    WHERE u.groupe = false) a
-JOIN utilisateurs.cor_app_privileges c ON c.id_role = a.id_role
-WHERE c.id_tag_action = 12 AND c.id_application = ''' + str(_id_app) + ''' AND c.id_tag_object > 20
-GROUP BY a.groupe, a.id_role, a.identifiant, a.nom_role, a.id_organisme''')  # noqa: E501
-        for row in users_groups:
-            logger.debug(row)
-        # (False, 1, 'admin', 'Administrateur', -1)
-        # (True, 6, None, 'Grp_socle 2', None)
-        # (True, 7, None, 'Grp_en_poste', None)
-        # (True, 8, None, 'Grp_socle 1', None)
-        # (True, 9, None, 'Grp_admin', None)
-
-        # from geonature.core.users.models import TRoles, CorRole
-        # s1 = TRoles.query.filter(TRoles.groupe.is_(True)).all()
-        # s2 = TRoles.query.join(CorRole).filter(TRoles.group.is_(False))
-        # q1 = s1.union(s2).join('cor_app_privileges').filter(
-        #     'cor_app_privileges'.id_tag_action = 12,
-        #     'cor_app_privileges'.id_application = _id_app,
-        #     'cor_app_privileges'.id_tag_object > 20
-        # ).groupby(
-        #     CorRole.groupe, CorRole.id_role, CorRole.identifiant,
-        #     CorRole.nom_role, CorRole.id_organisme)
-        # logger.debug('s1: %s', s1)
+        from geonature.core.users.models import (TRoles, CorRole)
         q = Export.query\
                   .join(CorExportsRoles)\
                   .filter(
                         DB.or_(
                             CorExportsRoles.id_role == info_role.id_role,
-                            CorExportsRoles.id_role == info_role.id_organisme))
+                            CorExportsRoles.id_role == info_role.id_organisme,
+                            CorExportsRoles.id_role.in_(
+                                TRoles.query.with_entities(TRoles.id_role)
+                                            .join(CorRole, CorRole.id_role_groupe == TRoles.id_role)      # noqa: E501
+                                            .filter(CorRole.id_role_utilisateur == info_role.id_role))))  # noqa: E501
 
         logger.debug('query: %s', str(q))
         result = q.all()
