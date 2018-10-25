@@ -27,6 +27,7 @@ logger.setLevel(logging.DEBUG)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 blueprint = Blueprint('exports', __name__)
+repo = ExportRepository()
 
 DEFAULT_SCHEMA = 'gn_exports'
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
@@ -96,15 +97,20 @@ def export_filename(export):
     supports_credentials=True,
     allow_headers=['content-type', 'content-disposition'],
     expose_headers=['Content-Type', 'Content-Disposition', 'Authorization'])
-@fnauth.check_auth_cruved('E', True, id_app=ID_MODULE)
+@fnauth.check_auth_cruved(
+    'E', True, id_app=ID_MODULE,
+    redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
+    redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 def export(id_export, format, info_role):
     if id_export < 1 or format not in {'csv', 'json', 'shp'}:
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
+    parameters = request.args
     try:
-        repo = ExportRepository()
         export, columns, data = repo.get_by_id(
-            info_role, id_export, with_data=True, format=format)
+            info_role, id_export, with_data=True, format=format,
+            filters=parameters.get('filters', []), limit=10000, paging=0)
+
         if export:
             fname = export_filename(export)
             has_geometry = export.get('geometry_field', None)
@@ -143,7 +149,7 @@ def export(id_export, format, info_role):
                         ShapeService.point_feature = True
 
                     elif (isinstance(geom, Polygon)
-                          or isinstance(geom, MultiPolygon)):  # noqa: E123 W503
+                            or isinstance(geom, MultiPolygon)):  # noqa: E123 W503
                         ShapeService.polygone_shape.write(props)
                         ShapeService.polygon_feature = True
 
@@ -176,11 +182,13 @@ def export(id_export, format, info_role):
 
 
 @blueprint.route('/', methods=['GET'])
-@fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
+@fnauth.check_auth_cruved(
+    'R', True, id_app=ID_MODULE,
+    redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
+    redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def getExports(info_role):
     logger.debug('info_role: %s', info_role)
-    repo = ExportRepository()
     try:
         exports = repo.list(info_role)
         logger.debug(exports)
@@ -192,6 +200,12 @@ def getExports(info_role):
         return {'api_error': 'LoggedError'}, 400
     else:
         return [export.as_dict() for export in exports]
+
+
+# @blueprint.route('/occtax_sinp', methods=['GET'])
+# @fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
+# @json_resp
+# def getOcctaxSINP(info_role):
 
 
 @blueprint.route('/etalab', methods=['GET'])

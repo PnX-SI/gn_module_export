@@ -1,13 +1,11 @@
-import os
 import sys
 import logging
 from datetime import datetime
 from sqlalchemy.orm.exc import NoResultFound
-from flask import current_app, session as flask_session
+from flask import current_app
 from geonature.utils.env import DB
-# from geonature.core.gn_meta.models import TDatasets
-from pypnusershub.db.tools import (
-    InsufficientRightsError, get_or_fetch_user_cruved)
+from geonature.core.gn_meta.models import TDatasets
+from pypnusershub.db.tools import InsufficientRightsError
 
 from .models import (Export, ExportLog, CorExportsRoles)
 from geonature.utils.utilssqlalchemy import GenericQuery
@@ -41,36 +39,39 @@ class ExportRepository(object):
             self.session, view, schema, geom_column_header,
             filters, limit, paging)
 
-        # id_tag_action -> une personne
-        # id_tag_object -> un groupe
-        # id_application -> ne application (ou module)
-        # id_role
-        if info_role.tag_object_code == '1':
-                if ('id_digitiser' in query.view.db_cols
-                        and 'observers' in query.view.db_cols):
-                    filter.append(
-                        DB.or_(
-                            query.view.db_cols.id_digitiser == info_role.id_role,        # noqa: E501
-                            query.view.db_cols.observers.any(id_role=info_role.id_role)  # noqa: E501
-                        ))
+        if info_role.tag_object_code in {'1', '2'}:
+            allowed_datasets = TDatasets.get_user_datasets(info_role.id_role)  # noqa: E501
+            if 'id_digitiser' in query.view.db_cols:
+                ored_filters = [
+                    query.view.db_cols.id_digitiser == info_role.id_role,         # noqa: E501
+                    query.view.db_cols.observers.any(id_role=info_role.id_role),  # noqa: E501
+                    query.view.db_cols.id_dataset.in_(tuple(allowed_datasets))    # noqa: E501
+                ]
+                filters.append(DB.or_(*ored_filters))
 
-                elif 'id_digitiser' in query.view.db_cols:
+            elif 'id_digitiser' in query.view.db_cols:
+                if info_role.tag_object_code == '1':
                     filters.append(
                         query.view.db_cols.id_digitiser == info_role.id_role)
+                else:
+                    ored_filters = [
+                        query.view.db_cols.id_digitiser == info_role.id_role,
+                        query.view.db_cols.id_dataset.in_(tuple(allowed_datasets))    # noqa: E501
+                    ]
+                    filters.append(DB.or_(*ored_filters))
 
-                elif 'observers' in query.view.db_cols:
+            elif 'observers' in query.view.db_cols:
+                if info_role.tag_object_code == '1':
                     filters.append(
                         query.view.db_cols.observers.any(id_role=info_role.id_role))  # noqa: E501
-
-        elif info_role.tag_object_code == '2':
-            if 'observers' in query.view.db_cols:
-                # allowed_datasets = TDatasets.get_user_datasets(user)
-                filter.append(
-                    DB.or_(
+                else:
+                    ored_filters = [
                         query.view.db_cols.id_digitiser == info_role.id_role,
-                        query.view.db_cols.observers.any(id_role=info_role.id_role)  # noqa: E501
-                        # query.view.db_cols.id_dataset.in_(tuple(allowed_datasets))
-                    ))
+                        query.view.db_cols.observers.any(id_role=info_role.id_role),  # noqa: E501
+                        query.view.db_cols.id_dataset.in_(tuple(allowed_datasets))    # noqa: E501
+                    ]
+                    filters.append(DB.or_(*ored_filters))
+
         elif info_role.tag_object_code != '3':
             raise InsufficientRightsError
 
@@ -130,7 +131,7 @@ class ExportRepository(object):
             e = sys.exc_info()
             if any(e):
                 if (isinstance(e, InsufficientRightsError)
-                    or isinstance(e, EmptyDataSetError)):  # noqa: E129 W503
+                        or isinstance(e, EmptyDataSetError)):  # noqa: E129 W503
                     raise
                 elif isinstance(e, NoResultFound):
                     raise NoResultFound(
@@ -148,7 +149,7 @@ class ExportRepository(object):
                 'status': status,
                 'log': log})
 
-            if status == -1 and any(e):
+            if status != 0 or any(e):
                 logger.critical('export error: %s', e)
                 raise
             else:
