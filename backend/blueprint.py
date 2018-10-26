@@ -5,7 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
     session,
-    # request,
+    request,
     current_app,
     send_from_directory)
 from flask_cors import cross_origin
@@ -18,13 +18,13 @@ from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub import routes as fnauth
 from pypnusershub.db.tools import get_or_fetch_user_cruved  # dbg
 
-
 from .repositories import ExportRepository, EmptyDataSetError
 
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
 # logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+# current_app.config['DEBUG'] = True
 
 blueprint = Blueprint('exports', __name__)
 repo = ExportRepository()
@@ -102,7 +102,8 @@ def export_filename(export):
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 def export(id_export, format, info_role):
-    if id_export < 1 or format not in {'csv', 'json', 'shp'}:
+    if (id_export < 1
+            or format not in blueprint.config.get('export_format_map')):
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
     parameters = request.args
@@ -177,7 +178,8 @@ def export(id_export, format, info_role):
              'message': str(e)}, status=404)
     except Exception as e:
         logger.critical('%s', e)
-        # raise
+        if current_app.config['DEBUG']:
+            raise
         return to_json_resp({'api_error': 'LoggedError'}, status=400)
 
 
