@@ -62,6 +62,7 @@ definitions:
             type: integer  # 3
           id_tag_action:
             type: integer  # 11
+            maxLength: 2
           nom_role:
             type: string  # "Administrateur"
           identifiant:
@@ -74,16 +75,22 @@ definitions:
                 properties:
                   "R":
                     type: string  # "3"
+                    maxLength: 1
                   "D":
                     type: string  # "3"
+                    maxLength: 1
                   "E":
                     type: string  # "3"
+                    maxLength: 1
                   "C":
                     type: string  # "3"
+                    maxLength: 1
                   "V":
                     type: string  # "3"
+                    maxLength: 1
                   "U":
                     type: string  # "3"
+                    maxLength: 1
           id_organisme:
             type: integer  # -1
           tag_action_code:
@@ -122,8 +129,7 @@ paths:
         - Authentification
       security:
         - bearerAuth: []
-      description: |
-        Allow users to log in and to receive a token
+      summary:  Allow users to log in and to receive a token
       parameters:
         -
          in: body
@@ -147,7 +153,7 @@ paths:
       security:
         # - tokenAuth: []
         - bearerAuth: []
-      description: Returns all exports from the system that the user has access to
+      summary: Returns all exports the user has access to
       tags:
         - Exports
       responses:
@@ -168,7 +174,7 @@ paths:
       security:
         # - tokenAuth: []
         - bearerAuth: []
-      description: Returns the format-specified data from the export the user has access to
+      summary: Returns the format-specified data from the export the user has access to
       tags:
         - Exports
       parameters:
