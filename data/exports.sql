@@ -20,6 +20,7 @@ CREATE TABLE gn_exports.t_exports
     "desc" text COLLATE pg_catalog."default",
     geometry_field character varying(255),
     geometry_srid INTEGER,
+    public boolean NOT NULL default FALSE,
     CONSTRAINT uniq_label UNIQUE (label)
 );
 

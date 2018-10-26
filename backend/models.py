@@ -15,6 +15,7 @@ class Export(DB.Model):
     desc = DB.Column(DB.Text)
     geometry_field = DB.Column(DB.Text)
     geometry_srid = DB.Column(DB.Integer)
+    public = DB.Column(DB.Boolean, nullable=False, default=False)
 
     def __init__(self,
                  label,
@@ -22,13 +23,15 @@ class Export(DB.Model):
                  view_name,
                  desc=None,
                  geometry_field=None,
-                 geometry_srid=current_app.config['LOCAL_SRID']):
+                 geometry_srid=current_app.config['LOCAL_SRID'],
+                 public=False):
         self.label = label
         self.schema_name = schema_name
         self.view_name = view_name
         self.desc = desc
         self.geometry_field = geometry_field
         self.geometry_srid = geometry_srid
+        self.public = public
 
     def __str__(self):
         return "<Export(id='{}', label='{}')>".format(self.id, self.label)
@@ -43,7 +46,8 @@ class Export(DB.Model):
             view_name=adict['view_name'],
             desc=adict['desc'],
             geometry_field=adict['geometry_field'],
-            geometry_srid=adict['geometry_srid'])
+            geometry_srid=adict['geometry_srid'],
+            public=adict['public'])
         return export
 
 
@@ -62,7 +66,8 @@ class ExportLog(DB.Model):
     status = DB.Column(DB.Integer, default=-2)
     log = DB.Column(DB.Text)
 
-    def __init__(self, id_role, id_export, format, start_time, end_time, status, log):  # noqa: E501
+    def __init__(self, id_role, id_export, format, start_time, end_time,
+                 status, log):
         self.id_role = id_role
         self.id_export = id_export
         self.format = format

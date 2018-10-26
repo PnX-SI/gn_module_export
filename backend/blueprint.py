@@ -16,7 +16,7 @@ from geonature.utils.filemanager import (
     removeDisallowedFilenameChars, delete_recursively)
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub import routes as fnauth
-from pypnusershub.db.tools import get_or_fetch_user_cruved  # dbg
+# from pypnusershub.db.tools import get_or_fetch_user_cruved  # dbg
 
 from .repositories import ExportRepository, EmptyDataSetError
 

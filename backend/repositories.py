@@ -159,7 +159,8 @@ class ExportRepository(object):
                             CorExportsRoles.id_role.in_(
                                 TRoles.query.with_entities(TRoles.id_role)
                                             .join(CorRole, CorRole.id_role_groupe == TRoles.id_role)      # noqa: E501
-                                            .filter(CorRole.id_role_utilisateur == info_role.id_role))))  # noqa: E501
+                                            .filter(CorRole.id_role_utilisateur == info_role.id_role)),   # noqa: E501
+                            Export.public == True))
 
         logger.debug('query: %s', str(q))
         result = q.all()

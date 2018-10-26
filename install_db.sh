@@ -20,8 +20,12 @@ check_psql_status() {
 
 if [ $(basename "$0") = 'uninstall.sh' ]; then
   . ~/geonature/external_modules/exports/config/settings.ini
+  echo "Deactivating \"exports\" module"
   geonature deactivate_gn_module exports
-  psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -c "DROP SCHEMA IF EXISTS gn_exports CASCADE; DELETE FROM gn_commons.t_modules WHERE module_name='exports';"
+  echo "Dropping \"gn_exports\" schema"
+  psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -c "DROP SCHEMA IF EXISTS gn_exports CASCADE;"
+  echo "Unregistering \"exports\" module "
+  psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -c "DELETE FROM gn_commons.t_modules WHERE module_name='exports';"
   rm ~/geonature/external_modules/exports
   exit
 fi
@@ -29,13 +33,13 @@ fi
 . config/settings.ini
 
 touch config/conf_gn_module.toml
-
+mkdir -p ~/geonature/backend/static/exports  # current_app.static_folder
 echo -n "Create gn_exports schema"
 PGPASSWORD=$user_pg_pass;psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -f data/exports.sql  &>> var/log/install_gn_module_exports.log
 return_value=$?
 check_psql_status $return_value
 
-if [ $insert_sample_data = true ]; then
+if [ "_$insert_sample_data" != "_" ]; then
     echo -n 'Populate exports with sample data'
     PGPASSWORD=$user_pg_pass;psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -f data/sample.sql &>> var/log/install_gn_module_exports.log
     return_value=$?
