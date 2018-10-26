@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy.orm.exc import NoResultFound
 from flask import current_app
 from geonature.utils.env import DB
-from geonature.core.gn_meta.models import TDatasets
+# from geonature.core.gn_meta.models import TDatasets
 from pypnusershub.db.tools import InsufficientRightsError
 
 from .models import (Export, ExportLog, CorExportsRoles)
@@ -35,45 +35,38 @@ class ExportRepository(object):
         logger.debug(
             'Querying "%s"."%s" with cruved "%s"', schema, view, info_role.__dict__)  # noqa: E501
 
-        query = GenericQuery(
-            self.session, view, schema, geom_column_header,
-            filters, limit, paging)
+        query = GenericQuery(self.session, view, schema, geom_column_header,
+                             filters, limit, paging)
 
-        if info_role.tag_object_code in {'1', '2'}:
-            allowed_datasets = TDatasets.get_user_datasets(info_role.id_role)  # noqa: E501
-            if 'id_digitiser' in query.view.db_cols:
-                ored_filters = [
-                    query.view.db_cols.id_digitiser == info_role.id_role,         # noqa: E501
-                    query.view.db_cols.observers.any(id_role=info_role.id_role),  # noqa: E501
-                    query.view.db_cols.id_dataset.in_(tuple(allowed_datasets))    # noqa: E501
-                ]
-                filters.append(DB.or_(*ored_filters))
-
-            elif 'id_digitiser' in query.view.db_cols:
-                if info_role.tag_object_code == '1':
-                    filters.append(
-                        query.view.db_cols.id_digitiser == info_role.id_role)
-                else:
-                    ored_filters = [
-                        query.view.db_cols.id_digitiser == info_role.id_role,
-                        query.view.db_cols.id_dataset.in_(tuple(allowed_datasets))    # noqa: E501
-                    ]
-                    filters.append(DB.or_(*ored_filters))
-
-            elif 'observers' in query.view.db_cols:
-                if info_role.tag_object_code == '1':
-                    filters.append(
-                        query.view.db_cols.observers.any(id_role=info_role.id_role))  # noqa: E501
-                else:
-                    ored_filters = [
-                        query.view.db_cols.id_digitiser == info_role.id_role,
-                        query.view.db_cols.observers.any(id_role=info_role.id_role),  # noqa: E501
-                        query.view.db_cols.id_dataset.in_(tuple(allowed_datasets))    # noqa: E501
-                    ]
-                    filters.append(DB.or_(*ored_filters))
-
-        elif info_role.tag_object_code != '3':
-            raise InsufficientRightsError
+        # ored_filters = []
+        # columns = [c.name for c in query.view.db_cols]
+        # logger.debug('cols: %s', columns)
+        #
+        # info_role.tag_object_code = '1'  # TEST
+        # if info_role.tag_object_code in {'1', '2'}:
+        #     allowed_datasets = TDatasets.get_user_datasets(info_role)  # noqa: E501
+        #     if 'id_digitiser' in columns:
+        #         ored_filters.append(
+        #             query.view.db_cols['id_digitiser'] == info_role.id_role       # noqa: E501
+        #         )
+        #
+        #     elif 'observers' in columns:
+        #         if info_role.tag_object_code == '1':
+        #             ored_filters.append(
+        #                 query.view.db_cols['observers'].any(id_role=info_role.id_role))  # noqa: E501
+        #
+        #     if info_role.tag_object_code == '2':
+        #         ored_filters.append(
+        #             query.view.db_cols['id_dataset'].in_(tuple(allowed_datasets)))  # noqa: E501
+        #
+        #     q = query.build_query_filters(query, filters)
+        #     query = q.filter(DB.or_(*ored_filters))
+        #
+        #     # TEST
+        #     logger.debug('filters: %s', ored_filters)
+        #
+        # elif info_role.tag_object_code != '3':
+        #     raise InsufficientRightsError
 
         data = query.return_query()
         return (query.view.db_cols, data)
