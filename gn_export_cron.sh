@@ -1,7 +1,6 @@
 #!/bin/sh
-# set -x
 
-USERNAME=
+USRNAME=
 PASSWORD=
 X_ID=
 X_FORMAT=
@@ -18,7 +17,7 @@ while :; do
 
         -u|--user)
             if [ -n "$2" ]; then
-                USERNAME=$2
+                USRNAME=$2
                 shift
             else
                 printf 'ERROR: "--user" requires a non-empty option argument.\n' >&2
@@ -27,7 +26,7 @@ while :; do
             ;;
 
         --user=?*)
-            USERNAME=${1#*=}
+            USRNAME=${1#*=}
             ;;
 
         -p|--password)
@@ -115,35 +114,49 @@ while :; do
 done
 
 check_request_status() {
-    if [ "$1" != "0" ]; then
-       echo "Fetching operation for export $X_ID failed with status $1"
-       exit $1
-    fi
+    case "$2" in
+        0|20*)
+            # >&2 echo "\e[92m${1} operation for export $X_ID succeeded with status ${2}\e[0m"
+            ;;
+        *)
+            >&2 echo "\e[91m${1} operation for export $X_ID failed with status ${2}.\e[0m"
+            [ "_$3" != "" ] && >&2 echo "${3}"
+            exit $1
+            ;;
+    esac
 }
 
 fetch_export() {
-    curl -s -H 'Accept: application/json' -H 'Content-Type: application/json' --cookie "token=${TOKEN}" \
+    curl -s --cookie "token=${TOKEN}" \
+        -H 'Accept: application/json' -H 'Content-Type: application/json' \
         --create-dirs --remote-time -o "$X_FILE" \
         --url ${API_ENDPOINT}${API_URL}/${X_ID}/${X_FORMAT}
     status=$?
-    check_request_status $status
+    check_request_status 'fetch' $status
 }
 
 login() {
+    # set -x
     _response=$(\
-        curl -s -i -k --cookie-jar - \
+        curl --silent --include \
             -X POST -H 'Accept: application/json' -H 'Content-Type: application/json' \
-            --data "{\"login\":\"${USERNAME}\",\"password\":\"${PASSWORD}\", \"id_application\":\"${ID_APPLICATION}\",\"with_cruved\": \"true\"}" \
+            --data "{\"login\":\"${USRNAME}\",\"password\":\"${PASSWORD}\", \"id_application\":\"${ID_APPLICATION}\",\"with_cruved\": \"true\"}" \
             ${API_ENDPOINT}/auth/login )
+    # set +x
     status=$?
-    check_request_status $status
+    check_request_status 'login' $status "$_response"
+    echo "$_response"
+}
 
-    TOKEN=$(echo ${_response} | grep -oE 'Set-Cookie: token=([^;]*);' | sed -E 's/^Set-Cookie: token=([^;]*);/\1/')
-    [ "_${TOKEN}" = "_" ] && echo 'ERROR: Failed to obtain api token for endpoint $ENDPOINT.' && exit 127
+extract_token() {
+    TOKEN=$(echo "${1}" | grep -E '^Set-Cookie: token=([^;]*);.*' | sed -E 's/^Set-Cookie: token=([^;]*);.*/\1/')
+    # >&2 echo "->token: <${TOKEN}>"
+    [ "_${TOKEN}" = "_" ] && \
+        >&2 echo "ERROR: Failed to obtain api token for endpoint ${API_ENDPOINT}." && exit 127
 }
 
 # TODO: source env conf
-USERNAME=${USERNAME:-'admin'}
+USRNAME=${USRNAME:-'admin'}
 PASSWORD=${PASSWORD:-'admin'}
 X_ID=${X_ID:-2}
 X_FORMAT=${X_FORMAT:-'json'}
@@ -154,12 +167,17 @@ API_ENDPOINT=$(grep API_ENDPOINT ~/geonature/config/geonature_config.toml | cut 
 API_URL=$(grep api_url ~/geonature/external_modules/exports/config/conf_gn_module.toml | cut -f3 -d ' ' | sed -e "s/'//g")
 
 if [ "_${TOKEN}" = "_" ]; then
-    login
+    cookie=$(login)
+    extract_token "$cookie"
 fi
 
-fetch_export
+if [ "_${TOKEN}" != "_" ]; then
+  fetch_export
+fi
 
 # cd ~/
-# curl -# --get -H 'Accept: application/json' -H 'Content-Type: application/json' --cookie "token=${TOKEN}" \
+# &2 echo "Fetching ${API_ENDPOINT}${API_URL}/${X_ID}/${X_FORMAT}"
+# curl -# --get --cookie "token=${TOKEN}" \
+#     -H 'Accept: application/json' -H 'Content-Type: application/json' \
 #     --remote-time --remote-name --remote-header-name \
-#     --url ${API_ENDPOINT}${API_URL}/etalab_export
+#     --url "${API_ENDPOINT}${API_URL}/${X_ID}/${X_FORMAT}"
