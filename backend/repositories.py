@@ -32,8 +32,9 @@ class ExportRepository(object):
             self, info_role, view, schema,
             geom_column_header=None, filters=[], limit=10000, paging=0):
 
-        logger.debug(
-            'Querying "%s"."%s" with cruved "%s"', schema, view, info_role.__dict__)  # noqa: E501
+        # logger.debug(
+        #     'Querying "%s"."%s" with cruved "%s"', schema, view, info_role.__dict__)  # noqa: E501
+        logger.debug('gn_query_filters: %s', filters)
 
         query = GenericQuery(self.session, view, schema, geom_column_header,
                              filters, limit, paging)

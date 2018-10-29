@@ -109,11 +109,12 @@ def export(id_export, format, info_role):
     current_app.config.update(
         export_format_map=blueprint.config['export_format_map']
     )
-    parameters = request.args
+    filters = {f: request.args.get(f) for f in request.args}
+    logger.debug('filters: %s', filters)
     try:
         export, columns, data = repo.get_by_id(
             info_role, id_export, with_data=True, format=format,
-            filters=parameters.get('filters', []), limit=10000, paging=0)
+            filters=filters, limit=10000, paging=0)
 
         if export:
             fname = export_filename(export)
@@ -205,12 +206,6 @@ def getExports(info_role):
         return {'api_error': 'LoggedError'}, 400
     else:
         return [export.as_dict() for export in exports]
-
-
-# @blueprint.route('/occtax_sinp', methods=['GET'])
-# @fnauth.check_auth_cruved('R', True, id_app=ID_MODULE)
-# @json_resp
-# def getOcctaxSINP(info_role):
 
 
 @blueprint.route('/etalab', methods=['GET'])
