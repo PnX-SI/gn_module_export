@@ -3,12 +3,12 @@ import logging
 from datetime import datetime
 from sqlalchemy.orm.exc import NoResultFound
 from flask import current_app
-from geonature.utils.env import DB
 # from geonature.core.gn_meta.models import TDatasets
+from geonature.utils.env import DB
+from geonature.utils.utilssqlalchemy import GenericQuery
 from pypnusershub.db.tools import InsufficientRightsError
 
 from .models import (Export, ExportLog, CorExportsRoles)
-from geonature.utils.utilssqlalchemy import GenericQuery
 
 
 logger = current_app.logger
@@ -42,9 +42,9 @@ class ExportRepository(object):
         # columns = [c.name for c in query.view.db_cols]
         # logger.debug('cols: %s', columns)
         #
-        # info_role.tag_object_code = '1'  # TEST
         # if info_role.tag_object_code in {'1', '2'}:
         #     allowed_datasets = TDatasets.get_user_datasets(info_role)  # noqa: E501
+        #
         #     if 'id_digitiser' in columns:
         #         ored_filters.append(
         #             query.view.db_cols['id_digitiser'] == info_role.id_role       # noqa: E501
@@ -61,7 +61,6 @@ class ExportRepository(object):
         #
         #     q = query.build_query_filters(query, filters)
         #     query = q.filter(DB.or_(*ored_filters))
-        #
         #     # TEST
         #     logger.debug('filters: %s', ored_filters)
         #
@@ -88,7 +87,8 @@ class ExportRepository(object):
             if with_data and format:
                 geometry = (
                     export.geometry_field
-                    if (hasattr(export, 'geometry_field') and format != 'csv')
+                    if (hasattr(export, 'geometry_field')
+                        and current_app.config['export_format_map'][format]['geofeature'])  # noqa: E501
                     else None)
 
                 columns, data = self._get_data(

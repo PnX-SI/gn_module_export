@@ -29,7 +29,7 @@ logger.setLevel(logging.DEBUG)
 blueprint = Blueprint('exports', __name__)
 repo = ExportRepository()
 
-DEFAULT_SCHEMA = 'gn_exports'
+
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
@@ -106,6 +106,9 @@ def export(id_export, format, info_role):
             or format not in blueprint.config.get('export_format_map')):
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
+    current_app.config.update(
+        export_format_map=blueprint.config['export_format_map']
+    )
     parameters = request.args
     try:
         export, columns, data = repo.get_by_id(
