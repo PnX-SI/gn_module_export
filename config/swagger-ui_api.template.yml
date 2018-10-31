@@ -215,7 +215,7 @@ paths:
               and column type is numeric
             then filter column_name <= value.
 
-        DDE: exchange elemental data
+        DDE: elementary exchange data
         DS: data source
         DSR: regional data sources
       tags:
