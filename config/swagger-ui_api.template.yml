@@ -176,14 +176,14 @@ paths:
         - bearerAuth: []
       summary: Returns the format-specified data from the export the user has access to.
       description: |
-        Fine grained data may be obtained leveraging query filters.
+        More specific data may be obtained through the following query filters.
         In its simplest form:
 
         * `column_name`=value:
             if column_name belongs to the column set
             then the result set will be filtered accordingly to the supplied value.
 
-        For a coarcer grain:
+        For a wider range of values:
 
         * `ilikecolumn_name`=value:
             if column_name belongs to the column set
@@ -214,6 +214,10 @@ paths:
             if column_name belongs to the column set
               and column type is numeric
             then filter column_name <= value.
+
+        DDE: exchange elemental data
+        DS: data source
+        DSR: regional data sources
       tags:
         - Exports
       parameters:
@@ -256,25 +260,25 @@ paths:
           type: string
           format: uuid
           description: >
-            Unique and sustainable identifier of the observation exchange elemental data (DDE) in the SINP, attributed by the regional or thematic platform.
+            Unique and sustainable identifier of the observation DDE in the SINP, attributed by regional or thematic platform.
         - name: statObs
           in: query
           type: string
           enum: [No, Pr]
           description: >
-            Indicates whether the taxon has been observed directly or indirectly (presence indices), or not observed.
+            Indicates whether the taxon has been observed directly or indirectly (signs of presence, other clues), or not.
         - name: nomCite
           in: query
           type: string
           description: >
-            The entire scientific name of the observed entity, including authority if available, in the original dataset.
+            The entire scientific name of the observed entity, including discovering authority if available, in the original dataset.
         - name: dateDebut
           in: query
           type: string
           format: date-time
           description: >
-            Date of the day of the taxon observation in the Gregorian calendar system.
-            In case of inaccuracy in the date of the observation, this attribute represents the oldest period of vagueness.
+            Observation date in the Gregorian calendar system.
+            In case of inaccuracy, this attribute will be a rough estimate of the timeline.
         - name: dateFin
           in: query
           type: string
@@ -289,7 +293,7 @@ paths:
           in: query
           type: string
           format: full-time
-          description: Hour and minute in the local system to which taxon observation ended in ISO8601 format.
+          description: Hour and minute shown in local time where the taxon observation ended in ISO8601 format.
         - name: altMax
           in: query
           type: integer
@@ -315,11 +319,11 @@ paths:
           type: string
           format: date-time
           description:  >
-            Date of the last determination of the taxon of the observation in the system Gregorian calendar.
+            Date of latest observation of the taxon in the Gregorian calendar.
         - name: comment
           in: query
           type: string
-          description: Free field to provide additional information.
+          description: Additional field to provide further information.
         - name: dSPublique
           in: query
           type: string
@@ -328,7 +332,7 @@ paths:
             Explicitly indicates whether the DS of the DEE is public or private.
             This field only defines the necessary and sufficient rights of the DS to produce a DEE:
             the public DSP must only be used to indicate if the resulting DEE is likely to be blurred
-            and should not be used for other interpretations.
+            and should not be used for a usage other than simple observation.
         - name: jddMetadonneeDEEId (SINP)
           in: query
           type: string
@@ -339,24 +343,24 @@ paths:
           type: string
           description: >
             Indicates whether the observation DS comes directly from the field (via a computerized document or database),
-            a collection or from the literature (INPN = statut_source: id = 19).
+            a collection or from literature (INPN = statut_source: id=19).
           enum: [Te, Co, Li, NSP]
-        - name: diffusionNiveauPrecision (SINP export)
+        - name: diffusionNiveauPrecision (SINP)
           in: query
           type: string
           description: >
-            Propagation precision level authorized by the producer if the data is private (attribute diffusionLevelPrecision of the standard DSR / DEE).
+            Permission level granted by the owner if the data is private (attribute diffusion LevelPrecision of the standard DSR/DEE).
         - name: idOrigine
           in: query
           type: string
           format: uuid
           description: >
-            Unique identifier of the Data Source of the observation in the database, itself characterized by jddId and / or jddCode, where is stored and initially managed the Source Data.
-            The identifier must not be the primary technical key, which may vary depending on the management choices of the storage tool.
-        - name: jddCode (SINP export)
+            Unique identifier of the observation DataSource in the database, itself characterized by jddId and/or jddCode, where it is stored, and its initial form.
+            This identifier must not be used as a key, which may vary depending on the management choices of the storage tool.
+        - name: jddCode (SINP)
           in: query
           type: string
-          description: The name, acronym, code, or initial identifying the collection or dataset whose registration of the Source Data comes from. "Ex:" "INPN", "Silène", "BDMAP".
+          description: The name, acronym, code, or initials identifying the origins of the collection or dataset. "Ex:" "INPN", "Silène", "BDMAP".
         - name: jddId
           in: query
           type: string
@@ -365,7 +369,7 @@ paths:
         - name: refBiblio
           in: query
           type: string
-          description: ISO690 format preference reference of the observation source. The bibliographic reference must concern the observation itself and not only the taxon or the protocol.
+          description: ISO690 format preference for the observation source reference. The bibliographic reference must concern the observation itself and not only the taxon or the protocol.
         - name: obsMeth
           in: query
           type: string
@@ -373,8 +377,8 @@ paths:
           # maxLength: 2
           # default: "Inconnu"
           description: >
-            Indicate how the presence of a subject of observation was observed.
-            observation method (INPN = methode_obs) => statSource = "Li".
+            Indicates how the presence of the subject was observed.
+            (INPN = methode_obs)
         - name: ocEtatBio
           in: query
           type: string
@@ -389,39 +393,39 @@ paths:
           type: string
           # default: "Inconnu"
           description: >
-            Naturalness of the occurrence, consequence of the direct anthropic influence which characterizes it.
+            Normalcy of the occurrence, consequence of the direct human influence which impacts it.
             It can be determined immediately by simple observation, including by a person who has no training in the field of biology.
-            INPN = naturalite
+            (INPN = naturalite)
         - name: ocSex
           in: query
           type: string
           # default: "Inconnu"
-          description: Sex of the subject of the observation.
+          description: Sex of the observation's subject
         - name: ocStade
           in: query
           type: string
           # default: "Inconnu"
-          description: Stage of development of the subject of the observation.
+          description: Development's stage of the observation's subject.
         - name: ocBiogeo
           in: query
           type: intger
-          default: "Inconnu"
+          # default: "Inconnu"
           description: >
-            The biogeographical status covers a notion of presence (presence / absence), and origin (native or introduction).
-            It is similar to the biogeographic status of the TAXREF methodological guide, but applies at the local level:
-              it is information that can only be filled in following a deduction from the expert.
+            The biogeographical status covers a notion of presence (presence/absence), and origin (native or introduction).
+            It is similar to the biogeographic status as per the TAXREF methodological reference, but applied at local level:
+              it is information that can only be made by an expert.
         - name: ocStatBio
           in: query
           type: integer
           default: "Inconnu"
           description: >
             General behavior of the individual at the observation site.
-            INPN = statut_bio
+            (INPN = statut_bio)
         - name: preuveOui
           in: query
           type: string
           description: >
-            Whether evidence exists or not. Proof means a physical or numeric object that can be used to demonstrate the existence of the occurrence and / or to verify its accuracy.
+            Whether evidence exists or not, meaning a physical or digital object that can be used to demonstrate the existence of the occurrence.
         - name: ocMethDet
           in: query
           type: string
@@ -430,20 +434,20 @@ paths:
           in: query
           type: string
           description: >
-            Web address to which we can find the digital proof or the archive containing all the digital proofs
-            (image(s), sonogram(s), film(s), genetic sequence (s) ...).
+            Web address where we can find the digital evidence, or the archive containing all the digital evidence.
+            (image(s), sonogram(s), film(s), genetic sequence(s) ...).
             (INPN = preuve_exist)
         - name: preuvNoNum
           in: query
           type: string
           # default: "Inconnu"
           description: >
-            Address or name of the person or organization that would provide non-numerical evidence of the observation.
+            Address or name of the person or organization that would provide non-digital evidence of the observation.
         - name: obsCtx
           in: query
           type: string
           description: >
-            Free description of the context of the observation, as succinct and precise as possible.
+            Description of the observation's context, as short and specific as possible.
         - name: permIdGrp
           in: query
           type: string
@@ -454,24 +458,27 @@ paths:
           in: query
           type: string
           description: >
-            Description of the method leading to the grouping, as succinctly as possible: free field.
+            Description of the method leading to the grouping, as short as possible: free field.
         - name: typGrp
           in: query
-          type: integer
-          description: (INPN = Type de regroupement)
+          type: string
+          enum: [Autr, Camp, InvSta, Lien, Obs, Op, Strat, Pass, NSP, ...]
+          description: >
+            Indicates what is the type of grouping according to the list `typeRegroupementValue`
+            (INPN = Type de regroupement)
         - name: denbrMax
           in: query
           type: integer
-          description: Maximum number of individuals of the taxon making up the observation.
+          description: Maximum number of same taxon in an observation.
         - name: denbrMin
           in: query
           type: integer
-          description: Minimum number of individuals of the taxon making up the observation.
+          description: Minimum number of same taxon in an observation.
         - name: objDenbr
           in: query
           type: string
           description: >
-            Indicates the object of the enumeration: individual, couple .... The nomenclature is to be defined by thematic extension.
+            Indicates the object of the enumeration: individual, couple .... The terminology to be defined by thematic extension.
         - name: typDenbr
           in: query
           type: string
@@ -480,23 +487,24 @@ paths:
         - name: obsId
           in: query
           type: string
-          description: Name and surname of the person (s) who made the observation.
+          description: Name and surname of the person(s) who made the observation.
         - name: obsNomOrg
           in: query
           type: string
-          description: Name of the organization(s) of the observer(s) within the framework from which the observation of the taxon has been made.
+          description: Name of the organization(s) the observer(s) belongs to.
         - name: detId
           in: query
           type: string
-          description: First name, name and organization of the person (s) who made the taxonomic determination of the observation.
+          description: First name, name and organization of the person(s) who made the taxonomic determination in the observation.
         - name: detNomOrg
           in: query
           type: string
-          description:
+          description: >
+            Organism of the person(s) who made the determination of the taxon in the observation.
         - name: orgGestDat
           in: query
           type: string
-          description: Name of the organization that holds the Source Data (DS) of the DEE and who is responsible for it.
+          description: Name of the organization that is responsible for the DS of the DEE.
         - name: geom_4326
           in: query
           type: string
