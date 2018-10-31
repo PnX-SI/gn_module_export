@@ -174,7 +174,46 @@ paths:
       security:
         # - tokenAuth: []
         - bearerAuth: []
-      summary: Returns the format-specified data from the export the user has access to
+      summary: Returns the format-specified data from the export the user has access to.
+      description: |
+        Fine grained data may be obtained leveraging query filters.
+        In its simplest form:
+
+        * `column_name`=value:
+            if column_name belongs to the column set
+            then the result set will be filtered accordingly to the supplied value.
+
+        For a coarcer grain:
+
+        * `ilikecolumn_name`=value:
+            if column_name belongs to the column set
+              and column type is text
+            then filter column_name ilike '%value%'.
+
+        * `filter_d_up_column_name`=value:
+            if column_name belongs to the column set
+              and column type is date
+            then filter column_name >= value.
+
+        * `filter_d_lo_column_name`=value:
+            if column_name belongs to the column set
+              and column type is date
+            then filter column_name <= value.
+
+        * `filter_d_eq_column_name`=value:
+            if column_name belongs to the column set
+              and column type is date
+            then filter column_name == value.
+
+        * `filter_n_up_column_name`=value: S
+          if column_name belongs to the column set
+            and column type is numeric
+          then filter column_name >= value.
+
+        * `filter_n_lo_column_name`=value:
+            if column_name belongs to the column set
+              and column type is numeric
+            then filter column_name <= value.
       tags:
         - Exports
       parameters:
@@ -196,150 +235,193 @@ paths:
             - csv
             - shp
           required: true
+        # - name: orderby
+        #   in: query
+        #   type: string
+        #   description: Name of the field on which to base ordering
+        # - name: order
+        #   in: query
+        #   enum: [asc, desc]
+        #   description: Qualify the ordering
+        # - name: limit
+        #   in: query
+        #   type: integer
+        #   dscription: max number of record
+        # - name: offset
+        #   in: query
+        #   type: integer
+        #   description: pagination
         - name: permId
           in: query
           type: string
           format: uuid
-          description:
+          description: >
+            Unique and sustainable identifier of the observation exchange elemental data (DDE) in the SINP, attributed by the regional or thematic platform.
         - name: statObs
           in: query
           type: string
           enum: [No, Pr]
-          description: Indicates whether the taxon has been observed directly or indirectly (presence indices), or not observed
+          description: >
+            Indicates whether the taxon has been observed directly or indirectly (presence indices), or not observed.
         - name: nomCite
           in: query
           type: string
-          description: The entire scientific name of the observed entity, including authority if available, in the original dataset
+          description: >
+            The entire scientific name of the observed entity, including authority if available, in the original dataset.
         - name: dateDebut
           in: query
           type: string
           format: date-time
-          description: Date of the day of the taxon observation in the Gregorian calendar system. In case inaccuracy in the date of the observation, this attribute represents the most old of the period of vagueness
+          description: >
+            Date of the day of the taxon observation in the Gregorian calendar system.
+            In case of inaccuracy in the date of the observation, this attribute represents the oldest period of vagueness.
         - name: dateFin
           in: query
           type: string
           format: date-time
-          description: end of manifestation datetime of occurrence
+          description: End date of observation
         - name: heureDebut
           in: query
           type: string
           format: full-time
-          description: start of manifestation time of occurrence
+          description: Hour and minute in the local system to which taxon observation started in ISO8601 format.
         - name: heureFin
           in: query
           type: string
           format: full-time
-          description: end of manifestation time of occurrence
+          description: Hour and minute in the local system to which taxon observation ended in ISO8601 format.
         - name: altMax
           in: query
           type: integer
-          description:
+          description: Maximum altitude of observation in meter.
         - name: altMin
           in: query
           type: integer
-          description:
+          description: Minimum altitude of observation in meter.
         - name: cdNom
           in: query
           type: integer
-          description: Taxon code "cd_nom" of TaxRef, referencing the taxon at the national level
+          description: Taxon code "cd_nom" of TaxRef, referencing the taxon at the national level.
         - name: cdRef
           in: query
           type: integer
-          description: Taxon code "cd_refs" of TaxRef, referencing the taxon at the national level
+          description: Taxon code "cd_refs" of TaxRef, referencing the taxon at the national level.
         - name: versionTAXREF
           in: query
           type: string
-          description: current TAXREF version for this platform (SINP export)
+          description: current TAXREF version for this platform (SINP export).
         - name: datedet (SINP) | dateDet (DLB)
           in: query
           type: string
           format: date-time
-          description: Date of the last determination of the taxon of the observation in the system Gregorian calendar
+          description:  >
+            Date of the last determination of the taxon of the observation in the system Gregorian calendar.
         - name: comment
           in: query
           type: string
-          description:
+          description: Free field to provide additional information.
         - name: dSPublique
           in: query
           type: string
           enum: [Ac, Pr, Pu, Re, NSP]
-          description:
+          description: >
+            Explicitly indicates whether the DS of the DEE is public or private.
+            This field only defines the necessary and sufficient rights of the DS to produce a DEE:
+            the public DSP must only be used to indicate if the resulting DEE is likely to be blurred
+            and should not be used for other interpretations.
         - name: jddMetadonneeDEEId (SINP)
           in: query
           type: string
           format: uuid
-          description: UUID of the metadata record entered in the INPN application
+          description: UUID of the metadata record entered in the INPN application.
         - name: statSource
           in: query
           type: string
-          description: "(INPN = statut_source: id = 19)"
-          enum: [Co, Li, NSP, Te]
+          description: >
+            Indicates whether the observation DS comes directly from the field (via a computerized document or database),
+            a collection or from the literature (INPN = statut_source: id = 19).
+          enum: [Te, Co, Li, NSP]
         - name: diffusionNiveauPrecision (SINP export)
           in: query
           type: string
-          description:
+          description: >
+            Propagation precision level authorized by the producer if the data is private (attribute diffusionLevelPrecision of the standard DSR / DEE).
         - name: idOrigine
           in: query
           type: string
           format: uuid
-          description: unique_id_sinp_occtax
+          description: >
+            Unique identifier of the Data Source of the observation in the database, itself characterized by jddId and / or jddCode, where is stored and initially managed the Source Data.
+            The identifier must not be the primary technical key, which may vary depending on the management choices of the storage tool.
         - name: jddCode (SINP export)
           in: query
           type: string
-          description: The name, acronym, code, or initial identifying the collection or dataset whose registration of the Source Data comes from. "Ex:" "INPN", "Silène", "BDMAP"
+          description: The name, acronym, code, or initial identifying the collection or dataset whose registration of the Source Data comes from. "Ex:" "INPN", "Silène", "BDMAP".
         - name: jddId
           in: query
           type: string
           format: uuid
-          description: An identifier for the collection or terrain dataset from which the recording originates
+          description: An identifier for the collection or terrain dataset from which the recording originates.
         - name: refBiblio
           in: query
           type: string
-          description: ISO690 format preference reference of the observation source. The bibliographic reference must concern the observation itself and not only the taxon or the protocol
+          description: ISO690 format preference reference of the observation source. The bibliographic reference must concern the observation itself and not only the taxon or the protocol.
         - name: obsMeth
           in: query
           type: string
           # minLength: 1
           # maxLength: 2
-          default: "Inconnu"
+          # default: "Inconnu"
           description: >
-            observation method (INPN = methode_obs) => statSource = "Li"
+            Indicate how the presence of a subject of observation was observed.
+            observation method (INPN = methode_obs) => statSource = "Li".
         - name: ocEtatBio
           in: query
           type: string
           # minLength: 1
           # maxLength: 1
-          default: "Inconnu"
-          description: INPN = etat_bio
+          # default: "Inconnu"
+          description: >
+            Code of biological status of the organism at the time of observation.
+            INPN = etat_bio
         - name: ocNat
           in: query
           type: string
-          default: "Inconnu"
-          description: INPN = naturalite
+          # default: "Inconnu"
+          description: >
+            Naturalness of the occurrence, consequence of the direct anthropic influence which characterizes it.
+            It can be determined immediately by simple observation, including by a person who has no training in the field of biology.
+            INPN = naturalite
         - name: ocSex
           in: query
           type: string
-          default: "Inconnu"
-          description:
+          # default: "Inconnu"
+          description: Sex of the subject of the observation.
         - name: ocStade
           in: query
           type: string
-          default: "Inconnu"
-          description:
+          # default: "Inconnu"
+          description: Stage of development of the subject of the observation.
         - name: ocBiogeo
           in: query
-          type: string
+          type: intger
           default: "Inconnu"
-          description:
+          description: >
+            The biogeographical status covers a notion of presence (presence / absence), and origin (native or introduction).
+            It is similar to the biogeographic status of the TAXREF methodological guide, but applies at the local level:
+              it is information that can only be filled in following a deduction from the expert.
         - name: ocStatBio
           in: query
-          type: string
+          type: integer
           default: "Inconnu"
-          description: INPN = statut_bio
+          description: >
+            General behavior of the individual at the observation site.
+            INPN = statut_bio
         - name: preuveOui
           in: query
           type: string
-          description:
+          description: >
+            Whether evidence exists or not. Proof means a physical or numeric object that can be used to demonstrate the existence of the occurrence and / or to verify its accuracy.
         - name: ocMethDet
           in: query
           type: string
@@ -347,25 +429,32 @@ paths:
         - name: preuvNum
           in: query
           type: string
-          description: digital proof (INPN = preuve_exist)
+          description: >
+            Web address to which we can find the digital proof or the archive containing all the digital proofs
+            (image(s), sonogram(s), film(s), genetic sequence (s) ...).
+            (INPN = preuve_exist)
         - name: preuvNoNum
           in: query
           type: string
-          default: "Inconnu"
-          description: non digital proof
+          # default: "Inconnu"
+          description: >
+            Address or name of the person or organization that would provide non-numerical evidence of the observation.
         - name: obsCtx
           in: query
           type: string
-          description:
+          description: >
+            Free description of the context of the observation, as succinct and precise as possible.
         - name: permIdGrp
           in: query
           type: string
           format: uuid
-          description:
+          description: >
+            Permanent identifier of the grouping assigned by the regional or thematic platform.
         - name: methGrp
           in: query
           type: string
-          description:
+          description: >
+            Description of the method leading to the grouping, as succinctly as possible: free field.
         - name: typGrp
           in: query
           type: integer
@@ -373,31 +462,33 @@ paths:
         - name: denbrMax
           in: query
           type: integer
-          description:
+          description: Maximum number of individuals of the taxon making up the observation.
         - name: denbrMin
           in: query
           type: integer
-          description:
+          description: Minimum number of individuals of the taxon making up the observation.
         - name: objDenbr
           in: query
           type: string
-          description:
+          description: >
+            Indicates the object of the enumeration: individual, couple .... The nomenclature is to be defined by thematic extension.
         - name: typDenbr
           in: query
           type: string
-          description:
+          enum: [Co, Es, Ca, NSP]
+          description: Method used for counting (Inspire).
         - name: obsId
           in: query
           type: string
-          description:
+          description: Name and surname of the person (s) who made the observation.
         - name: obsNomOrg
           in: query
           type: string
-          description: Name of the organization(s) of the observer(s) within the framework from which the observation of the taxon has been made
+          description: Name of the organization(s) of the observer(s) within the framework from which the observation of the taxon has been made.
         - name: detId
           in: query
           type: string
-          description:
+          description: First name, name and organization of the person (s) who made the taxonomic determination of the observation.
         - name: detNomOrg
           in: query
           type: string
@@ -405,19 +496,22 @@ paths:
         - name: orgGestDat
           in: query
           type: string
-          description:
+          description: Name of the organization that holds the Source Data (DS) of the DEE and who is responsible for it.
         - name: geom_4326
           in: query
           type: string
-          description: geometry
+          description: >
+            Geometry of the taxon occurrence observation. It can not be complex (point and line or polygon and line for example).
+            It does not represent a connecting territory (the centroid of the municipality, the surface of a mesh) but the actual location of the observation.
         - name: WKT
           in: query
           type: string
-          description:
+          description: cf. geom_4326
         - name: natObjGeo
           in: query
           type: string
-          description:
+          enum: [St, In, NSP]
+          description: Nature of the location transmitted.
         - name: date_min
           in: query
           type: string
@@ -449,6 +543,7 @@ paths:
         - application/json
         - text/csv
         - application/zip
+        # - application/rdf-xml
       responses:
         '200':
           description: Export data into a file
