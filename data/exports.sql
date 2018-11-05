@@ -1,6 +1,18 @@
-CREATE SCHEMA IF NOT EXISTS gn_exports;
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
 
-DROP TABLE IF EXISTS gn_exports.t_exports;
+BEGIN;
+DROP SCHEMA IF EXISTS gn_exports CASCADE;
+CREATE SCHEMA gn_exports;
+COMMIT;
+
+SET search_path = gn_exports, pg_catalog;
+
+BEGIN;
 CREATE TABLE gn_exports.t_exports
 (
     id SERIAL NOT NULL PRIMARY KEY,
@@ -10,6 +22,7 @@ CREATE TABLE gn_exports.t_exports
     "desc" text COLLATE pg_catalog."default",
     geometry_field character varying(255),
     geometry_srid INTEGER,
+    public boolean NOT NULL default FALSE,
     CONSTRAINT uniq_label UNIQUE (label)
 );
 
@@ -23,7 +36,6 @@ COMMENT ON COLUMN gn_exports.t_exports.geometry_field IS 'Name of the geometry f
 COMMENT ON COLUMN gn_exports.t_exports.geometry_srid IS 'SRID of the geometry';
 
 
-DROP TABLE IF EXISTS gn_exports.cor_exports_roles;
 CREATE TABLE gn_exports.cor_exports_roles (
     id_export integer NOT NULL,
     id_role integer NOT NULL
@@ -38,7 +50,6 @@ ALTER TABLE ONLY gn_exports.cor_exports_roles
     ADD CONSTRAINT fk_cor_exports_roles_id_role FOREIGN KEY (id_role) REFERENCES utilisateurs.t_roles(id_role) ON UPDATE CASCADE;
 
 
-DROP TABLE IF EXISTS gn_exports.t_exports_logs;
 CREATE TABLE gn_exports.t_exports_logs
 (
     id SERIAL NOT NULL PRIMARY KEY,
@@ -69,20 +80,11 @@ COMMENT ON COLUMN gn_exports.t_exports_logs.status IS 'Status of the process : 1
 COMMENT ON COLUMN gn_exports.t_exports_logs.log IS 'Holds export failure message';
 
 -- Create a view to list Exports LOGS with users names and exports labels
-CREATE OR REPLACE VIEW gn_exports.v_exports_logs AS 
+CREATE VIEW gn_exports.v_exports_logs AS
  SELECT r.nom_role ||' '||r.prenom_role AS utilisateur, e.label, l.format, l.start_time, l.end_time, l.status, l.log
  FROM gn_exports.t_exports_logs l
  JOIN utilisateurs.t_roles r ON r.id_role = l.id_role
  JOIN gn_exports.t_exports e ON e.id = l.id_export
- ORDER BY start_time
+ ORDER BY start_time;
 
-
-CREATE OR REPLACE FUNCTION gn_exports.logs_delete_function()
-    RETURNS void
-    LANGUAGE sql
-AS $body$
-
-DELETE FROM gn_exports.t_exports_logs
-WHERE start_time < now() - interval '6 months';
-
-$body$;
+COMMIT;

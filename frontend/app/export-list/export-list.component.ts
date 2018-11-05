@@ -26,12 +26,14 @@ import { CommonService } from "@geonature_common/service/common.service"
 // import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component"
 // import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service"
 
-import { Constants } from '../const'
+import { AppConfig } from '@geonature_config/app.config'
+
+import { ModuleConfig } from '../module.config'
 import { Export, ExportService, Collection } from "../services/export.service"
 
 
 @Component({
-  selector: 'ng-pbar',
+  selector: 'download-progress-bar',
   template: `<div class="telechargement">{{message}}</div>
 <p><ngb-progressbar [type]="type" [value]="progress$ | async" [striped]="true" [animated]="animated"></ngb-progressbar></p>`
 })
@@ -56,48 +58,6 @@ export class ProgressComponent {
 }
 
 @Component({
-  selector: 'select-collections',
-  template: `
-<div *ngFor="let collection of collections$ | async">
-  <a class="btn btn-outline-primary btn-block"
-     href="#{{ collection.name }}Collapse"
-     data-toggle="collapse"
-     aria-expanded="false"
-     attr.aria-controls="{{collection.name}}Collapse">{{ collection.name }}</a>
-  <section id="{{ collection.name }}Collapse" class="collapse">
-    <div *ngFor="let table of collection.tables">
-      <a class="btn btn-outline-secondary btn-block"
-         href="#{{ table.name }}Collapse"
-         data-toggle="collapse"
-         aria-expanded="true"
-         attr.aria-controls="{{ table.name }}Collapse">{{ table.name }}</a>
-      <section id="{{ table.name }}Collapse" class="collapse">
-        <div *ngFor="let field of table.fields">
-          <input type="checkbox" class="form-control"
-                 id="{{ collection.name }}_{{ table.name }}_{{ field }}"/>&nbsp;
-          <label for="{{ collection.name }}_{{ table.name }}_{{ field }}">{{ field }}</label>
-        </div>
-      </section>
-    </div>
-  </section>
-</div>
-`
-})
-export class CollectionsComponent implements OnInit {
-  collections$: Observable<Collection[]>
-
-  constructor(
-    private _exportService: ExportService,
-    private _fb: FormBuilder
-  ) { }
-
-  ngOnInit() {
-    this._exportService.getCollections()
-    this.collections$ = this._exportService.collections
-  }
-}
-
-@Component({
   selector: "pnx-export-list",
   templateUrl: "export-list.component.html",
   styleUrls: ["./export-list.component.scss"],
@@ -105,16 +65,15 @@ export class CollectionsComponent implements OnInit {
 })
 export class ExportListComponent implements OnInit {
   exports$: Observable<Export[]>
+  public api_endpoint = `${AppConfig.API_ENDPOINT}${ModuleConfig.api_url}`
   public modalForm : FormGroup
-  public buttonDisabled: boolean = false
-  public downloading: boolean = false
+  public buttonDisabled = false
+  public downloading = false
+  public loadingIndicator = false
   public closeResult: string
   private _export: Export
 
-  @ViewChild('entitySelection') entitySelection: ElementRef
   @ViewChild('content') FormatSelector: ElementRef
-  @ViewChild('contentApi') DatasetComposer: ElementRef
-
   constructor(
     private _exportService: ExportService,
     private _commonService: CommonService,
@@ -132,8 +91,10 @@ export class ExportListComponent implements OnInit {
 
     })
 
+    this.loadingIndicator = true
     this._exportService.getExports()
     this.exports$ = this._exportService.exports
+    this.loadingIndicator = false
   }
 
   get formatSelection() {
@@ -193,8 +154,8 @@ export class ExportListComponent implements OnInit {
     }
   }
 
-  collectionsSelected() {
-    console.debug('hello')
-    console.warn(this.modalForm.value)
+  openAPIDocumentation() {
+    let docs = window.open(`${this.api_endpoint}/swagger-ui/index.html`)
+    docs.focus()
   }
 }

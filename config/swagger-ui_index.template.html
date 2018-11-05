@@ -40,7 +40,7 @@
 
       // Build a system
       const ui = SwaggerUIBundle({
-        url: "/exports/api.yml",
+        url: "{{API_ENDPOINT}}/{{API_URL}}/{{API_YAML}}",
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [

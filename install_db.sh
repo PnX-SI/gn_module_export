@@ -1,22 +1,47 @@
 #!/bin/bash
-set -v
-# Make sure only root can run our script
-if [ "$(id -u)" == "0" ]; then
-   echo "This script must not be run as root" 1>&2
-   exit 1
+
+mkdir -p var/log
+
+check_psql_status() {
+  if [ $1 -eq 0 ]; then
+    echo -e ' \e[92mOK\e[0m'
+  else
+    echo -n -e ' \e[91mnot OK\e[0m'
+    if [ $1 -eq 1 ]; then
+      echo ': fatal error.'
+    elif [ $1 -eq 2 ]; then
+      echo ": connection with server ${db_host}:${db_port} on db ${db_name} was terminated abnormally."
+    elif [ $1 -eq 3 ]; then
+      echo ": an error occurred in the script."
+    fi
+    exit $1
+  fi
+}
+
+if [ $(basename "$0") = 'uninstall.sh' ]; then
+  . ~/geonature/external_modules/exports/config/settings.ini
+  echo "Deactivating \"exports\" module"
+  geonature deactivate_gn_module exports
+  echo "Dropping \"gn_exports\" schema"
+  psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -c "DROP SCHEMA IF EXISTS gn_exports CASCADE;"
+  echo "Unregistering \"exports\" module "
+  psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -c "DELETE FROM gn_commons.t_modules WHERE module_name='exports';"
+  rm ~/geonature/external_modules/exports
+  exit
 fi
 
-# FIXME: config path
-. ~/geonature/config/settings.ini
+. config/settings.ini
 
-mkdir -p /tmp/geonature
+touch config/conf_gn_module.toml
+mkdir -p ~/geonature/backend/static/exports  # current_app.static_folder
+echo -n "Create gn_exports schema"
+PGPASSWORD=$user_pg_pass;psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -f data/exports.sql  &>> var/log/install_gn_module_exports.log
+return_value=$?
+check_psql_status $return_value
 
-echo "Create exports schema..."
-echo "--------------------" &> /var/log/geonature/install_exports_schema.log
-echo "" &>> /var/log/geonature/install_exports_schema.log
-cp data/exports.sql /tmp/geonature/exports.sql
-sudo sed -i "s/MYLOCALSRID/$srid_local/g" /tmp/geonature/exports.sql
-export PGPASSWORD=$user_pg_pass;psql -h $db_host -U $user_pg -d $db_name -f /tmp/geonature/exports.sql  &>> /var/log/geonature/install_exports_schema.log
-
-echo "Cleaning files..."
-    rm /tmp/geonature/*.sql
+if [ "_$insert_sample_data" != "_" ]; then
+    echo -n 'Populate exports with sample data'
+    PGPASSWORD=$user_pg_pass;psql -h $db_host -p $db_port -U $user_pg -d $db_name -b -f data/sample.sql &>> var/log/install_gn_module_exports.log
+    return_value=$?
+    check_psql_status $return_value
+fi

@@ -19,5 +19,16 @@ tmp_*
 .flake8
 .pylintrc
 
-# generated with geonature install_gn_module
-conf_gn_module.toml
+# instance tunable
+config/settings.ini
+
+# Overwritten with app start
+backend/assets/api.yml
+backend/assets/swagger-ui-dist/index.html
+
+# generated/updated with geonature commands
+config/conf_gn_module.toml
+frontend/app/module.config.ts
+
+# logs
+var/

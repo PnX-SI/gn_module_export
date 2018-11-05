@@ -56,7 +56,7 @@ ngx-datatable {
   height: 5.0rem !important;
 }
 
-.form-control#licence{
+/deep/ input[type="checkbox"].form-control {
   height: auto !important;
 }
 
