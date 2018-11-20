@@ -51,7 +51,7 @@ class ExportRepository(object):
         #             query.view.db_cols['id_digitiser'] == info_role.id_role       # noqa: E501
         #         )
         #
-        #     elif 'observers' in columns:
+        #     if 'observers' in columns:
         #         if info_role.tag_object_code == '1':
         #             ored_filters.append(
         #                 query.view.db_cols['observers'].any(id_role=info_role.id_role))  # noqa: E501
@@ -117,7 +117,6 @@ class ExportRepository(object):
             logger.critical('exception: %s', e)
             raise
         else:
-            # log = str(columns)
             status = 0
             result = (export.as_dict(), columns, data)
         finally:

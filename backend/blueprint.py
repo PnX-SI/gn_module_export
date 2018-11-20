@@ -4,7 +4,7 @@ import logging
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
-    session,
+    # session,
     request,
     current_app,
     send_from_directory)
@@ -166,6 +166,7 @@ def export(id_export, format, info_role):
 
                 return send_from_directory(
                     SHAPEFILES_DIR, fname + '.zip', as_attachment=True)
+
             else:
                 return to_json_resp(
                     {'api_error': 'NonTransformableError'}, status=404)
