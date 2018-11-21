@@ -18,57 +18,58 @@ DCMITYPE = Namespace('http://purl.org/dc/dcmitype/')
 DWC = Namespace('http://rs.tdwg.org/dwc/terms/')
 DSW = Namespace('http://purl.org/dsw/')
 STORE_FILE = os.path.expanduser(
-    '~/geonature/backend/static/exports/etalab_export.ttl')
+    '~/geonature/backend/static/exports/export_etalab.ttl')
 STORE_URI = ''.join(['file://', STORE_FILE])
 
 
-class Store:
+class OccurrenceStore:
     def __init__(self):
         self.graph = ConjunctiveGraph()
         self.graph.bind('dc', DC)
         self.graph.bind('foaf', FOAF)
         self.graph.bind('dwc', DWC)
         self.graph.bind('dsw', DSW)
+        self.root = BNode()
 
-    def save(self):
-        self.graph.serialize(STORE_URI, format='turtle')
+    def save(self, store_uri=STORE_URI, format='turtle'):
+        self.graph.serialize(store_uri, format)
 
     def build_event(self, record):
-        event = BNode()
-        self.graph.add((event, RDF.type, DCMITYPE.Event))
+        self.root = BNode()
+        self.graph.add((self.root, RDF.type, DCMITYPE.Event))
         self.graph.add(
-            (event,
+            (self.root,
              DWC['eventDate'],
              Literal('/'.join([record['dateDebut'], record['dateFin']]))))
         self.graph.add(
-            (event,
+            (self.root,
              DWC['eventTime'],
              Literal('/'.join([record['heureDebut'], record['heureFin']]))))
         self.graph.add(
-            (event, DWC['samplingProtocol'], Literal(record['obsMeth'])))
+            (self.root, DWC['samplingProtocol'], Literal(record['obsMeth'])))
         self.graph.add(
-            (event, DWC['eventRemarks'], Literal(record['comment'])))
+            (self.root, DWC['eventRemarks'], Literal(record['comment'])))
         self.graph.add(
-            (event, DWC['accessRights'], Literal(record['dSPublique'])))
-        self.graph.add((event, DWC['datasetName'], Literal(record['jddCode'])))
-        self.graph.add((event, DWC['datasetId'], Literal(record['jddId'])))
+            (self.root, DWC['accessRights'], Literal(record['dSPublique'])))
+        self.graph.add((self.root, DWC['datasetName'], Literal(record['jddCode'])))  # noqa: E501
+        self.graph.add((self.root, DWC['datasetId'], Literal(record['jddId'])))
         self.graph.add(
-            (event, DWC['ownerInstitutionCode'], Literal(record['orgGestDat'])))  # noqa: E501
+            (self.root, DWC['ownerInstitutionCode'], Literal(record['orgGestDat'])))  # noqa: E501
         if 'obsId' in record.keys() and 'obsNomOrg' in record.keys():
             self.graph.add(
-                (event,
+                (self.root,
                  DWC['georeferencedBy'],
                  Literal('|'.join([record['obsId'], record['obsNomOrg']]))))
         elif 'obsId' in record.keys():
             self.graph.add(
-                (event, DWC['georeferencedBy'], Literal(record['obsId'])))
+                (self.root, DWC['georeferencedBy'], Literal(record['obsId'])))
         elif 'obsNomOrg' in record.keys():
             self.graph.add(
-                (event, DWC['georeferencedBy'], Literal(record['obsNomOrg'])))
+                (self.root, DWC['georeferencedBy'], Literal(record['obsNomOrg'])))  # noqa: E501
         humanObservation = BNode()
         self.graph.add((humanObservation, RDF.type, DWC['HumanObservation']))
-        self.graph.add((event, DWC['basisOfRecord'], Literal(humanObservation)))  # noqa: E501
-        return event
+        self.graph.add((self.root, DWC['basisOfRecord'], Literal(humanObservation)))  # noqa: E501
+        return self.root
 
     def build_location(self, event, record):
         location = BNode()
@@ -95,7 +96,7 @@ class Store:
              DWC['decimalLongitude'],
              Literal(geometry_['coordinates'][1], datatype=XSD.float)))
 
-        self.graph.add((event, DSW['locatedAt'], location))
+        self.graph.add((self.root, DSW['locatedAt'], location))
         return location
 
     def build_occurrence(self, event, record):
@@ -117,7 +118,7 @@ class Store:
             (occurrence, DWC['establishmentMeans'], Literal(record['ocNat'])))
         self.graph.add(
             (occurrence, DWC['lifeStage'], Literal(record['ocStade'])))
-        self.graph.add((event, DSW['ofEvent'], occurrence))
+        self.graph.add((self.root, DSW['ofEvent'], occurrence))
         return occurrence
 
     def build_organism(self, occurrence, record):
@@ -137,15 +138,15 @@ class Store:
             (identification, DWC['dateIdentified'], Literal(record['datedet'])))  # noqa: E501
         if 'detId' in record.keys() and 'detNomOrg' in record.keys():
             self.graph.add(
-                (event,
+                (self.root,
                  DWC['identifiedBy'],
                  Literal('|'.join([record['detId'], record['detNomOrg']]))))
         elif 'detId' in record.keys():
             self.graph.add(
-                (event, DWC['identifiedBy'], Literal(record['detId'])))
+                (self.root, DWC['identifiedBy'], Literal(record['detId'])))
         elif 'detNomOrg' in record.keys():
             self.graph.add(
-                (event, DWC['identifiedBy'], Literal(record['detNomOrg'])))
+                (self.root, DWC['identifiedBy'], Literal(record['detNomOrg'])))
 
         self.graph.add((organism, DWC['hasIdentification'], identification))
         return identification
@@ -216,7 +217,7 @@ if __name__ == '__main__':
         'WKT': 'POINT(6.5 44.85)',
         'natObjGeo': 'In'
     }
-    store = Store()
+    store = OccurrenceStore()
     event = store.build_event(record)
     location = store.build_location(event, record)
     occurrence = store.build_occurrence(event, record)
