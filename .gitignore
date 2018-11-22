@@ -1,4 +1,5 @@
 *~
+*.orig
 __pycache__
 *.py[cod]
 instance/
@@ -18,9 +19,22 @@ tmp_*
 .ipynb_checkpoints
 .flake8
 .pylintrc
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.mypy_cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+uninstall.sh
 
 # instance tunable
 config/settings.ini
+config/conf_gn_module.toml
 
 # Overwritten with app start
 backend/assets/api.yml
