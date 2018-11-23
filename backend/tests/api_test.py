@@ -47,9 +47,32 @@ class TestApiModuleExports:
         response = self.client.get(url_for('exports.etalab_export'))
         assert response.status_code == 200
 
-    def test_export(self):
+    def test_export_dlb_csv(self):
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
             url_for('exports.export', id_export=1, format='csv'))
         assert response.status_code == 200
+
+    def test_export_dlb_json(self):
+        token = get_token(self.client)
+        self.client.set_cookie('/', 'token', token)
+        response = self.client.get(
+            url_for('exports.export', id_export=1, format='json'))
+        assert response.status_code == 200
+
+    def test_export_dlb_shp(self):
+        token = get_token(self.client)
+        self.client.set_cookie('/', 'token', token)
+        response = self.client.get(
+            url_for('exports.export', id_export=1, format='shp'))
+        # DLB has geom field
+        assert response.status_code == 200
+
+    def test_export_sinp_shp(self):
+        token = get_token(self.client)
+        self.client.set_cookie('/', 'token', token)
+        response = self.client.get(
+            url_for('exports.export', id_export=2, format='shp'))
+        # SINP export has no geom field
+        assert response.status_code == 404
