@@ -9,7 +9,7 @@ db_host=localhost
 db_port=5432
 
 # GeoNature database name
-db_name=geonaturedb
+db_name=geonature2db
 
 # GeoNature database owner username
 user_pg=geonatadmin
