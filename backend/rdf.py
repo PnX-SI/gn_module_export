@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 import os
+from datetime import datetime as dt
 from shapely import wkt, geometry
 
 from rdflib import (
     BNode,
     ConjunctiveGraph,
-    # URIRef,
+    URIRef,
     Literal,
     Namespace,
     RDF
@@ -29,49 +30,57 @@ class OccurrenceStore:
         self.graph.bind('foaf', FOAF)
         self.graph.bind('dwc', DWC)
         self.graph.bind('dsw', DSW)
-        self.root = BNode()
 
+    # def save(self, store_uri=STORE_URI, format='pretty-xml'):
     def save(self, store_uri=STORE_URI, format='turtle'):
         self.graph.serialize(store_uri, format)
 
     def build_event(self, record):
-        self.root = BNode()
-        self.graph.add((self.root, RDF.type, DCMITYPE.Event))
+        event = BNode()
+        self.graph.add((event, RDF.type, DCMITYPE.Event))
+        return event
+
+    def build_human_observation(self, event, record):
+        human_observation = BNode()
+        self.graph.add((human_observation, RDF.type, DWC['HumanObservation']))
+        self.graph.add((event, DSW['basisOfRecord'], human_observation))
         self.graph.add(
-            (self.root,
+            (human_observation,
              DWC['eventDate'],
-             Literal('/'.join([record['dateDebut'], record['dateFin']]))))
+             Literal('/'.join([
+                dt.isoformat(
+                    dt.strptime(record['dateDebut'], '%Y-%d-%m %H:%M:%S')),
+                dt.isoformat(
+                    dt.strptime(record['dateFin'], '%Y-%d-%m %H:%M:%S'))]))))  # noqa: E131
         self.graph.add(
-            (self.root,
+            (human_observation,
              DWC['eventTime'],
              Literal('/'.join([record['heureDebut'], record['heureFin']]))))
         self.graph.add(
-            (self.root, DWC['samplingProtocol'], Literal(record['obsMeth'])))
+            (human_observation, DWC['samplingProtocol'], Literal(record['obsMeth'])))  # noqa: E501
         self.graph.add(
-            (self.root, DWC['eventRemarks'], Literal(record['comment'])))
+            (human_observation, DWC['eventRemarks'], Literal(record['comment'])))  # noqa: E501
         self.graph.add(
-            (self.root, DWC['accessRights'], Literal(record['dSPublique'])))
-        self.graph.add((self.root, DWC['datasetName'], Literal(record['jddCode'])))  # noqa: E501
-        self.graph.add((self.root, DWC['datasetId'], Literal(record['jddId'])))
+            (human_observation, DWC['accessRights'], Literal(record['dSPublique'])))  # noqa: E501
+        self.graph.add((human_observation, DWC['datasetName'], Literal(record['jddCode'])))  # noqa: E501
         self.graph.add(
-            (self.root, DWC['ownerInstitutionCode'], Literal(record['orgGestDat'])))  # noqa: E501
+            (human_observation, DWC['datasetId'], Literal(record['jddId'])))
+        self.graph.add(
+            (human_observation, DWC['ownerInstitutionCode'], Literal(record['orgGestDat'])))  # noqa: E501
         if 'obsId' in record.keys() and 'obsNomOrg' in record.keys():
             self.graph.add(
-                (self.root,
+                (human_observation,
                  DWC['georeferencedBy'],
                  Literal('|'.join([record['obsId'], record['obsNomOrg']]))))
         elif 'obsId' in record.keys():
             self.graph.add(
-                (self.root, DWC['georeferencedBy'], Literal(record['obsId'])))
+                (human_observation, DWC['georeferencedBy'], Literal(record['obsId'])))  # noqa: E501
         elif 'obsNomOrg' in record.keys():
             self.graph.add(
-                (self.root, DWC['georeferencedBy'], Literal(record['obsNomOrg'])))  # noqa: E501
-        humanObservation = BNode()
-        self.graph.add((humanObservation, RDF.type, DWC['HumanObservation']))
-        self.graph.add((self.root, DWC['basisOfRecord'], Literal(humanObservation)))  # noqa: E501
-        return self.root
+                (human_observation, DWC['georeferencedBy'], Literal(record['obsNomOrg'])))  # noqa: E501
+        return human_observation
 
-    def build_location(self, event, record):
+    def build_location(self, human_observation, record):
         location = BNode()
         self.graph.add((location, RDF.type, DWC['Location']))
         self.graph.add(
@@ -96,12 +105,13 @@ class OccurrenceStore:
              DWC['decimalLongitude'],
              Literal(geometry_['coordinates'][1], datatype=XSD.float)))
 
-        self.graph.add((self.root, DSW['locatedAt'], location))
+        self.graph.add((human_observation, DSW['locatedAt'], location))
         return location
 
     def build_occurrence(self, event, record):
         occurrence = BNode()
         self.graph.add((occurrence, RDF.type, DWC['Occurrence']))
+        # http://nomplateformeregionale/occtax/f0eevc75‐9c0b‐4ef8‐bz7z‐8zb9bz380g15
         self.graph.add(
             (occurrence, DWC['occurrenceID'], Literal(record['permId'])))
         self.graph.add(
@@ -118,7 +128,7 @@ class OccurrenceStore:
             (occurrence, DWC['establishmentMeans'], Literal(record['ocNat'])))
         self.graph.add(
             (occurrence, DWC['lifeStage'], Literal(record['ocStade'])))
-        self.graph.add((self.root, DSW['ofEvent'], occurrence))
+        self.graph.add((event, DSW['basisOfRecord'], occurrence))
         return occurrence
 
     def build_organism(self, occurrence, record):
@@ -135,18 +145,19 @@ class OccurrenceStore:
         self.graph.add(
             (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
         self.graph.add(
-            (identification, DWC['dateIdentified'], Literal(record['datedet'])))  # noqa: E501
+            (identification, DWC['dateIdentified'], Literal(dt.isoformat(
+                dt.strptime(record['dateDebut'], '%Y-%d-%m %H:%M:%S')))))
         if 'detId' in record.keys() and 'detNomOrg' in record.keys():
             self.graph.add(
-                (self.root,
+                (organism,
                  DWC['identifiedBy'],
                  Literal('|'.join([record['detId'], record['detNomOrg']]))))
         elif 'detId' in record.keys():
             self.graph.add(
-                (self.root, DWC['identifiedBy'], Literal(record['detId'])))
+                (organism, DWC['identifiedBy'], Literal(record['detId'])))
         elif 'detNomOrg' in record.keys():
             self.graph.add(
-                (self.root, DWC['identifiedBy'], Literal(record['detNomOrg'])))
+                (organism, DWC['identifiedBy'], Literal(record['detNomOrg'])))
 
         self.graph.add((organism, DWC['hasIdentification'], identification))
         return identification
@@ -154,12 +165,15 @@ class OccurrenceStore:
     def build_taxon(self, identification, record):
         taxon = BNode()
         self.graph.add((taxon, RDF.type, DWC['Taxon']))
-        self.graph.add((taxon, DWC['vernacularName'], Literal(record['nomCite'])))  # noqa: E501
-        self.graph.add((taxon, DWC['acceptedNameUsageID'], Literal(record['cdNom'])))  # noqa: E501
         self.graph.add(
-            (taxon,
-             DWC['taxonID'],
-             Literal('/'.join(['http://taxref.mnhn.fr/lod/name', str(record['cdRef'])]))))  # noqa: E501
+            (taxon, DWC['vernacularName'],
+             Literal(record['nomCite'], lang='fr')))
+        # self.graph.add((taxon, DWC['taxonID'], Literal(record['cdNom'])))
+        self.graph.add(
+            (taxon, DWC['taxonID'], URIRef(
+                Literal(
+                    'http://taxref.mnhn.fr/lod/taxon/{}/12.0'.format(
+                        str(record['cdRef']))))))
 
         self.graph.add((identification, DSW['toTaxon'], taxon))
         return taxon
@@ -219,7 +233,8 @@ if __name__ == '__main__':
     }
     store = OccurrenceStore()
     event = store.build_event(record)
-    location = store.build_location(event, record)
+    human_observation = store.build_human_observation(event, record)
+    location = store.build_location(human_observation, record)
     occurrence = store.build_occurrence(event, record)
     organism = store.build_organism(occurrence, record)
     identification = store.build_identification(organism, record)

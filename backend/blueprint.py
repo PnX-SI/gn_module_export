@@ -1,5 +1,5 @@
 import os
-from datetime import (datetime, time)
+from datetime import datetime
 import logging
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
@@ -210,6 +210,11 @@ def getExports(info_role):
 
 @blueprint.route('/etalab', methods=['GET'])
 def etalab_export():
+    from datetime import time
+    from geonature.utils.env import DB
+    from geonature.utils.utilssqlalchemy import GenericQuery
+    from .rdf import OccurrenceStore
+
     EXPORT_ETALAB = 'export_etalab.ttl'
     export_ = os.path.join(EXPORTS_DIR, EXPORT_ETALAB)
     seeded = False
@@ -219,22 +224,20 @@ def etalab_export():
         mtime = datetime.fromtimestamp(os.path.getmtime(export_))
         ts_delta = mtime - midnight
     if not seeded or ts_delta.total_seconds() < 0:
-        from .rdf import OccurrenceStore
-        from geonature.utils.env import DB
-        from geonature.utils.utilssqlalchemy import GenericQuery
         store = OccurrenceStore()
         query = GenericQuery(
             DB.session, 'export_occtax_sinp', 'pr_occtax',
             geometry_field=None, filters=[])
         data = query.return_query()
         # query.view.db_cols
-        for record in data.get('items', []):
+        for record in data.get('items'):
             event = store.build_event(record)
-            store.build_location(event, record)
+            obs = store.build_human_observation(event, record)
+            store.build_location(obs, record)
             occurrence = store.build_occurrence(event, record)
             organism = store.build_organism(occurrence, record)
             identification = store.build_identification(organism, record)
             store.build_taxon(identification, record)
-            store.save(store_uri=''.join(['file://', export_]))
+        store.save(store_uri=''.join(['file://', export_]))
 
     return send_from_directory(EXPORTS_DIR, EXPORT_ETALAB)
