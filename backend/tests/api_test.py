@@ -1,5 +1,6 @@
 import sys
 import os
+from datetime import datetime
 # import json
 import pytest
 from flask import (
@@ -44,15 +45,25 @@ class TestApiModuleExports:
         assert response.status_code == 200
 
     def test_etalab(self):
+        os.unlink(os.path.expanduser(
+            '~/geonature/backend/static/exports/export_etalab.ttl'))
         response = self.client.get(url_for('exports.etalab_export'))
         assert response.status_code == 200
 
     def test_export_dlb_csv(self):
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
+        # tick = datetime.now()
         response = self.client.get(
             url_for('exports.export', id_export=1, format='csv'))
         assert response.status_code == 200
+        # tock = datetime.now()
+        # content_disposition = set(response.headers['Content-Disposition'].split('; '))
+        # assert content_disposition.get('attachment')
+        # assert content_disposition.get(filename).startsWith('export_OccTax_-_DLB_')
+        # assert content_disposition.get(filename).endsWith('.csv')
+        # assert tick < datetime.strptime(content_disposition.get(filename), 'export_OccTax_-_DLB_%Y_%m_%d_%Hh%Mm%S.csv') < tock
+        # assert somecontent in response.data
 
     def test_export_dlb_json(self):
         token = get_token(self.client)

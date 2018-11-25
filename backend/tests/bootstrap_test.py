@@ -9,6 +9,7 @@ import server
 from geonature.utils.env import load_config, get_config_file_path
 
 # TODO: fixture pour mettre des données test dans la base a chaque test
+# https://github.com/pytest-dev/pytest-flask/issues/70
 
 
 @pytest.fixture
