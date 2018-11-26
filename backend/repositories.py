@@ -121,8 +121,8 @@ class ExportRepository(object):
             result = (export.as_dict(), columns, data)
         finally:
             end_time = datetime.utcnow()
-            e = sys.exc_info()
-            if any(e):
+            if e:
+                tb = sys.exc_info()
                 if (isinstance(e, InsufficientRightsError)
                         or isinstance(e, EmptyDataSetError)):  # noqa: E129 W503
                     raise
@@ -130,7 +130,7 @@ class ExportRepository(object):
                     raise NoResultFound(
                         'Unknown export id {}.'.format(id_export))
                 else:
-                    log = str(e)
+                    log = str(tb)
                     status = -1
 
             ExportLog.record({
@@ -142,8 +142,8 @@ class ExportRepository(object):
                 'status': status,
                 'log': log})
 
-            if status != 0 or any(e):
-                logger.critical('export error: %s', e)
+            if status != 0 or e:
+                logger.critical('export error: %s', tb)
                 raise
             else:
                 return result
@@ -160,55 +160,11 @@ class ExportRepository(object):
                                 TRoles.query.with_entities(TRoles.id_role)
                                             .join(CorRole, CorRole.id_role_groupe == TRoles.id_role)      # noqa: E501
                                             .filter(CorRole.id_role_utilisateur == info_role.id_role)),   # noqa: E501
-                            Export.public == True))
+                            Export.public == True))\
+                  .order_by(Export.id.desc())
 
         # logger.debug('query: %s', str(q))
         result = q.all()
         if not result:
             raise NoResultFound('No configured export')
         return result
-
-    # def create(self, adict):
-    #     from sqlalchemy.exc import IntegrityError
-    #     try:
-    #         x = Export.from_dict(adict)
-    #         self.session.add(x)
-    #         self.session.flush()
-    #     except IntegrityError as e:
-    #         self.session.rollback()
-    #         logger.warn('%s', str(e))
-    #         raise e
-    #     except Exception as e:
-    #         self.session.rollback()
-    #         logger.warn('%s', str(e))
-    #         raise e
-    #     else:
-    #         return x
-    #
-    # def update(self, adict):
-    #     x = self.get_by_id(adict['id_export'])
-    #     if not x:
-    #         raise NoResultFound(
-    #             'Unknown export id: {}'.format(adict['id_export']))
-    #     try:
-    #         x.__dict__.update(
-    #             (k, v)
-    #             for k, v in adict.items()
-    #             if k in x.__dict__ and not callable(v))
-    #         self.session.add(x)
-    #         self.session.flush()
-    #     except Exception as e:
-    #         self.session.rollback()
-    #         logger.warn('%s', str(e))
-    #         raise e
-    #     else:
-    #         return x
-    #
-    # def delete(self, id_role, id_export):
-    #     try:
-    #         self.get_by_id(id_export).delete()
-    #         self.session.commit()
-    #     except Exception as e:
-    #         self.session.rollback()
-    #         logger.critical('%s', str(e))
-    #         raise
