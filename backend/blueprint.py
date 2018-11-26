@@ -120,7 +120,7 @@ def export(id_export, format, info_role):
 
             if format == 'json':
                 return to_json_resp(
-                    data.get('items', []),
+                    data.get('items'),
                     as_file=True,
                     filename=fname,
                     indent=4)
