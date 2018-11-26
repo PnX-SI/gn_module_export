@@ -2,10 +2,7 @@ import os
 from datetime import datetime
 import pytest
 from flask import url_for, current_app
-from .bootstrap_test import (
-    app,
-    get_token
-)
+from .bootstrap_test import (app, get_token)
 
 
 assert app  # silence pyflake's unused import warning
@@ -134,6 +131,24 @@ dsw:basisOfRecord [ a dwc:Occurrence ;
     dwc:ownerInstitutionCode "NSP" ;
     dwc:samplingProtocol "23" ] .
 '''  # noqa: E501
+admin_user = {
+    'id_role': 1,
+    'id_organisme': 1,
+    'code_action': 'R',
+    'code_filter': '3',
+}
+agent_user = {  # has only right on dataset 2
+    'id_role': 2,
+    'id_organisme': -1,
+    'code_action': 'R',
+    'code_filter': '2',
+}
+own_data_user = {  # can see only its data
+    'id_role': 125,
+    'id_organisme': -1,
+    'code_action': 'R',
+    'code_filter': '1',
+}
 
 
 @pytest.mark.usefixtures('client_class')

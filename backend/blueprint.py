@@ -105,10 +105,8 @@ def export(id_export, format, info_role):
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
     current_app.config.update(
-        export_format_map=blueprint.config['export_format_map']
-    )
+        export_format_map=blueprint.config['export_format_map'])
     filters = {f: request.args.get(f) for f in request.args}
-    # logger.debug('filters: %s', filters)
     try:
         export, columns, data = repo.get_by_id(
             info_role, id_export, with_data=True, format=format,
@@ -193,10 +191,8 @@ def export(id_export, format, info_role):
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def getExports(info_role):
-    # logger.debug('info_role: %s', info_role)
     try:
         exports = repo.list(info_role)
-        # logger.debug(exports)
     except NoResultFound:
         return {'api_error': 'NoResultFound',
                 'message': 'Configure one or more export'}, 404

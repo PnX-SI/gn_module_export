@@ -32,10 +32,6 @@ class ExportRepository(object):
             self, info_role, view, schema,
             geom_column_header=None, filters=[], limit=10000, paging=0):
 
-        # logger.debug(
-        #     'Querying "%s"."%s" with cruved "%s"', schema, view, info_role.__dict__)  # noqa: E501
-        # logger.debug('gn_query_filters: %s', filters)
-
         query = GenericQuery(self.session, view, schema, geom_column_header,
                              filters, limit, paging)
 
@@ -96,12 +92,12 @@ class ExportRepository(object):
                     info_role,
                     export.view_name,
                     export.schema_name,
-                    geom_column_header=geometry,  # noqa: E501
+                    geom_column_header=geometry,
                     filters=filters,
                     limit=limit,
                     paging=paging)
 
-                if (not data.get('items', None) or len(data.get('items')) == 0):  # noqa: E501
+                if not data.get('items', False) or len(data.get('items')) == 0:
                     raise EmptyDataSetError(
                         'Empty dataset for export id {}.'.format(id_export))
             else:
@@ -150,6 +146,7 @@ class ExportRepository(object):
 
     def list(self, info_role):
         from geonature.core.users.models import (TRoles, CorRole)
+
         q = Export.query\
                   .join(CorExportsRoles)\
                   .filter(
@@ -163,7 +160,6 @@ class ExportRepository(object):
                             Export.public == True))\
                   .order_by(Export.id.desc())
 
-        # logger.debug('query: %s', str(q))
         result = q.all()
         if not result:
             raise NoResultFound('No configured export')
