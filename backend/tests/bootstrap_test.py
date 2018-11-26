@@ -1,7 +1,7 @@
+
+import os
 import json
-
 import pytest
-
 from flask import url_for
 from cookies import Cookie
 
@@ -40,10 +40,14 @@ headers = {
 
 
 def get_token(client, login="admin", password="admin"):
+    from geonature.utils.utilstoml import load_toml
+    GN_CONF_PATH = os.path.expanduser('~/geonature/config/geonature_config.toml')  # noqa: E501
+    GN_CONF = load_toml(GN_CONF_PATH)
+    GN_APP_ID = GN_CONF.get('ID_APPLICATION')
     data = {
         'login': login,
         'password': password,
-        'id_application': 3,
+        'id_application': GN_APP_ID,
         'with_cruved': True
     }
     response = client.post(
