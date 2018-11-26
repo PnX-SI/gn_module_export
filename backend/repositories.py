@@ -34,7 +34,7 @@ class ExportRepository(object):
 
         # logger.debug(
         #     'Querying "%s"."%s" with cruved "%s"', schema, view, info_role.__dict__)  # noqa: E501
-        logger.debug('gn_query_filters: %s', filters)
+        # logger.debug('gn_query_filters: %s', filters)
 
         query = GenericQuery(self.session, view, schema, geom_column_header,
                              filters, limit, paging)
@@ -162,7 +162,7 @@ class ExportRepository(object):
                                             .filter(CorRole.id_role_utilisateur == info_role.id_role)),   # noqa: E501
                             Export.public == True))
 
-        logger.debug('query: %s', str(q))
+        # logger.debug('query: %s', str(q))
         result = q.all()
         if not result:
             raise NoResultFound('No configured export')

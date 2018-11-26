@@ -15,7 +15,6 @@ from geonature.utils.filemanager import (
     removeDisallowedFilenameChars, delete_recursively)
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub import routes as fnauth
-# from pypnusershub.db.tools import get_or_fetch_user_cruved  # dbg
 
 from .repositories import ExportRepository, EmptyDataSetError
 
@@ -109,7 +108,7 @@ def export(id_export, format, info_role):
         export_format_map=blueprint.config['export_format_map']
     )
     filters = {f: request.args.get(f) for f in request.args}
-    logger.debug('filters: %s', filters)
+    # logger.debug('filters: %s', filters)
     try:
         export, columns, data = repo.get_by_id(
             info_role, id_export, with_data=True, format=format,
@@ -194,10 +193,10 @@ def export(id_export, format, info_role):
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
 @json_resp
 def getExports(info_role):
-    logger.debug('info_role: %s', info_role)
+    # logger.debug('info_role: %s', info_role)
     try:
         exports = repo.list(info_role)
-        logger.debug(exports)
+        # logger.debug(exports)
     except NoResultFound:
         return {'api_error': 'NoResultFound',
                 'message': 'Configure one or more export'}, 404
@@ -215,13 +214,13 @@ def etalab_export():
     from geonature.utils.utilssqlalchemy import GenericQuery
     from .rdf import OccurrenceStore
 
-    EXPORT_ETALAB = 'export_etalab.ttl'
-    export_ = os.path.join(EXPORTS_DIR, EXPORT_ETALAB)
+    conf = current_app.config.get('exports')
+    export_etalab = conf.get('etalab_export')
     seeded = False
-    if os.path.isfile(export_):
+    if os.path.isfile(export_etalab):
         seeded = True
         midnight = datetime.combine(datetime.today(), time.min)
-        mtime = datetime.fromtimestamp(os.path.getmtime(export_))
+        mtime = datetime.fromtimestamp(os.path.getmtime(export_etalab))
         ts_delta = mtime - midnight
     if not seeded or ts_delta.total_seconds() < 0:
         store = OccurrenceStore()
@@ -229,7 +228,6 @@ def etalab_export():
             DB.session, 'export_occtax_sinp', 'pr_occtax',
             geometry_field=None, filters=[])
         data = query.return_query()
-        # query.view.db_cols
         for record in data.get('items'):
             event = store.build_event(record)
             obs = store.build_human_observation(event, record)
@@ -238,6 +236,7 @@ def etalab_export():
             organism = store.build_organism(occurrence, record)
             identification = store.build_identification(organism, record)
             store.build_taxon(identification, record)
-        store.save(store_uri=''.join(['file://', export_]))
+        store.save(store_uri=''.join(['file://', export_etalab]))
 
-    return send_from_directory(EXPORTS_DIR, EXPORT_ETALAB)
+    return send_from_directory(
+        os.path.dirname(export_etalab), os.path.basename(export_etalab))

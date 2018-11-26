@@ -1,9 +1,7 @@
-
-import os
 import json
-import pytest
 from flask import url_for
 from cookies import Cookie
+import pytest
 
 import server
 from geonature.utils.env import load_config, get_config_file_path
@@ -11,12 +9,14 @@ from geonature.utils.env import load_config, get_config_file_path
 # TODO: fixture pour mettre des données test dans la base a chaque test
 # https://github.com/pytest-dev/pytest-flask/issues/70
 
+CONF_PATH = get_config_file_path()
+APP_CONF = load_config(CONF_PATH)
+APP_ID = APP_CONF.get('ID_APPLICATION_GEONATURE')
+
 
 @pytest.fixture
 def app():
-    config_path = get_config_file_path()
-    config = load_config(config_path)
-    app = server.get_app(config)
+    app = server.get_app(APP_CONF)
     app.config['TESTING'] = True
     return app
 
@@ -40,14 +40,10 @@ headers = {
 
 
 def get_token(client, login="admin", password="admin"):
-    from geonature.utils.utilstoml import load_toml
-    GN_CONF_PATH = os.path.expanduser('~/geonature/config/geonature_config.toml')  # noqa: E501
-    GN_CONF = load_toml(GN_CONF_PATH)
-    GN_APP_ID = GN_CONF.get('ID_APPLICATION')
     data = {
         'login': login,
         'password': password,
-        'id_application': GN_APP_ID,
+        'id_application': APP_ID,
         'with_cruved': True
     }
     response = client.post(
@@ -60,74 +56,3 @@ def get_token(client, login="admin", password="admin"):
         return token.value
     except Exception:
         raise Exception('Invalid login {}, {}'.format(login, password))
-
-
-@pytest.fixture()
-def releve_data(client):
-
-    response = client.get(
-        url_for('pr_occtax.getDefaultNomenclatures'),
-    )
-    default_nomenclatures = json_of_response(response)
-    data = {
-        "geometry": {
-            "type": "Point",
-            "coordinates": [
-                3.428936004638672,
-                44.276611357355904
-            ]
-        },
-        "properties": {
-            "id_dataset": 1,
-            "id_digitiser": 1,
-            "date_min": "2018-03-02",
-            "date_max": "2018-03-02",
-            "hour_min": None,
-            "hour_max": None,
-            "altitude_min": None,
-            "altitude_max": None,
-            "meta_device_entry": "web",
-            "comment": None,
-            "id_nomenclature_obs_technique": default_nomenclatures['TECHNIQUE_OBS'],
-            "observers": [1],
-            "observers_txt": "tatatato",
-            "id_nomenclature_grp_typ": default_nomenclatures['TYP_GRP'],
-            "t_occurrences_occtax": [
-                {
-                    "id_nomenclature_naturalness": default_nomenclatures['NATURALITE'],
-                    "id_nomenclature_obs_meth": default_nomenclatures['METH_OBS'],
-                    "digital_proof": None,
-                    "cor_counting_occtax": [
-                        {
-                            "unique_id_sinp_occtax": "10f937db-54e1-409d-915d-b8c85055fa32",
-                            "count_min": 1,
-                            "validation_comment": None,
-                            "id_nomenclature_life_stage": 2,
-                            "count_max": 1,
-                            "id_nomenclature_valid_status": default_nomenclatures['STATUT_VALID'],
-                            "id_nomenclature_sex": default_nomenclatures['SEXE'],
-                            "id_validator": None,
-                            "id_nomenclature_type_count": default_nomenclatures['TYP_DENBR'],
-                            "id_nomenclature_obj_count": default_nomenclatures['OBJ_DENBR']
-                        }
-                    ],
-                    "nom_cite": "Ablette = Alburnus alburnus (Linnaeus, 1758)",
-                    "meta_v_taxref": "Taxref V9.0",
-                    "id_nomenclature_blurring": default_nomenclatures['DEE_FLOU'],
-                    "id_nomenclature_bio_status": default_nomenclatures['STATUT_BIO'],
-                    "id_nomenclature_bio_condition": default_nomenclatures['ETA_BIO'],
-                    "comment": None,
-                    "id_nomenclature_observation_status": default_nomenclatures['STATUT_OBS'],
-                    "id_nomenclature_determination_method": default_nomenclatures['METH_DETERMIN'],
-                    "non_digital_proof": None,
-                    "id_nomenclature_exist_proof": default_nomenclatures['PREUVE_EXIST'],
-                    "cd_nom": 67111,
-                    "id_nomenclature_diffusion_level": default_nomenclatures['NIV_PRECIS'],
-                    "sample_number_proof": None,
-                    "determiner": None
-                }
-            ]
-        }
-    }
-
-    return data

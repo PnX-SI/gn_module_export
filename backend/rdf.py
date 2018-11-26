@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import os
 from datetime import datetime as dt
 from shapely import wkt, geometry
 
@@ -18,9 +17,6 @@ from rdflib.namespace import FOAF, DC, XSD
 DCMITYPE = Namespace('http://purl.org/dc/dcmitype/')
 DWC = Namespace('http://rs.tdwg.org/dwc/terms/')
 DSW = Namespace('http://purl.org/dsw/')
-STORE_FILE = os.path.expanduser(
-    '~/geonature/backend/static/exports/export_etalab.ttl')
-STORE_URI = ''.join(['file://', STORE_FILE])
 
 
 class OccurrenceStore:
@@ -31,8 +27,7 @@ class OccurrenceStore:
         self.graph.bind('dwc', DWC)
         self.graph.bind('dsw', DSW)
 
-    # def save(self, store_uri=STORE_URI, format='pretty-xml'):
-    def save(self, store_uri=STORE_URI, format='turtle'):
+    def save(self, store_uri, format='turtle'):
         self.graph.serialize(store_uri, format)
 
     def build_event(self, record):

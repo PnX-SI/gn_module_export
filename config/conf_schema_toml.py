@@ -1,7 +1,7 @@
 '''
    Spécification du schéma toml des paramètres de configurations
 '''
-
+import os
 from marshmallow import fields
 from geonature.utils.config_schema import GnModuleProdConf
 
@@ -25,6 +25,8 @@ export_format_map = {
         'geofeature': True
         }
 }  # noqa: E133
+etalab_export = os.path.expanduser(
+    '~/geonature/backend/static/exports/export_etalab.ttl')
 
 
 class GnModuleSchemaConf(GnModuleProdConf):
@@ -32,3 +34,4 @@ class GnModuleSchemaConf(GnModuleProdConf):
     id_application = fields.Integer(required=True)
     export_format_map = fields.Dict(missing=export_format_map)
     default_schema = fields.String(missing=default_schema)
+    etalab_export = fields.String(missing=etalab_export)
