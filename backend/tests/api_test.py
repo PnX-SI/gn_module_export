@@ -41,28 +41,169 @@ class TestApiModuleExports:
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(url_for('exports.getExports'))
-        print('data:', response.data)
         assert response.status_code == 200
 
     def test_etalab(self):
+        import rdflib
+
         os.unlink(os.path.expanduser(
             '~/geonature/backend/static/exports/export_etalab.ttl'))
         response = self.client.get(url_for('exports.etalab_export'))
         assert response.status_code == 200
+        expected_result = '''
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dsw: <http://purl.org/dsw/> .
+@prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] a <http://purl.org/dc/dcmitype/Event> ;
+    dsw:basisOfRecord [ a dwc:Occurrence ;
+            dsw:occurrenceOf [ a dwc:Organism ;
+                    dwc:hasIdentification [ a dwc:Identification ;
+                            dsw:toTaxon [ a dwc:Taxon ;
+                                    dwc:taxonID <http://taxref.mnhn.fr/lod/taxon/351/12.0> ;
+                                    dwc:vernacularName "Grenouille rousse"@fr ] ;
+                            dwc:dateIdentified "2017-01-01T00:00:00" ;
+                            dwc:identificationRemarks "Poils de plumes" ;
+                            dwc:identificationStatus "0" ] ;
+                    dwc:identifiedBy "Théo|NSP" ] ;
+            dwc:associatedReferences "None" ;
+            dwc:establishmentMeans "1" ;
+            dwc:lifeStage "4" ;
+            dwc:occurrenceID "d2e80898-0b25-49b5-a94a-9bb85073508e" ;
+            dwc:occurrenceQuantity 1 ;
+            dwc:occurrenceQuantityType "IND" ;
+            dwc:occurrenceRemarks "Exemple test" ;
+            dwc:occurrenceStatus "Pr" ],
+        [ a dwc:HumanObservation ;
+            dsw:locatedAt [ a dwc:Location ;
+                    dwc:coordinateIncertaintyInMeters "0" ;
+                    dwc:decimalLatitude "6.5"^^xsd:float ;
+                    dwc:decimalLongitude "44.85"^^xsd:float ;
+                    dwc:footprintWKT "POINT(6.5 44.85)" ;
+                    dwc:geodeticDatum "EPSG:4326" ;
+                    dwc:maximumElevationInMeters 1565 ;
+                    dwc:minimumElevationInMeters 1500 ] ;
+            dwc:accessRights "NSP" ;
+            dwc:datasetId "4d331cae-65e4-4948-b0b2-a11bc5bb46c2" ;
+            dwc:datasetName "Contact aléatoire tous règnes confondus" ;
+            dwc:eventDate "2017-01-01T00:00:00/2017-01-01T00:00:00" ;
+            dwc:eventRemarks "Autre test" ;
+            dwc:eventTime "12:05:02/12:05:02" ;
+            dwc:georeferencedBy "Administrateur test|Autre" ;
+            dwc:ownerInstitutionCode "NSP" ;
+            dwc:samplingProtocol "23" ] .
+
+[] a <http://purl.org/dc/dcmitype/Event> ;
+    dsw:basisOfRecord [ a dwc:HumanObservation ;
+            dsw:locatedAt [ a dwc:Location ;
+                    dwc:coordinateIncertaintyInMeters "0" ;
+                    dwc:decimalLatitude "6.5"^^xsd:float ;
+                    dwc:decimalLongitude "44.85"^^xsd:float ;
+                    dwc:footprintWKT "POINT(6.5 44.85)" ;
+                    dwc:geodeticDatum "EPSG:4326" ;
+                    dwc:maximumElevationInMeters 1565 ;
+                    dwc:minimumElevationInMeters 1500 ] ;
+            dwc:accessRights "NSP" ;
+            dwc:datasetId "4d331cae-65e4-4948-b0b2-a11bc5bb46c2" ;
+            dwc:datasetName "Contact aléatoire tous règnes confondus" ;
+            dwc:eventDate "2017-01-01T00:00:00/2017-01-01T00:00:00" ;
+            dwc:eventRemarks "Test" ;
+            dwc:eventTime "12:05:02/12:05:02" ;
+            dwc:georeferencedBy "Administrateur test|Autre" ;
+            dwc:ownerInstitutionCode "NSP" ;
+            dwc:samplingProtocol "23" ],
+        [ a dwc:Occurrence ;
+            dsw:occurrenceOf [ a dwc:Organism ;
+                    dwc:hasIdentification [ a dwc:Identification ;
+                            dsw:toTaxon [ a dwc:Taxon ;
+                                    dwc:taxonID <http://taxref.mnhn.fr/lod/taxon/60612/12.0> ;
+                                    dwc:vernacularName "Lynx Boréal"@fr ] ;
+                            dwc:dateIdentified "2017-01-01T00:00:00" ;
+                            dwc:identificationRemarks "Poil" ;
+                            dwc:identificationStatus "0" ] ;
+                    dwc:identifiedBy "Gil|NSP" ] ;
+            dwc:associatedReferences "None" ;
+            dwc:establishmentMeans "1" ;
+            dwc:lifeStage "2" ;
+            dwc:occurrenceID "c75053ca-8190-40c3-9bcd-5f9926211366" ;
+            dwc:occurrenceQuantity 5 ;
+            dwc:occurrenceQuantityType "IND" ;
+            dwc:occurrenceRemarks "Exemple test" ;
+            dwc:occurrenceStatus "Pr" ] .
+
+[] a <http://purl.org/dc/dcmitype/Event> ;
+    dsw:basisOfRecord [ a dwc:Occurrence ;
+            dsw:occurrenceOf [ a dwc:Organism ;
+                    dwc:hasIdentification [ a dwc:Identification ;
+                            dsw:toTaxon [ a dwc:Taxon ;
+                                    dwc:taxonID <http://taxref.mnhn.fr/lod/taxon/67111/12.0> ;
+                                    dwc:vernacularName "Ablette"@fr ] ;
+                            dwc:dateIdentified "2017-08-01T00:00:00" ;
+                            dwc:identificationRemarks "Poils de plumes" ;
+                            dwc:identificationStatus "0" ] ;
+                    dwc:identifiedBy "Donovan|NSP" ] ;
+            dwc:associatedReferences "None" ;
+            dwc:establishmentMeans "1" ;
+            dwc:lifeStage "3" ;
+            dwc:occurrenceID "311abde1-a45d-4daa-8475-b538637d37dd" ;
+            dwc:occurrenceQuantity 1 ;
+            dwc:occurrenceQuantityType "IND" ;
+            dwc:occurrenceRemarks "Autre exemple test" ;
+            dwc:occurrenceStatus "Pr" ],
+        [ a dwc:HumanObservation ;
+            dsw:locatedAt [ a dwc:Location ;
+                    dwc:coordinateIncertaintyInMeters "0" ;
+                    dwc:decimalLatitude "6.5"^^xsd:float ;
+                    dwc:decimalLongitude "44.85"^^xsd:float ;
+                    dwc:footprintWKT "POINT(6.5 44.85)" ;
+                    dwc:geodeticDatum "EPSG:4326" ;
+                    dwc:maximumElevationInMeters 1600 ;
+                    dwc:minimumElevationInMeters 1600 ] ;
+            dwc:accessRights "NSP" ;
+            dwc:datasetId "4d331cae-65e4-4948-b0b2-a11bc5bb46c2" ;
+            dwc:datasetName "Contact aléatoire tous règnes confondus" ;
+            dwc:eventDate "2017-08-01T00:00:00/2017-08-01T00:00:00" ;
+            dwc:eventRemarks "Troisieme test" ;
+            dwc:eventTime "20:00:00/23:00:00" ;
+            dwc:georeferencedBy "Administrateur test|Autre" ;
+            dwc:ownerInstitutionCode "NSP" ;
+            dwc:samplingProtocol "23" ] .
+'''  # noqa: E501
+        g1 = rdflib.Graph()
+        g1 = g1.parse(data=expected_result, format='turtle')
+        g2 = rdflib.Graph()
+        g2 = g2.parse(data=response.data, format='turtle')
+        assert g1.isomorphic(g2)
 
     def test_export_dlb_csv(self):
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
-        # tick = datetime.now()
+        tick = datetime.now().replace(microsecond=0)
         response = self.client.get(
             url_for('exports.export', id_export=1, format='csv'))
         assert response.status_code == 200
-        # tock = datetime.now()
-        # content_disposition = set(response.headers['Content-Disposition'].split('; '))
-        # assert content_disposition.get('attachment')
-        # assert content_disposition.get(filename).startsWith('export_OccTax_-_DLB_')
-        # assert content_disposition.get(filename).endsWith('.csv')
-        # assert tick < datetime.strptime(content_disposition.get(filename), 'export_OccTax_-_DLB_%Y_%m_%d_%Hh%Mm%S.csv') < tock
+        tock = datetime.now().replace(microsecond=0)
+        content_disposition = set(
+            response.headers['Content-Disposition'].split('; '))
+        assert 'attachment' in content_disposition
+        content_disposition = list(content_disposition)
+        filenames = [
+            item
+            for item in content_disposition
+            if item.startswith('filename=')]
+        assert len(filenames) == 1
+        filename = filenames[0].replace('filename=', '')
+        assert filename.startswith('export_OccTax_-_DLB_')
+        assert filename.endswith('.csv')
+        ts = datetime.strptime(
+                filename, 'export_OccTax_-_DLB_%Y_%m_%d_%Hh%Mm%S.csv'
+            ).replace(microsecond=0)
+        assert (tick <= ts <= tock)
         # assert somecontent in response.data
 
     def test_export_dlb_json(self):
