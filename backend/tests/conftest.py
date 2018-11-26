@@ -1,8 +1,9 @@
 import os
-
-import psycopg2
-
 from geonature.utils.env import (load_config, get_config_file_path)
+import warnings
+# UserWarning: The psycopg2 wheel package will be renamed from release 2.8 ...
+warnings.filterwarnings('ignore', category=UserWarning, module='psycopg2')
+import psycopg2  # noqa: E402
 
 
 def pytest_sessionstart(session):

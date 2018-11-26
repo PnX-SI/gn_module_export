@@ -2,7 +2,6 @@ import os
 from datetime import datetime
 import pytest
 from flask import url_for, current_app
-import warnings
 from .bootstrap_test import (
     app,
     get_token
@@ -10,8 +9,6 @@ from .bootstrap_test import (
 
 
 assert app  # silence pyflake's unused import warning
-# UserWarning: The psycopg2 wheel package will be renamed from release 2.8 ...
-warnings.filterwarnings('ignore', category=UserWarning, module='psycopg2')
 
 REFERENCE_GRAPH = '''\
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
