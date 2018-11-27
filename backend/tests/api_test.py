@@ -131,23 +131,17 @@ dsw:basisOfRecord [ a dwc:Occurrence ;
     dwc:ownerInstitutionCode "NSP" ;
     dwc:samplingProtocol "23" ] .
 '''  # noqa: E501
-admin_user = {
+admin_info_role = {
     'id_role': 1,
     'id_organisme': 1,
     'code_action': 'R',
     'code_filter': '3',
 }
-agent_user = {  # has only right on dataset 2
+agent_info_role = {  # has only right on dataset 2
     'id_role': 2,
     'id_organisme': -1,
     'code_action': 'R',
     'code_filter': '2',
-}
-own_data_user = {  # can see only its data
-    'id_role': 125,
-    'id_organisme': -1,
-    'code_action': 'R',
-    'code_filter': '1',
 }
 
 
@@ -166,36 +160,94 @@ class TestApiModuleExports:
         response = self.client.get(url_for('exports.getExports'))
         assert response.status_code == 200
 
-    def test_etalab(self):
-        import rdflib
-        import rdflib.compare
-        # from rdflib.tools.graphisomorphism import IsomorphicTestableGraph
-        # from itertools import combinations
-
-        conf = current_app.config.get('exports')
-        try:
-            os.unlink(conf.get('etalab_export'))
-        except FileNotFoundError:
-            pass
-        response = self.client.get(url_for('exports.etalab_export'))
+    def test_getExports_roles_admin(self):
+        token = get_token(self.client, login='admin', password='admin')
+        self.client.set_cookie('/', 'token', token)
+        response = self.client.get(
+            url_for('exports.getExports'))
+        assert response
+        print('data:', response.json)
         assert response.status_code == 200
+        assert response.json == [
+            {
+                'geometry_field': None,
+                'public': False,
+                'id': 3,
+                'label': 'TRoles',
+                'schema_name': 'utilisateurs',
+                'geometry_srid': None,
+                'view_name': 't_roles',
+                'desc': 'users'
+            }, {
+                'desc': 'SINP compliant dataset',
+                'id': 2, 'view_name':
+                'export_occtax_sinp',
+                'geometry_srid': None,
+                'label': 'OccTax - SINP',
+                'public': True,
+                'schema_name':
+                'pr_occtax',
+                'geometry_field': None
+            }, {
+                'desc': 'Dépôt Légal de Biodiversité',
+                'id': 1,
+                'view_name': 'export_occtax_dlb',
+                'geometry_srid': 4326,
+                'label': 'OccTax - DLB',
+                'public': True,
+                'schema_name': 'pr_occtax',
+                'geometry_field': 'geom_4326'
+            }]
 
-        # graph_name = {}
-        # g1 = IsomorphicTestableGraph()
-        # g1 = g1.parse(data=REFERENCE_GRAPH, format='turtle')
-        # graph_name[g1] = 'REFERENCE_GRAPH'
-        # g2 = IsomorphicTestableGraph()
-        # g2 = g2.parse(data=REFERENCE_GRAPH, format='turtle')
-        # graph_name[g2] = 'TESTED_GRAPH'
-        # assert g1 == g2, "%s != %s" % (graph_name[g1], graph_name[g2])
-        # >>> TypeError: unhashable type: 'IsomorphicTestableGraph'
-        g1 = rdflib.Graph()
-        g1 = g1.parse(data=REFERENCE_GRAPH, format='turtle')
-        g2 = rdflib.Graph()
-        g2 = g2.parse(data=response.data, format='turtle')
-        # assert g2.isomorphic(g1)  # If no BNodes are involved
-        # See rdflib.compare for a correct implementation of isomorphism checks
-        assert rdflib.compare.isomorphic(g1, g2)
+    def test_getExports_roles_agent(self):
+        token = get_token(self.client, login='agent', password='admin')
+        self.client.set_cookie('/', 'token', token)
+        response = self.client.get(
+            url_for('exports.getExports'))
+        assert response
+        # print('data:', response.json)
+        assert response.status_code == 200
+        assert response.json == [
+            {'desc': 'SINP compliant dataset',
+             'id': 2, 'view_name':
+             'export_occtax_sinp',
+             'geometry_srid': None,
+             'label': 'OccTax - SINP',
+             'public': True,
+             'schema_name':
+             'pr_occtax',
+             'geometry_field': None},
+            {'desc': 'Dépôt Légal de Biodiversité',
+             'id': 1,
+             'view_name': 'export_occtax_dlb',
+             'geometry_srid': 4326,
+             'label': 'OccTax - DLB',
+             'public': True,
+             'schema_name': 'pr_occtax',
+             'geometry_field': 'geom_4326'}]
+
+    def test_getOneExport_roles_agent(self):
+        # arrange agent password in utilisateurs.t_roles
+        # Export: id_export="3";label="TRoles";schema="utilisateurs";view="t_roles";desc="users";"";;public=FALSE  # noqa: E501
+        # CorExportsRoles: id_export=3; id_role=1
+        token = get_token(self.client, login='agent', password='admin')
+        self.client.set_cookie('/', 'token', token)
+        response = self.client.get(
+             url_for(
+                 'exports.getOneExport', id_export=3, export_format='json'))
+        assert response
+        print('data:', response.json)
+        assert response.status_code == 404
+
+    def test_getOneExport_role_admin(self):
+        token = get_token(self.client, login='admin', password='admin')
+        self.client.set_cookie('/', 'token', token)
+        response = self.client.get(
+             url_for(
+                 'exports.getOneExport', id_export=3, export_format='json'))
+        assert response
+        # print('data:', response.json)
+        assert response.status_code == 200
 
     def test_export_dlb_csv(self):
         token = get_token(self.client)
@@ -249,3 +301,34 @@ class TestApiModuleExports:
             url_for('exports.getOneExport', id_export=2, export_format='shp'))
         assert response.status_code == 404
         assert response.json == {'api_error': 'NonTransformableError'}
+
+    def test_etalab(self):
+        import rdflib
+        import rdflib.compare
+        # from rdflib.tools.graphisomorphism import IsomorphicTestableGraph
+        # from itertools import combinations
+
+        conf = current_app.config.get('exports')
+        try:
+            os.unlink(conf.get('etalab_export'))
+        except FileNotFoundError:
+            pass
+        response = self.client.get(url_for('exports.etalab_export'))
+        assert response.status_code == 200
+
+        # graph_name = {}
+        # g1 = IsomorphicTestableGraph()
+        # g1 = g1.parse(data=REFERENCE_GRAPH, format='turtle')
+        # graph_name[g1] = 'REFERENCE_GRAPH'
+        # g2 = IsomorphicTestableGraph()
+        # g2 = g2.parse(data=REFERENCE_GRAPH, format='turtle')
+        # graph_name[g2] = 'TESTED_GRAPH'
+        # assert g1 == g2, "%s != %s" % (graph_name[g1], graph_name[g2])
+        # >>> TypeError: unhashable type: 'IsomorphicTestableGraph'
+        g1 = rdflib.Graph()
+        g1 = g1.parse(data=REFERENCE_GRAPH, format='turtle')
+        g2 = rdflib.Graph()
+        g2 = g2.parse(data=response.data, format='turtle')
+        # assert g2.isomorphic(g1)  # If no BNodes are involved
+        # See rdflib.compare for a correct implementation of isomorphism checks
+        assert rdflib.compare.isomorphic(g1, g2)

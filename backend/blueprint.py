@@ -110,7 +110,7 @@ def getOneExport(id_export, export_format, info_role):
     try:
         export, columns, data = repo.get_by_id(
             info_role, id_export, with_data=True, export_format=export_format,
-            filters=filters, limit=10000, paging=0)
+            filters=filters, limit=10000, offset=0)
 
         if export:
             fname = export_filename(export)
