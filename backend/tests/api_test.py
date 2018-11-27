@@ -131,18 +131,6 @@ dsw:basisOfRecord [ a dwc:Occurrence ;
     dwc:ownerInstitutionCode "NSP" ;
     dwc:samplingProtocol "23" ] .
 '''  # noqa: E501
-admin_info_role = {
-    'id_role': 1,
-    'id_organisme': 1,
-    'code_action': 'R',
-    'code_filter': '3',
-}
-agent_info_role = {  # has only right on dataset 2
-    'id_role': 2,
-    'id_organisme': -1,
-    'code_action': 'R',
-    'code_filter': '2',
-}
 
 
 @pytest.mark.usefixtures('client_class')
@@ -286,19 +274,19 @@ class TestApiModuleExports:
         assert response.status_code == 200
 
     def test_export_dlb_shp(self):
-        # DLB has geom field
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
             url_for('exports.getOneExport', id_export=1, export_format='shp'))
+        # DLB has geom field
         assert response.status_code == 200
 
     def test_export_sinp_noshp(self):
-        # SINP export has no geom field
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
             url_for('exports.getOneExport', id_export=2, export_format='shp'))
+        # SINP export has no geom field
         assert response.status_code == 404
         assert response.json == {'api_error': 'NonTransformableError'}
 
