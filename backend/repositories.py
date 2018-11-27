@@ -132,7 +132,7 @@ class ExportRepository(object):
             ExportLog.record({
                 'id_role': info_role.id_role,
                 'id_export': export.id,
-                'format': format,
+                'format_': format_,
                 'start_time': start_time,
                 'end_time': end_time,
                 'status': status,
@@ -144,7 +144,7 @@ class ExportRepository(object):
             else:
                 return result
 
-    def exports(self, info_role):
+    def getAllowedExports(self, info_role):
         from geonature.core.users.models import (TRoles, CorRole)
         q = Export.query\
                   .join(CorExportsRoles)\

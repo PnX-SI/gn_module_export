@@ -167,7 +167,7 @@ class TestApiModuleExports:
 
     def test_etalab(self):
         import rdflib
-        from rdflib.compare  import isomorphic
+        from rdflib.compare import isomorphic
         # from rdflib.tools.graphisomorphism import IsomorphicTestableGraph
         # from itertools import combinations
 
@@ -201,7 +201,7 @@ class TestApiModuleExports:
         self.client.set_cookie('/', 'token', token)
         tick = datetime.now().replace(microsecond=0)
         response = self.client.get(
-            url_for('exports.export', id_export=1, format='csv'))
+            url_for('exports.getOneExport', id_export=1, format_='csv'))
         tock = datetime.now().replace(microsecond=0)
         assert response.status_code == 200
 
@@ -229,7 +229,7 @@ class TestApiModuleExports:
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
-            url_for('exports.export', id_export=1, format='json'))
+            url_for('exports.getOneExport', id_export=1, format_='json'))
         assert response.status_code == 200
 
     def test_export_dlb_shp(self):
@@ -237,7 +237,7 @@ class TestApiModuleExports:
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
-            url_for('exports.export', id_export=1, format='shp'))
+            url_for('exports.getOneExport', id_export=1, format_='shp'))
         assert response.status_code == 200
 
     def test_export_sinp_noshp(self):
@@ -245,5 +245,5 @@ class TestApiModuleExports:
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
-            url_for('exports.export', id_export=2, format='shp'))
+            url_for('exports.getOneExport', id_export=2, format_='shp'))
         assert response.status_code == 404

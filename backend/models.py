@@ -66,11 +66,11 @@ class ExportLog(DB.Model):
     status = DB.Column(DB.Integer, default=-2)
     log = DB.Column(DB.Text)
 
-    def __init__(self, id_role, id_export, format, start_time, end_time,
+    def __init__(self, id_role, id_export, format_, start_time, end_time,
                  status, log):
         self.id_role = id_role
         self.id_export = id_export
-        self.format = format
+        self.format = format_
         self.start_time = start_time
         self.end_time = end_time
         self.status = status
@@ -81,7 +81,7 @@ class ExportLog(DB.Model):
         export_log = ExportLog(
             id_role=adict['id_role'],
             id_export=adict['id_export'],
-            format=adict['format'],
+            format_=adict['format_'],
             start_time=adict['start_time'],
             end_time=adict['end_time'],
             status=adict['status'],

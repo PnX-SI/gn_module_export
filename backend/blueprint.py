@@ -64,7 +64,7 @@ for template, serving in {
                 'API_URL': API_URL.lstrip('/') if API_URL else '',
                 'API_YAML': SWAGGER_API_YAML
                 }).items():
-            content = content.replace('{{{{{}}}}}'.format_(k), v)
+            content = content.replace('{{{{{}}}}}'.format(k), v)
         with open(serving, 'w') as output:
             output.write(content)
 
@@ -99,7 +99,7 @@ def export_filename(export):
     'E', True, id_app=ID_MODULE,
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
-def export(id_export, format_, info_role):
+def getOneExport(id_export, format_, info_role):
     if (id_export < 1
             or format_ not in blueprint.config.get('export_format_map')):
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
@@ -192,7 +192,7 @@ def export(id_export, format_, info_role):
 @json_resp
 def getExports(info_role):
     try:
-        exports = repo.exports(info_role)
+        exports = repo.getAllowedExports(info_role)
     except NoResultFound:
         return {'api_error': 'NoResultFound',
                 'message': 'Configure one or more export'}, 404
