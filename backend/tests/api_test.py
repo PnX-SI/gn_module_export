@@ -201,7 +201,7 @@ class TestApiModuleExports:
         self.client.set_cookie('/', 'token', token)
         tick = datetime.now().replace(microsecond=0)
         response = self.client.get(
-            url_for('exports.getOneExport', id_export=1, format_='csv'))
+            url_for('exports.getOneExport', id_export=1, export_format='csv'))
         tock = datetime.now().replace(microsecond=0)
         assert response.status_code == 200
 
@@ -224,12 +224,13 @@ class TestApiModuleExports:
             ).replace(microsecond=0)
         assert (tick <= ts <= tock)
         # assert somecontent in response.data
+        # assert response.json == {'ping': 'pong'}
 
     def test_export_dlb_json(self):
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
-            url_for('exports.getOneExport', id_export=1, format_='json'))
+            url_for('exports.getOneExport', id_export=1, export_format='json'))
         assert response.status_code == 200
 
     def test_export_dlb_shp(self):
@@ -237,7 +238,7 @@ class TestApiModuleExports:
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
-            url_for('exports.getOneExport', id_export=1, format_='shp'))
+            url_for('exports.getOneExport', id_export=1, export_format='shp'))
         assert response.status_code == 200
 
     def test_export_sinp_noshp(self):
@@ -245,5 +246,7 @@ class TestApiModuleExports:
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
-            url_for('exports.getOneExport', id_export=2, format_='shp'))
-        assert response.status_code == 404
+            url_for('exports.getOneExport', id_export=2, export_format='shp'))
+        # assert response.status_code == 404
+        api_error = response.get_json()
+        assert api_error['api_error'] == 'NonTransformableError'
