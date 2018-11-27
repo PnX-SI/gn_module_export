@@ -167,6 +167,9 @@ class TestApiModuleExports:
 
     def test_etalab(self):
         import rdflib
+        from rdflib.compare  import isomorphic
+        # from rdflib.tools.graphisomorphism import IsomorphicTestableGraph
+        # from itertools import combinations
 
         conf = current_app.config.get('exports')
         try:
@@ -176,11 +179,22 @@ class TestApiModuleExports:
         response = self.client.get(url_for('exports.etalab_export'))
         assert response.status_code == 200
 
+        # graph_name = {}
+        # g1 = IsomorphicTestableGraph()
+        # g1 = g1.parse(data=REFERENCE_GRAPH, format='turtle')
+        # graph_name[g1] = 'REFERENCE_GRAPH'
+        # g2 = IsomorphicTestableGraph()
+        # g2 = g2.parse(data=REFERENCE_GRAPH, format='turtle')
+        # graph_name[g2] = 'TESTED_GRAPH'
+        # assert g1 == g2, "%s != %s" % (graph_name[g1], graph_name[g2])
+        # >>> TypeError: unhashable type: 'IsomorphicTestableGraph'
         g1 = rdflib.Graph()
         g1 = g1.parse(data=REFERENCE_GRAPH, format='turtle')
         g2 = rdflib.Graph()
         g2 = g2.parse(data=response.data, format='turtle')
-        assert g2.isomorphic(g1)
+        # assert g2.isomorphic(g1)  # If no BNodes are involved
+        # See rdflib.compare for a correct implementation of isomorphism checks
+        assert isomorphic(g1, g2)
 
     def test_export_dlb_csv(self):
         token = get_token(self.client)
