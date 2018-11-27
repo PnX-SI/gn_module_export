@@ -152,6 +152,7 @@ own_data_user = {  # can see only its data
 
 
 @pytest.mark.usefixtures('client_class')
+@pytest.mark.incremental
 class TestApiModuleExports:
     mimetype = 'application/json'
     headers = {
@@ -167,7 +168,7 @@ class TestApiModuleExports:
 
     def test_etalab(self):
         import rdflib
-        from rdflib.compare import isomorphic
+        import rdflib.compare
         # from rdflib.tools.graphisomorphism import IsomorphicTestableGraph
         # from itertools import combinations
 
@@ -194,7 +195,7 @@ class TestApiModuleExports:
         g2 = g2.parse(data=response.data, format='turtle')
         # assert g2.isomorphic(g1)  # If no BNodes are involved
         # See rdflib.compare for a correct implementation of isomorphism checks
-        assert isomorphic(g1, g2)
+        assert rdflib.compare.isomorphic(g1, g2)
 
     def test_export_dlb_csv(self):
         token = get_token(self.client)
@@ -224,7 +225,6 @@ class TestApiModuleExports:
             ).replace(microsecond=0)
         assert (tick <= ts <= tock)
         # assert somecontent in response.data
-        # assert response.json == {'ping': 'pong'}
 
     def test_export_dlb_json(self):
         token = get_token(self.client)
@@ -247,6 +247,5 @@ class TestApiModuleExports:
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
             url_for('exports.getOneExport', id_export=2, export_format='shp'))
-        # assert response.status_code == 404
-        api_error = response.get_json()
-        assert api_error['api_error'] == 'NonTransformableError'
+        assert response.status_code == 404
+        assert response.json == {'api_error': 'NonTransformableError'}

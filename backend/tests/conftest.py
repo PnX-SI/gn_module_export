@@ -1,4 +1,5 @@
 import os
+import pytest
 from geonature.utils.env import (load_config, get_config_file_path)
 import warnings
 # UserWarning: The psycopg2 wheel package will be renamed from release 2.8 ...
@@ -27,3 +28,17 @@ def execute_script(file_name):
     conn.commit()
     cur.close()
     conn.close()
+
+
+def pytest_runtest_makereport(item, call):
+    if "incremental" in item.keywords:
+        if call.excinfo is not None:
+            parent = item.parent
+            parent._previousfailed = item
+
+
+def pytest_runtest_setup(item):
+    if "incremental" in item.keywords:
+        previousfailed = getattr(item.parent, "_previousfailed", None)
+        if previousfailed is not None:
+            pytest.xfail("previous test failed (%s)" % previousfailed.name)
