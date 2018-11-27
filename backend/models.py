@@ -8,7 +8,7 @@ from geonature.core.users.models import TRoles
 class Export(DB.Model):
     __tablename__ = 't_exports'
     __table_args__ = {'schema': 'gn_exports'}
-    id = DB.Column(DB.Integer, primary_key=True, nullable=False)
+    id = DB.Column(DB.Integer, primary_key=True, nullable=False)  # noqa: A003
     label = DB.Column(DB.Text, nullable=False, unique=True, index=True)
     schema_name = DB.Column(DB.Text, nullable=False)
     view_name = DB.Column(DB.Text, nullable=False)
@@ -55,22 +55,22 @@ class Export(DB.Model):
 class ExportLog(DB.Model):
     __tablename__ = 't_exports_logs'
     __table_args__ = {'schema': 'gn_exports'}
-    id = DB.Column(DB.Integer, primary_key=True, nullable=False)
+    id = DB.Column(DB.Integer, primary_key=True, nullable=False)  # noqa: A003
     id_role = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
     role = DB.relationship('TRoles', foreign_keys=[id_role], lazy='joined')
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
     export = DB.relationship('Export', lazy='joined')
-    format = DB.Column(DB.String(4), nullable=False)
+    format = DB.Column(DB.String(4), nullable=False)  # noqa: A003
     start_time = DB.Column(DB.DateTime, nullable=False)
     end_time = DB.Column(DB.DateTime)
     status = DB.Column(DB.Integer, default=-2)
     log = DB.Column(DB.Text)
 
-    def __init__(self, id_role, id_export, format_, start_time, end_time,
+    def __init__(self, id_role, id_export, export_format, start_time, end_time,
                  status, log):
         self.id_role = id_role
         self.id_export = id_export
-        self.format = format_
+        self.format = export_format
         self.start_time = start_time
         self.end_time = end_time
         self.status = status
@@ -81,7 +81,7 @@ class ExportLog(DB.Model):
         export_log = ExportLog(
             id_role=adict['id_role'],
             id_export=adict['id_export'],
-            format_=adict['format_'],
+            export_format=adict['export_format'],
             start_time=adict['start_time'],
             end_time=adict['end_time'],
             status=adict['status'],

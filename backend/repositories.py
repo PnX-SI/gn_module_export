@@ -75,17 +75,17 @@ class ExportRepository(object):
             filters=[],
             limit=10000,
             paging=0,
-            format_=None):
+            export_format=None):
         result, end_time, log, e = None, None, None, None
         status = -2
         start_time = datetime.utcnow()
         try:
             export = Export.query.filter_by(id=id_export).one()
-            if with_data and format_:
+            if with_data and export_format:
                 geometry = (
                     export.geometry_field
                     if (hasattr(export, 'geometry_field')
-                        and current_app.config['export_format_map'][format_]['geofeature'])  # noqa: E501
+                        and current_app.config['export_format_map'][export_format]['geofeature'])  # noqa: E501
                     else None)
 
                 columns, data = self._get_data(
@@ -132,7 +132,7 @@ class ExportRepository(object):
             ExportLog.record({
                 'id_role': info_role.id_role,
                 'id_export': export.id,
-                'format_': format_,
+                'export_format': export_format,
                 'start_time': start_time,
                 'end_time': end_time,
                 'status': status,
