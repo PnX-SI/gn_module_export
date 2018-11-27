@@ -60,7 +60,7 @@ class ExportRepository(object):
         #                         cls.view.db_cols[columns.index('observers')].any(id_role=info_role.id_role))  # noqa: E501
         #
         #         elif ((info_role.tag_object_code == '2'
-        #              and cls.view.db_cols[columns.index('id_dataset')] in tuple(allowed_datasets))  # noqa: E501
+        #              and not cls.view.db_cols[columns.index('id_dataset')] in tuple(allowed_datasets))  # noqa: E501
         #                 or info_role.tag_object_code != '3'):
         #             raise InsufficientRightsError
         #
