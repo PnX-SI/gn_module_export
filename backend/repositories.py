@@ -75,17 +75,17 @@ class ExportRepository(object):
             filters=[],
             limit=10000,
             paging=0,
-            format=None):
+            format_=None):
         result, end_time, log, e = None, None, None, None
         status = -2
         start_time = datetime.utcnow()
         try:
             export = Export.query.filter_by(id=id_export).one()
-            if with_data and format:
+            if with_data and format_:
                 geometry = (
                     export.geometry_field
                     if (hasattr(export, 'geometry_field')
-                        and current_app.config['export_format_map'][format]['geofeature'])  # noqa: E501
+                        and current_app.config['export_format_map'][format_]['geofeature'])  # noqa: E501
                     else None)
 
                 columns, data = self._get_data(
@@ -120,7 +120,7 @@ class ExportRepository(object):
             if e:
                 tb = sys.exc_info()
                 if (isinstance(e, InsufficientRightsError)
-                        or isinstance(e, EmptyDataSetError)):  # noqa: E129 W503
+                        or isinstance(e, EmptyDataSetError)):
                     raise
                 elif isinstance(e, NoResultFound):
                     raise NoResultFound(
@@ -144,9 +144,8 @@ class ExportRepository(object):
             else:
                 return result
 
-    def list(self, info_role):
+    def exports(self, info_role):
         from geonature.core.users.models import (TRoles, CorRole)
-
         q = Export.query\
                   .join(CorExportsRoles)\
                   .filter(

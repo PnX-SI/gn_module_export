@@ -51,8 +51,8 @@ for template, serving in {
             MOD_CONF_PATH, SWAGGER_UI_SAMPLE_INDEXHTML): os.path.join(
                 SWAGGER_UI_DIST_DIR, SWAGGER_UI_INDEXHTML)
         }.items():
-    with open(template, 'r') as input:
-        content = input.read()
+    with open(template, 'r') as input_:
+        content = input_.read()
         host, base_path, *_ = current_app.config['API_ENDPOINT']\
                                          .replace('https://', '')\
                                          .replace('http://', '')\
@@ -64,7 +64,7 @@ for template, serving in {
                 'API_URL': API_URL.lstrip('/') if API_URL else '',
                 'API_YAML': SWAGGER_API_YAML
                 }).items():
-            content = content.replace('{{{{{}}}}}'.format(k), v)
+            content = content.replace('{{{{{}}}}}'.format_(k), v)
         with open(serving, 'w') as output:
             output.write(content)
 
@@ -90,7 +90,7 @@ def export_filename(export):
         datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S'))
 
 
-@blueprint.route('/<int:id_export>/<format>', methods=['GET'])
+@blueprint.route('/<int:id_export>/<format_>', methods=['GET'])
 @cross_origin(
     supports_credentials=True,
     allow_headers=['content-type', 'content-disposition'],
@@ -99,9 +99,9 @@ def export_filename(export):
     'E', True, id_app=ID_MODULE,
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
-def export(id_export, format, info_role):
+def export(id_export, format_, info_role):
     if (id_export < 1
-            or format not in blueprint.config.get('export_format_map')):
+            or format_ not in blueprint.config.get('export_format_map')):
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
     current_app.config.update(
@@ -109,28 +109,28 @@ def export(id_export, format, info_role):
     filters = {f: request.args.get(f) for f in request.args}
     try:
         export, columns, data = repo.get_by_id(
-            info_role, id_export, with_data=True, format=format,
+            info_role, id_export, with_data=True, format_=format_,
             filters=filters, limit=10000, paging=0)
 
         if export:
             fname = export_filename(export)
             has_geometry = export.get('geometry_field', None)
 
-            if format == 'json':
+            if format_ == 'json':
                 return to_json_resp(
                     data.get('items'),
                     as_file=True,
                     filename=fname,
                     indent=4)
 
-            if format == 'csv':
+            if format_ == 'csv':
                 return to_csv_resp(
                     fname,
                     data.get('items'),
                     [c.name for c in columns],
                     separator=',')
 
-            if (format == 'shp' and has_geometry):
+            if (format_ == 'shp' and has_geometry):
                 from geojson.geometry import Point, Polygon, MultiPolygon
                 from geonature.utils.utilsgeometry import FionaShapeService as ShapeService  # noqa: E501
 
@@ -150,7 +150,7 @@ def export(id_export, format, info_role):
                         ShapeService.point_feature = True
 
                     elif (isinstance(geom, Polygon)
-                            or isinstance(geom, MultiPolygon)):  # noqa: E123 W503
+                            or isinstance(geom, MultiPolygon)):
                         ShapeService.polygone_shape.write(props)
                         ShapeService.polygon_feature = True
 
@@ -192,7 +192,7 @@ def export(id_export, format, info_role):
 @json_resp
 def getExports(info_role):
     try:
-        exports = repo.list(info_role)
+        exports = repo.exports(info_role)
     except NoResultFound:
         return {'api_error': 'NoResultFound',
                 'message': 'Configure one or more export'}, 404
