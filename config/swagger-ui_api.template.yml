@@ -16,7 +16,7 @@ externalDocs:
 host: {{HOST}}
 basePath: {{BASE_PATH}}
 schemes:
-  - http
+  - https
 produces:
   - application/json
 consumes:
@@ -225,7 +225,7 @@ paths:
           in: path
           description: The export ID
           required: true
-          # type: integer
+          type: integer
         - name: format
           in: path
           description: >
