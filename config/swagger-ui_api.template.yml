@@ -17,6 +17,7 @@ host: {{HOST}}
 basePath: {{BASE_PATH}}
 schemes:
   - https
+  - http
 produces:
   - application/json
 consumes:
@@ -242,7 +243,7 @@ paths:
         - name: permId
           in: query
           type: string
-          # format: uuid
+          format: uuid
           description: >
             Unique and sustainable identifier of the observation DDE in the SINP, attributed by regional or thematic platform.
         - name: statObs
@@ -320,7 +321,7 @@ paths:
         - name: jddMetadonneeDEEId (SINP)
           in: query
           type: string
-          # format: uuid
+          format: uuid
           description: UUID of the metadata record entered in the INPN application.
         - name: statSource
           in: query
@@ -337,7 +338,7 @@ paths:
         - name: idOrigine
           in: query
           type: string
-          # format: uuid
+          format: uuid
           description: >
             Unique identifier of the observation DataSource in the database, itself characterized by jddId and/or jddCode, where it is stored, and its initial form.
             This identifier must not be used as a key, which may vary depending on the management choices of the storage tool.
@@ -348,7 +349,7 @@ paths:
         - name: jddId
           in: query
           type: string
-          # format: uuid
+          format: uuid
           description: An identifier for the collection or terrain dataset from which the recording originates.
         - name: refBiblio
           in: query
@@ -423,7 +424,7 @@ paths:
         - name: permIdGrp
           in: query
           type: string
-          # format: uuid
+          format: uuid
           description: >
             Permanent identifier of the grouping assigned by the regional or thematic platform.
         - name: methGrp
