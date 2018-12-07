@@ -27,8 +27,8 @@ class OccurrenceStore:
         self.graph.bind('dwc', DWC)
         self.graph.bind('dsw', DSW)
 
-    def save(self, store_uri, format='turtle'):
-        self.graph.serialize(store_uri, format)
+    def save(self, store_uri, format_='turtle'):
+        self.graph.serialize(store_uri, format_)
 
     def build_event(self, record):
         event = BNode()
@@ -46,7 +46,7 @@ class OccurrenceStore:
                 dt.isoformat(
                     dt.strptime(record['dateDebut'], '%Y-%d-%m %H:%M:%S')),
                 dt.isoformat(
-                    dt.strptime(record['dateFin'], '%Y-%d-%m %H:%M:%S'))]))))  # noqa: E131
+                    dt.strptime(record['dateFin'], '%Y-%d-%m %H:%M:%S'))]))))  # noqa: E501
         self.graph.add(
             (human_observation,
              DWC['eventTime'],
@@ -104,9 +104,11 @@ class OccurrenceStore:
         return location
 
     def build_occurrence(self, event, record):
+        # sameAs URIRef(
+        #     Literal(
+        # 'http://nomplateformeregionale/occtax/f0eevc75‐9c0b‐4ef8‐bz7z‐8zb9bz380g15'))
         occurrence = BNode()
         self.graph.add((occurrence, RDF.type, DWC['Occurrence']))
-        # http://nomplateformeregionale/occtax/f0eevc75‐9c0b‐4ef8‐bz7z‐8zb9bz380g15
         self.graph.add(
             (occurrence, DWC['occurrenceID'], Literal(record['permId'])))
         self.graph.add(
@@ -234,4 +236,4 @@ if __name__ == '__main__':
     organism = store.build_organism(occurrence, record)
     identification = store.build_identification(organism, record)
     taxon = store.build_taxon(identification, record)
-    store.save()
+    store.save(store_uri='file:///tmp/export_etalab.ttl')
