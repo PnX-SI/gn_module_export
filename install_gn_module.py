@@ -1,3 +1,4 @@
+import sys
 import subprocess
 from pathlib import Path
 
@@ -12,5 +13,10 @@ def gnmodule_install_app(gn_db, gn_app):
             - Module (pour le moment rien)
     '''
     with gn_app.app_context():
-        subprocess.call(['python3 -m pip install -r ./backend/requirements.txt'], cwd=str(ROOT_DIR))
+        here = Path(__file__).parent
+        requirements_path = here / 'backend' / 'requirements.txt'
+        assert requirements_path.is_file()
+        subprocess.call(
+            [sys.executable, '-m', 'pip', 'install', '-r', '{}'.format(requirements_path)],  # noqa: E501
+            cwd=str(ROOT_DIR))
         subprocess.call(['./install_db.sh'], cwd=str(ROOT_DIR))
