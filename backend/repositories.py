@@ -34,53 +34,6 @@ class ExportRepository(object):
             geom_column_header=None,
             filters=dict(),
             limit=10000, offset=0):
-
-        # def build_query_orfilters(cls, query, filters):
-        #     logger.debug('building OR filters')
-        #
-        #     OR_filters = []
-        #     columns = [c.name for c in cls.view.db_cols]
-        #
-        #     if not export_.public:
-        #         if info_role.tag_object_code in {'1', '2'}:
-        #             allowed_datasets = TDatasets.get_user_datasets(info_role)  # noqa: E501
-        #
-        #             if 'id_digitiser' in columns:
-        #                 logger.debug(
-        #                     'GNQuery: id_digitiser == %s == info_role.id_role',   # noqa: E501
-        #                     info_role.id_role)
-        #                 OR_filters.append(
-        #                     cls.view.db_cols[columns.index('id_digitiser')] == info_role.id_role)  # noqa: E501
-        #
-        #             if 'observers' in columns:
-        #                 if info_role.tag_object_code == '1':
-        #                     logger.debug(
-        #                         'GNQuery: %s belongs to observers', info_role.id_role)  # noqa: E501
-        #                     OR_filters.append(
-        #                         cls.view.db_cols[columns.index('observers')].any(id_role=info_role.id_role))  # noqa: E501
-        #
-        #         elif ((info_role.tag_object_code == '2'
-        #              and not cls.view.db_cols[columns.index('id_dataset')] in tuple(allowed_datasets))  # noqa: E501
-        #                 or info_role.tag_object_code != '3'):
-        #             raise InsufficientRightsError
-        #
-        #         for f in filters:
-        #             query = cls.build_query_filter(query, f, filters.get(f))
-        #         # TEST
-        #         logger.debug('OR filters: %s', [
-        #             str(f) for f in OR_filters])
-        #         return query.filter(DB.or_(*OR_filters))
-        #
-        # GNQuery = type(
-        #     'GNQuery', (GenericQuery,), {
-        #         'build_query_filters': build_query_orfilters
-        #         })
-        #
-        # query = GNQuery(
-        #     self.session,
-        #     export_.view_name, export_.schema_name, geom_column_header,
-        #     filters={'': None} if not filters and not(export_.public) else filters,  # noqa: E501
-        #     limit=limit, offset=offset)
         query = GenericQuery(
             self.session,
             export_.view_name, export_.schema_name, geom_column_header,

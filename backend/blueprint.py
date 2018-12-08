@@ -139,7 +139,7 @@ def getOneExport(id_export, export_format, info_role):
 
                 ShapeService.create_shapes_struct(
                     db_cols=columns, srid=export.get('geometry_srid'),
-                    dir_path=SHAPEFILES_DIR, file_name=fname)
+                    dir_path=SHAPEFILES_DIR, file_name=''.join(['export_', fname]))  # noqa: E501
 
                 items = data.get('items')
                 for feature in items['features']:
@@ -161,15 +161,17 @@ def getOneExport(id_export, export_format, info_role):
                 ShapeService.save_and_zip_shapefiles()
 
                 return send_from_directory(
-                    SHAPEFILES_DIR, fname + '.zip', as_attachment=True)
+                    SHAPEFILES_DIR, ''.join(['export_', fname, '.zip']),
+                    as_attachment=True)
 
             else:
                 return to_json_resp(
                     {'api_error': 'NonTransformableError'}, status=404)
 
     except NoResultFound as e:
-        return to_json_resp({'api_error': 'NoResultFound',
-                             'message': str(e)}, status=404)
+        return to_json_resp(
+            {'api_error': 'NoResultFound',
+             'message': str(e)}, status=404)
     except InsufficientRightsError:
         return to_json_resp(
             {'api_error': 'InsufficientRightsError'}, status=403)
