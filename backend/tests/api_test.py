@@ -7,6 +7,11 @@ from .bootstrap_test import (app, get_token)
 
 assert app  # silence pyflake's unused import warning
 
+#
+# Setup 'agent:admin' in utilisateurs.t_roles
+# Insert sample data in database
+#
+
 REFERENCE_GRAPH = '''\
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
 @prefix dsw: <http://purl.org/dsw/> .
@@ -192,32 +197,30 @@ class TestApiModuleExports:
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
             url_for('exports.getExports'))
-        assert response
-        # print('data:', response.json)
         assert response.status_code == 200
         assert response.json == [
-            {'desc': 'SINP compliant dataset',
-             'id': 2, 'view_name':
-             'export_occtax_sinp',
-             'geometry_srid': None,
-             'label': 'OccTax - SINP',
-             'public': True,
-             'schema_name':
-             'pr_occtax',
-             'geometry_field': None},
-            {'desc': 'Dépôt Légal de Biodiversité',
-             'id': 1,
-             'view_name': 'export_occtax_dlb',
-             'geometry_srid': 4326,
-             'label': 'OccTax - DLB',
-             'public': True,
-             'schema_name': 'pr_occtax',
-             'geometry_field': 'geom_4326'}]
+            {
+                'desc': 'SINP compliant dataset',
+                'id': 2, 'view_name':
+                'export_occtax_sinp',
+                'geometry_srid': None,
+                'label': 'OccTax - SINP',
+                'public': True,
+                'schema_name':
+                'pr_occtax',
+                'geometry_field': None
+            }, {
+                'desc': 'Dépôt Légal de Biodiversité',
+                'id': 1,
+                'view_name': 'export_occtax_dlb',
+                'geometry_srid': 4326,
+                'label': 'OccTax - DLB',
+                'public': True,
+                'schema_name': 'pr_occtax',
+                'geometry_field': 'geom_4326'
+            }]
 
     def test_getOneExport_roles_agent(self):
-        # arrange agent password in utilisateurs.t_roles
-        # Export: id_export="3";label="TRoles";schema="utilisateurs";view="t_roles";desc="users";"";;public=FALSE  # noqa: E501
-        # CorExportsRoles: id_export=3; id_role=1
         token = get_token(self.client, login='agent', password='admin')
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
@@ -234,7 +237,6 @@ class TestApiModuleExports:
              url_for(
                  'exports.getOneExport', id_export=3, export_format='json'))
         assert response
-        # print('data:', response.json)
         assert response.status_code == 200
 
     def test_export_dlb_csv(self):
@@ -274,27 +276,25 @@ class TestApiModuleExports:
         assert response.status_code == 200
 
     def test_export_dlb_shp(self):
+        # DLB has geom field
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
             url_for('exports.getOneExport', id_export=1, export_format='shp'))
-        # DLB has geom field
         assert response.status_code == 200
 
     def test_export_sinp_noshp(self):
+        # SINP export has no geom field
         token = get_token(self.client)
         self.client.set_cookie('/', 'token', token)
         response = self.client.get(
             url_for('exports.getOneExport', id_export=2, export_format='shp'))
-        # SINP export has no geom field
         assert response.status_code == 404
         assert response.json == {'api_error': 'NonTransformableError'}
 
     def test_etalab(self):
         import rdflib
         import rdflib.compare
-        # from rdflib.tools.graphisomorphism import IsomorphicTestableGraph
-        # from itertools import combinations
 
         conf = current_app.config.get('exports')
         try:
@@ -304,19 +304,10 @@ class TestApiModuleExports:
         response = self.client.get(url_for('exports.etalab_export'))
         assert response.status_code == 200
 
-        # graph_name = {}
-        # g1 = IsomorphicTestableGraph()
-        # g1 = g1.parse(data=REFERENCE_GRAPH, format='turtle')
-        # graph_name[g1] = 'REFERENCE_GRAPH'
-        # g2 = IsomorphicTestableGraph()
-        # g2 = g2.parse(data=REFERENCE_GRAPH, format='turtle')
-        # graph_name[g2] = 'TESTED_GRAPH'
-        # assert g1 == g2, "%s != %s" % (graph_name[g1], graph_name[g2])
-        # >>> TypeError: unhashable type: 'IsomorphicTestableGraph'
         g1 = rdflib.Graph()
         g1 = g1.parse(data=REFERENCE_GRAPH, format='turtle')
         g2 = rdflib.Graph()
         g2 = g2.parse(data=response.data, format='turtle')
-        # assert g2.isomorphic(g1)  # If no BNodes are involved
+        # assert g2.isomorphic(g1)  # Ok if no BNodes are involved
         # See rdflib.compare for a correct implementation of isomorphism checks
         assert rdflib.compare.isomorphic(g1, g2)
