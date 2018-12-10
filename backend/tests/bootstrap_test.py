@@ -39,7 +39,7 @@ headers = {
 }
 
 
-def get_token(client, login="admin", password="admin"):
+def get_token(client, login="admin", password="admin"):  # noqa: S107
     data = {
         'login': login,
         'password': password,

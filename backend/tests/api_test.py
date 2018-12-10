@@ -297,11 +297,21 @@ class TestApiModuleExports:
         import rdflib.compare
 
         conf = current_app.config.get('exports')
-        try:
-            os.unlink(conf.get('etalab_export'))
-        except FileNotFoundError:
-            pass
+
+        if (current_app.config.get('etalab_export', False)
+                not in (None, False, 0, '')):
+            try:
+                os.unlink(conf.get('etalab_export'))
+            except FileNotFoundError:
+                pass
+
         response = self.client.get(url_for('exports.etalab_export'))
+
+        if (current_app.config.get('etalab_export', False)
+                in (None, False, 0, '')):
+            assert response.status_code == 501
+            return
+
         assert response.status_code == 200
 
         g1 = rdflib.Graph()

@@ -207,6 +207,11 @@ def getExports(info_role):
 
 @blueprint.route('/etalab', methods=['GET'])
 def etalab_export():
+    if current_app.config.get('etalab_export', False) in (None, False, '', 0):
+        return to_json_resp(
+            {'api_error': 'EtalabDisabled',
+             'message': 'Etalab export is disabled'}, status=501)
+
     from datetime import time
     from geonature.utils.env import DB
     from geonature.utils.utilssqlalchemy import GenericQuery
