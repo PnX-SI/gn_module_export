@@ -131,8 +131,7 @@ def getOneExport(id_export, export_format, info_role):
                     separator=',')
 
             if (export_format == 'shp' and has_geometry):
-                from geoalchemy2.shape import from_shape
-                from shapely.geometry import asShape
+                from geojson.geometry import Point, Polygon, MultiPolygon
                 from geonature.utils.utilsgeometry import FionaShapeService as ShapeService  # noqa: E501
 
                 delete_recursively(
@@ -143,14 +142,21 @@ def getOneExport(id_export, export_format, info_role):
                     dir_path=SHAPEFILES_DIR, file_name=''.join(['export_', fname]))  # noqa: E501
 
                 items = data.get('items')
-
                 for feature in items['features']:
                     geom, props = (feature.get(field)
                                    for field in ('geometry', 'properties'))
+                    if isinstance(geom, Point):
+                        ShapeService.point_shape.write(feature)
+                        ShapeService.point_feature = True
 
-                    ShapeService.create_feature(
-                            props, from_shape(
-                                asShape(geom), export.get('geometry_srid')))
+                    elif (isinstance(geom, Polygon)
+                            or isinstance(geom, MultiPolygon)):
+                        ShapeService.polygone_shape.write(props)
+                        ShapeService.polygon_feature = True
+
+                    else:
+                        ShapeService.polyline_shape.write(props)
+                        ShapeService.polyline_feature = True
 
                 ShapeService.save_and_zip_shapefiles()
 
