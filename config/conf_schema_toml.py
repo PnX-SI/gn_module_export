@@ -25,8 +25,7 @@ export_format_map = {
         'geofeature': True
         }
 }  # noqa: E133
-etalab_export = os.path.expanduser(
-    '~/geonature/backend/static/exports/export_etalab.ttl')
+etalab_export = '/home/geonatureadmin/geonature/backend/static/exports/export_etalab.ttl'
 
 
 class GnModuleSchemaConf(GnModuleProdConf):

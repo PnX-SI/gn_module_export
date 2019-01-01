@@ -44,13 +44,17 @@ class OccurrenceStore:
              DWC['eventDate'],
              Literal('/'.join([
                 dt.isoformat(
-                    dt.strptime(record['dateDebut'], '%Y-%d-%m %H:%M:%S')),
+                    dt.strptime(record['dateDebut'], '%Y-%m-%d %H:%M:%S')),
                 dt.isoformat(
-                    dt.strptime(record['dateFin'], '%Y-%d-%m %H:%M:%S'))]))))  # noqa: E501
-        self.graph.add(
-            (human_observation,
-             DWC['eventTime'],
-             Literal('/'.join([record['heureDebut'], record['heureFin']]))))
+                    dt.strptime(record['dateFin'], '%Y-%m-%d %H:%M:%S'))]))))  # noqa: E501
+        if record.get('heureDebut'):
+            _value = record.get('heureDebut')
+            if record.get('heureFin'):
+                _value = '/'.join([record['heureDebut'], record['heureFin']])
+            self.graph.add(
+                (human_observation,
+                 DWC['eventTime'],
+                 Literal(Literal(_value))))
         self.graph.add(
             (human_observation, DWC['samplingProtocol'], Literal(record['obsMeth'])))  # noqa: E501
         self.graph.add(
@@ -91,14 +95,25 @@ class OccurrenceStore:
         wkt_ = wkt.loads(record['WKT'])
         geometry_ = geometry.mapping(wkt_)
         # {'type': 'Point', 'coordinates': (6.5, 44.85)}
-        self.graph.add(
-            (location,
-             DWC['decimalLatitude'],
-             Literal(geometry_['coordinates'][0], datatype=XSD.float)))
-        self.graph.add(
-            (location,
-             DWC['decimalLongitude'],
-             Literal(geometry_['coordinates'][1], datatype=XSD.float)))
+        # {'type': 'Polygon', 'coordinates': (((..., ...)),)}
+        if geometry_['type'] in ('Point', 'Polygon'):
+            _lat, _lon = None, None
+            if geometry_['type'] == 'Point':
+                _lat, _lon = geometry_['coordinates']
+            if geometry_['type'] == 'Polygon':
+                representative_point = geometry.mapping(
+                    geometry.shape(geometry_)
+                            .representative_point())
+                _lat, _lon = representative_point['coordinates']
+
+            self.graph.add(
+                (location,
+                 DWC['decimalLatitude'],
+                 Literal(_lat, datatype=XSD.float)))
+            self.graph.add(
+                (location,
+                 DWC['decimalLongitude'],
+                 Literal(_lon, datatype=XSD.float)))
 
         self.graph.add((human_observation, DSW['locatedAt'], location))
         return location
@@ -143,7 +158,7 @@ class OccurrenceStore:
             (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
         self.graph.add(
             (identification, DWC['dateIdentified'], Literal(dt.isoformat(
-                dt.strptime(record['dateDebut'], '%Y-%d-%m %H:%M:%S')))))
+                dt.strptime(record['dateDebut'], '%Y-%m-%d %H:%M:%S')))))
         if 'detId' in record.keys() and 'detNomOrg' in record.keys():
             self.graph.add(
                 (organism,

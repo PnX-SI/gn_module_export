@@ -201,7 +201,7 @@ def getExports(info_role):
 
 @blueprint.route('/etalab', methods=['GET'])
 def etalab_export():
-    if current_app.config.get('etalab_export', False) in (None, False, '', 0):
+    if not blueprint.config.get('etalab_export'):
         return to_json_resp(
             {'api_error': 'EtalabDisabled',
              'message': 'Etalab export is disabled'}, status=501)
@@ -233,7 +233,8 @@ def etalab_export():
             organism = store.build_organism(occurrence, record)
             identification = store.build_identification(organism, record)
             store.build_taxon(identification, record)
-        store.save(store_uri=''.join(['file://', export_etalab]))
+        with open(export_etalab, 'w+b') as xp:
+            store.save(store_uri=xp)
 
     return send_from_directory(
         os.path.dirname(export_etalab), os.path.basename(export_etalab))
