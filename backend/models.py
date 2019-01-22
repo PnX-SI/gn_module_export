@@ -1,7 +1,8 @@
 from flask import current_app
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import serializable
-from geonature.core.users.models import TRoles
+from pypnusershub.db.models import User
+
 
 
 @serializable
@@ -56,8 +57,8 @@ class ExportLog(DB.Model):
     __tablename__ = 't_exports_logs'
     __table_args__ = {'schema': 'gn_exports'}
     id = DB.Column(DB.Integer, primary_key=True, nullable=False)  # noqa: A003
-    id_role = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role))
-    role = DB.relationship('TRoles', foreign_keys=[id_role], lazy='joined')
+    id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role))
+    role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
     export = DB.relationship('Export', lazy='joined')
     format = DB.Column(DB.String(4), nullable=False)  # noqa: A003
@@ -105,6 +106,6 @@ class CorExportsRoles(DB.Model):
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id),
                           primary_key=True, nullable=False)
     export = DB.relationship('Export', foreign_keys=[id_export], lazy='joined')
-    id_role = DB.Column(DB.Integer, DB.ForeignKey(TRoles.id_role),
+    id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role),
                         primary_key=True, nullable=False)
-    role = DB.relationship('TRoles', foreign_keys=[id_role], lazy='joined')
+    role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')

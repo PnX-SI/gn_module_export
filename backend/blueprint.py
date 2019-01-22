@@ -10,11 +10,11 @@ from flask import (
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
-from geonature.utils.utilstoml import load_toml
+from geonature.utils.utilstoml import load_toml, load_and_validate_toml
 from geonature.utils.filemanager import (
     removeDisallowedFilenameChars, delete_recursively)
 from pypnusershub.db.tools import InsufficientRightsError
-from pypnusershub import routes as fnauth
+from geonature.core.gn_permissions import decorators as permissions
 
 from .repositories import ExportRepository, EmptyDataSetError
 
@@ -32,8 +32,9 @@ EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
-MOD_CONF = load_toml(os.path.join(MOD_CONF_PATH, 'conf_gn_module.toml'))
-ID_MODULE, API_URL = (MOD_CONF.get(k) for k in ('id_application', 'api_url'))
+MOD_CONF = current_app.config['EXPORTS']
+API_URL = MOD_CONF['MODULE_URL']
+
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 
 # extracted from dummy npm install
@@ -95,10 +96,11 @@ def export_filename(export):
     supports_credentials=True,
     allow_headers=['content-type', 'content-disposition'],
     expose_headers=['Content-Type', 'Content-Disposition', 'Authorization'])
-@fnauth.check_auth_cruved(
-    'E', True, id_app=ID_MODULE,
+@permissions.check_cruved_scope(
+    'E', True, module_code='EXPORTS',
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
-    redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
+    redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
+    )
 def getOneExport(id_export, export_format, info_role):
     if (id_export < 1
             or export_format not in blueprint.config.get('export_format_map')):
@@ -181,10 +183,11 @@ def getOneExport(id_export, export_format, info_role):
 
 
 @blueprint.route('/', methods=['GET'])
-@fnauth.check_auth_cruved(
-    'R', True, id_app=ID_MODULE,
+@permissions.check_cruved_scope(
+    'R', True, module_code='EXPORTS',
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
-    redirect_on_invalid_token=current_app.config.get('URL_APPLICATION'))
+    redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
+    )
 @json_resp
 def getExports(info_role):
     try:

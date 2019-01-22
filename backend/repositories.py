@@ -7,7 +7,8 @@ from flask import current_app
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import GenericQuery
 from pypnusershub.db.tools import InsufficientRightsError
-from geonature.core.users.models import (TRoles, CorRole)
+from pypnusershub.db.models import User
+from geonature.core.users.models import CorRole
 
 from .models import (Export, ExportLog, CorExportsRoles)
 
@@ -65,8 +66,8 @@ class ExportRepository(object):
                                     CorExportsRoles.id_role == info_role.id_role,                                # noqa: E501
                                     CorExportsRoles.id_role == info_role.id_organisme,                           # noqa: E501
                                     CorExportsRoles.id_role.in_(
-                                        TRoles.query.with_entities(TRoles.id_role)                               # noqa: E501
-                                                    .join(CorRole, CorRole.id_role_groupe == TRoles.id_role)     # noqa: E501
+                                        User.query.with_entities(User.id_role)                               # noqa: E501
+                                                    .join(CorRole, CorRole.id_role_groupe == User.id_role)     # noqa: E501
                                                     .filter(CorRole.id_role_utilisateur == info_role.id_role)),  # noqa: E501
                                     Export.public == True))\
                             .one()
@@ -143,8 +144,8 @@ class ExportRepository(object):
                             CorExportsRoles.id_role == info_role.id_role,
                             CorExportsRoles.id_role == info_role.id_organisme,
                             CorExportsRoles.id_role.in_(
-                                TRoles.query.with_entities(TRoles.id_role)
-                                            .join(CorRole, CorRole.id_role_groupe == TRoles.id_role)           # noqa: E501
+                                User.query.with_entities(User.id_role)
+                                            .join(CorRole, CorRole.id_role_groupe == User.id_role)           # noqa: E501
                                             .filter(CorRole.id_role_utilisateur == info_role.id_role)),        # noqa: E501
                             Export.public == True))\
                   .order_by(Export.id.desc())
