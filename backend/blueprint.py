@@ -32,8 +32,14 @@ EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
-MOD_CONF = current_app.config['EXPORTS']
-API_URL = MOD_CONF['MODULE_URL']
+
+#HACK when install the module, the config of the module is not yet available
+# we cannot use current_app.config['EXPORT']
+try:
+    MOD_CONF = current_app.config['EXPORTS']
+    API_URL = MOD_CONF['MODULE_URL']
+except KeyError:
+    API_URL = ''
 
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 
