@@ -6,7 +6,9 @@ from flask import (
     Blueprint,
     request,
     current_app,
-    send_from_directory)
+    send_from_directory, 
+    Response
+)
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp, to_csv_resp)
@@ -219,8 +221,8 @@ def etalab_export():
     from geonature.utils.env import DB
     from geonature.utils.utilssqlalchemy import GenericQuery
     from .rdf import OccurrenceStore
-
-    conf = current_app.config.get('exports')
+    
+    conf = current_app.config.get('EXPORTS')
     export_etalab = conf.get('etalab_export')
     seeded = False
     if os.path.isfile(export_etalab):
@@ -228,11 +230,13 @@ def etalab_export():
         midnight = datetime.combine(datetime.today(), time.min)
         mtime = datetime.fromtimestamp(os.path.getmtime(export_etalab))
         ts_delta = mtime - midnight
+
     if not seeded or ts_delta.total_seconds() < 0:
         store = OccurrenceStore()
         query = GenericQuery(
             DB.session, 'export_occtax_sinp', 'pr_occtax',
-            geometry_field=None, filters=[])
+            geometry_field=None, filters=[]
+        )
         data = query.return_query()
         for record in data.get('items'):
             event = store.build_event(record)
@@ -242,8 +246,20 @@ def etalab_export():
             organism = store.build_organism(occurrence, record)
             identification = store.build_identification(organism, record)
             store.build_taxon(identification, record)
-        with open(export_etalab, 'w+b') as xp:
-            store.save(store_uri=xp)
+        try:
+            with open(export_etalab, 'w+b') as xp:
+                store.save(store_uri=xp)
+        except FileNotFoundError as e:
+            response = Response(
+                response="FileNotFoundError : {}".format(
+                    export_etalab
+                ),
+                status=500,
+                mimetype='application/json'
+            )
+            return response
+        
 
     return send_from_directory(
-        os.path.dirname(export_etalab), os.path.basename(export_etalab))
+        os.path.dirname(export_etalab), os.path.basename(export_etalab)
+    )

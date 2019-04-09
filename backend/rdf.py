@@ -39,14 +39,15 @@ class OccurrenceStore:
         human_observation = BNode()
         self.graph.add((human_observation, RDF.type, DWC['HumanObservation']))
         self.graph.add((event, DSW['basisOfRecord'], human_observation))
+        print(record.get('date_min'))
         self.graph.add(
             (human_observation,
              DWC['eventDate'],
              Literal('/'.join([
                 dt.isoformat(
-                    dt.strptime(record['dateDebut'], '%Y-%m-%d %H:%M:%S')),
+                    dt.strptime(record['date_min'], '%Y-%m-%d %H:%M:%S')),
                 dt.isoformat(
-                    dt.strptime(record['dateFin'], '%Y-%m-%d %H:%M:%S'))]))))  # noqa: E501
+                    dt.strptime(record['date_max'], '%Y-%m-%d %H:%M:%S'))]))))  # noqa: E501
         if record.get('heureDebut'):
             _value = record.get('heureDebut')
             if record.get('heureFin'):
@@ -58,7 +59,7 @@ class OccurrenceStore:
         self.graph.add(
             (human_observation, DWC['samplingProtocol'], Literal(record['obsMeth'])))  # noqa: E501
         self.graph.add(
-            (human_observation, DWC['eventRemarks'], Literal(record['comment'])))  # noqa: E501
+            (human_observation, DWC['eventRemarks'], Literal(record['obsCtx'])))  # noqa: E501
         self.graph.add(
             (human_observation, DWC['accessRights'], Literal(record['dSPublique'])))  # noqa: E501
         self.graph.add((human_observation, DWC['datasetName'], Literal(record['jddCode'])))  # noqa: E501
@@ -91,7 +92,7 @@ class OccurrenceStore:
         self.graph.add(
             (location,
              DWC['coordinateIncertaintyInMeters'],
-             Literal(record['diffusionNiveauPrecision'])))
+             Literal(record['difNivPrec'])))
         wkt_ = wkt.loads(record['WKT'])
         geometry_ = geometry.mapping(wkt_)
         # {'type': 'Point', 'coordinates': (6.5, 44.85)}
@@ -158,7 +159,7 @@ class OccurrenceStore:
             (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
         self.graph.add(
             (identification, DWC['dateIdentified'], Literal(dt.isoformat(
-                dt.strptime(record['dateDebut'], '%Y-%m-%d %H:%M:%S')))))
+                dt.strptime(record['date_min'], '%Y-%m-%d %H:%M:%S')))))
         if 'detId' in record.keys() and 'detNomOrg' in record.keys():
             self.graph.add(
                 (organism,
@@ -196,8 +197,8 @@ if __name__ == '__main__':
         'permId': '311abde1-a45d-4daa-8475-b538637d37dd',
         'statObs': 'Pr',
         'nomCite': 'Ablette',
-        'dateDebut': '2017-01-08 00:00:00',
-        'dateFin': '2017-01-08 00:00:00',
+        'date_min': '2017-01-08 00:00:00',
+        'date_max': '2017-01-08 00:00:00',
         'heureDebut': '20:00:00',
         'heureFin': '23:00:00',
         'altMax': 1600,
@@ -206,11 +207,11 @@ if __name__ == '__main__':
         'cdRef': 67111,
         'versionTAXREF': 'Taxref V11.0',
         'datedet': '2017-01-08 00:00:00',
-        'comment': 'Troisieme test',
+        'obsCtx': 'Troisieme test',
         'dSPublique': 'NSP',
         'jddMetadonneeDEEId': '4d331cae-65e4-4948-b0b2-a11bc5bb46c2',
         'statSource': '',
-        'diffusionNiveauPrecision': 0,
+        'difNivPrec': 0,
         'idOrigine': '311abde1-a45d-4daa-8475-b538637d37dd',
         'jddCode': 'Contact aléatoire tous règnes confondus',
         'jddId': '4d331cae-65e4-4948-b0b2-a11bc5bb46c2',
