@@ -130,15 +130,11 @@ button:disabled, .btn.disabled, .btn:disabled, .disabled {
 
 }
 
-#checkLicence{
-  margin-left:50px;
-  margin-top: 25px;
-  margin-bottom: 5px;
-  align-self: center;
-}
-
 #readlicence{
   margin-bottom: 10px;
+  .btn.btn-link {
+    padding-left: 0;
+  }
 }
 
 #myModal{
