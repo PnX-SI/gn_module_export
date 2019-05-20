@@ -242,10 +242,10 @@ def etalab_export():
         mtime = datetime.fromtimestamp(os.path.getmtime(export_etalab))
         ts_delta = mtime - midnight
 
-    if not seeded or ts_delta.total_seconds() < 0:
+    if not seeded or ts_delta.total_seconds() < 100000:
         store = OccurrenceStore()
         query = GenericQuery(
-            DB.session, 'export_occtax_sinp', 'pr_occtax',
+            DB.session, 'v_exports_synthese', 'gn_exports',
             geometry_field=None, filters=[]
         )
         data = query.return_query()

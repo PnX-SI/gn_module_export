@@ -60,19 +60,20 @@ class OccurrenceStore:
             (human_observation, DWC['samplingProtocol'], Literal(record['obsMeth'])))  # noqa: E501
         self.graph.add(
             (human_observation, DWC['eventRemarks'], Literal(record['obsCtx'])))  # noqa: E501
-        self.graph.add(
-            (human_observation, DWC['accessRights'], Literal(record['dSPublique'])))  # noqa: E501
+        #self.graph.add(
+            #(human_observation, DWC['accessRights'], Literal(record['dSPublique'])))  # noqa: E501
         self.graph.add((human_observation, DWC['datasetName'], Literal(record['jddCode'])))  # noqa: E501
         self.graph.add(
             (human_observation, DWC['datasetId'], Literal(record['jddId'])))
-        self.graph.add(
-            (human_observation, DWC['ownerInstitutionCode'], Literal(record['orgGestDat'])))  # noqa: E501
+        #self.graph.add(
+        #    (human_observation, DWC['ownerInstitutionCode'], Literal(record['orgGestDat'])))  # noqa: E501
         if 'obsId' in record.keys() and 'obsNomOrg' in record.keys():
             self.graph.add(
                 (human_observation,
                  DWC['georeferencedBy'],
                  Literal('|'.join([record['obsId'], record['obsNomOrg']]))))
         elif 'obsId' in record.keys():
+            print('obsId', obsId)
             self.graph.add(
                 (human_observation, DWC['georeferencedBy'], Literal(record['obsId'])))  # noqa: E501
         elif 'obsNomOrg' in record.keys():
@@ -89,10 +90,10 @@ class OccurrenceStore:
             (location, DWC['minimumElevationInMeters'], Literal(record['altMin'])))  # noqa: E501
         self.graph.add((location, DWC['footprintWKT'], Literal(record['WKT'])))
         self.graph.add((location, DWC['geodeticDatum'], Literal('EPSG:4326')))
-        self.graph.add(
-            (location,
-             DWC['coordinateIncertaintyInMeters'],
-             Literal(record['difNivPrec'])))
+        #self.graph.add(
+        #   (location,
+        #   DWC['coordinateIncertaintyInMeters'],
+        #  Literal(record['difNivPrec'])))
         wkt_ = wkt.loads(record['WKT'])
         geometry_ = geometry.mapping(wkt_)
         # {'type': 'Point', 'coordinates': (6.5, 44.85)}
@@ -127,20 +128,20 @@ class OccurrenceStore:
         self.graph.add((occurrence, RDF.type, DWC['Occurrence']))
         self.graph.add(
             (occurrence, DWC['occurrenceID'], Literal(record['permId'])))
-        self.graph.add(
-            (occurrence, DWC['occurrenceStatus'], Literal(record['statObs'])))
+        #self.graph.add(
+        #    (occurrence, DWC['occurrenceStatus'], Literal(record['statObs'])))
         self.graph.add(
             (occurrence, DWC['occurrenceRemarks'], Literal(record['obsCtx'])))
-        self.graph.add(
-            (occurrence, DWC['occurrenceQuantityType'], Literal(record['objDenbr'])))  # noqa: E501
+        #self.graph.add(
+        #    (occurrence, DWC['occurrenceQuantityType'], Literal(record['objDenbr'])))  # noqa: E501
         self.graph.add(
             (occurrence, DWC['occurrenceQuantity'], Literal(record['denbrMin'])))  # noqa: E501
-        self.graph.add(
-            (occurrence, DWC['associatedReferences'], Literal(record['refBiblio'])))  # noqa: E501
-        self.graph.add(
-            (occurrence, DWC['establishmentMeans'], Literal(record['ocNat'])))
-        self.graph.add(
-            (occurrence, DWC['lifeStage'], Literal(record['ocStade'])))
+        #self.graph.add(
+        #    (occurrence, DWC['associatedReferences'], Literal(record['refBiblio'])))  # noqa: E501
+        #self.graph.add(
+        #    (occurrence, DWC['establishmentMeans'], Literal(record['ocNat'])))
+        #self.graph.add(
+        #    (occurrence, DWC['lifeStage'], Literal(record['ocStade'])))
         self.graph.add((event, DSW['basisOfRecord'], occurrence))
         return occurrence
 
@@ -153,10 +154,10 @@ class OccurrenceStore:
     def build_identification(self, organism, record):
         identification = BNode()
         self.graph.add((identification, RDF.type, DWC['Identification']))
-        self.graph.add(
-            (identification, DWC['identificationStatus'], Literal(record['preuveOui'])))  # noqa: E501
-        self.graph.add(
-            (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
+        #self.graph.add(
+        #   (identification, DWC['identificationStatus'], Literal(record['preuveOui'])))  # noqa: E501
+        #self.graph.add(
+        #    (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
         self.graph.add(
             (identification, DWC['dateIdentified'], Literal(dt.isoformat(
                 dt.strptime(record['date_min'], '%Y-%m-%d %H:%M:%S')))))
@@ -206,7 +207,7 @@ if __name__ == '__main__':
         'cdNom': 67111,
         'cdRef': 67111,
         'versionTAXREF': 'Taxref V11.0',
-        'datedet': '2017-01-08 00:00:00',
+        #'datedet': '2017-01-08 00:00:00',
         'obsCtx': 'Troisieme test',
         'dSPublique': 'NSP',
         'jddMetadonneeDEEId': '4d331cae-65e4-4948-b0b2-a11bc5bb46c2',
@@ -225,8 +226,8 @@ if __name__ == '__main__':
         'ocStatBio': 1,
         'preuveOui': 0,
         'ocMethDet': 'Autre méthode de détermination',
-        'preuvNum': '',
-        'preuvNoNum': 'Poils de plumes',
+        #'preuvNum': '',
+        #'preuvNoNum': 'Poils de plumes',
         'obsCtx': 'Autre exemple test',
         'permIdGrp': 'b93a03d3-5e24-4d28-b68e-e0f75593f085',
         'methGrp': 'Relevé',

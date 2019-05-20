@@ -88,3 +88,46 @@ CREATE VIEW gn_exports.v_exports_logs AS
  ORDER BY start_time;
 
 COMMIT;
+
+----------------------
+-- Prepare Export RDF 
+----------------------
+--DROP VIEW gn_exports.v_exports_synthese;
+
+CREATE OR REPLACE VIEW gn_exports.v_exports_synthese AS 
+
+SELECT s.id_synthese AS "idSynthese",
+       s.unique_id_sinp AS "permId", --ok
+    s.unique_id_sinp_grp AS "permIdGrp", --ok
+    s.count_min AS "denbrMin", --ok
+    s.count_max AS "denbrMax", --ok
+    s.meta_v_taxref AS "versionTAXREF", --ok
+    --s.sample_number_proof AS "sampleNumb",
+    --s.digital_proof AS "preuvNum",
+    --s.non_digital_proof AS "preuvNoNum",
+    s.altitude_min AS "altMin", --ok dc = minimumElevationInMeters
+    s.altitude_max AS "altMax", --ok dc = maximumElevationInMeters 
+    st_astext(s.the_geom_4326) AS "WKT", --ok
+    s.date_min AS "date_min", --ok
+    s.date_max AS "date_max", --ok
+    --s.validator AS validateur,
+    s.observers AS "obsId",
+    -- organisme
+    --s.id_digitiser,
+    --s.determiner AS detminer,
+    s.comment_context AS "obsCtx", --ok
+    s.comment_description AS "obsDescr", --ok
+    ref_nomenclatures.get_cd_nomenclature(s.id_nomenclature_obs_meth) AS "obsMeth",
+    s.meta_create_date,
+    s.meta_update_date,
+    d.id_dataset AS "jddId",
+    d.dataset_name AS "jddCode",
+    d.id_acquisition_framework,
+    t.cd_nom AS "cdNom", --ok
+    t.cd_ref AS "cdRef", --ok
+    t.nom_complet AS "scientificName ", -- cd = scientificName 
+    s.nom_cite AS "nomCite" --ok
+   FROM gn_synthese.synthese s
+     JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
+     JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
+     JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source;
