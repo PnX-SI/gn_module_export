@@ -170,12 +170,12 @@ paths:
           description: Unexpected usage
         '403':
           description: Unauthenticated
-  /{{API_URL}}/{id}/{format}:
+  /{{API_URL}}/1/{format}:
     get:
       security:
         # - tokenAuth: []
         - bearerAuth: []
-      summary: Returns the format-specified data from the export the user has access to.
+      summary: Returns the SINP export.
       description: |
         More specific data may be obtained through the following query filters.
         In its simplest form:
@@ -512,3 +512,9 @@ paths:
           description: Unexpected usage
         '403':
           description: Unauthenticated | Insufficient rights
+  /{{API_URL}}/{id}/{format}:
+    get:
+      security:
+        # - tokenAuth: []
+        - bearerAuth: []
+      summary: Returns the format-specified data from the export the user has access to.
