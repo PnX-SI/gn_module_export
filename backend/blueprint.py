@@ -37,8 +37,8 @@ repo = ExportRepository()
 """
     Configuration de l'admin
 """
-
-admin.add_view(ModelView(Export, DB.session))
+#FIXME: Error required fields
+#admin.add_view(ModelView(Export, DB.session))
 admin.add_view(ModelView(CorExportsRoles, DB.session))
 
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
