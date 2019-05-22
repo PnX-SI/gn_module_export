@@ -20,6 +20,10 @@ from geonature.core.gn_permissions import decorators as permissions
 
 from .repositories import ExportRepository, EmptyDataSetError
 
+from flask_admin.contrib.sqla import ModelView
+from .models import Export, CorExportsRoles
+from pypnnomenclature.admin import admin
+from geonature.utils.env import DB
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
@@ -29,6 +33,13 @@ logger.setLevel(logging.DEBUG)
 blueprint = Blueprint('exports', __name__)
 repo = ExportRepository()
 
+
+"""
+    Configuration de l'admin
+"""
+#FIX: remove init Export model
+admin.add_view(ModelView(Export, DB.session))
+admin.add_view(ModelView(CorExportsRoles, DB.session))
 
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)

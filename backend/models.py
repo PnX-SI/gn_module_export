@@ -18,22 +18,6 @@ class Export(DB.Model):
     geometry_srid = DB.Column(DB.Integer)
     public = DB.Column(DB.Boolean, nullable=False, default=False)
 
-    def __init__(self,
-                 label,
-                 schema_name,
-                 view_name,
-                 desc=None,
-                 geometry_field=None,
-                 geometry_srid=current_app.config['LOCAL_SRID'],
-                 public=False):
-        self.label = label
-        self.schema_name = schema_name
-        self.view_name = view_name
-        self.desc = desc
-        self.geometry_field = geometry_field
-        self.geometry_srid = geometry_srid
-        self.public = public
-
     def __str__(self):
         return "<Export(id='{}', label='{}')>".format(self.id, self.label)
 
