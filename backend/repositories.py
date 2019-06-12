@@ -27,7 +27,7 @@ class EmptyDataSetError(Error):
 
 
 class ExportRepository(object):
-  
+
     def __init__(self, session=DB.session):
         self.session = session
 
@@ -56,7 +56,7 @@ class ExportRepository(object):
             id_export,  # identifiant du role
             with_data=False,  # Indique si oui ou non la fonction retourne les données associées à l'export. Si non retourne la définition de l'export
             filters=dict(),  # Filtres à appliquer sur les données
-            limit=10000,  # Nombre maximale de données à retourner
+            limit=1000,  # Nombre maximale de données à retourner
             offset=0,  # Numéro de page à retourner
             export_format=None  # Format de l'export
     ):
@@ -65,7 +65,7 @@ class ExportRepository(object):
         log = None
         exc = None
         status = -2
-        start_time = datetime.utcnow()  
+        start_time = datetime.utcnow()
         try:
             try:
                 self.getExportIsAllowed(id_export, info_role)
@@ -73,9 +73,9 @@ class ExportRepository(object):
                 logger.warn('repository.get_by_id(): %s', str(e))
                 exc = e
                 raise
-                
+
             export_ = Export.query.filter_by(id=id_export).one()
-            
+
             logger.debug('export: %s', export_.as_dict())
 
             if with_data and export_format:
@@ -83,7 +83,7 @@ class ExportRepository(object):
                     export_.geometry_field
                     if (
                         hasattr(export_, 'geometry_field')
-                        and 
+                        and
                         current_app.config['export_format_map'][export_format]['geofeature']
                     )
                     else None
@@ -164,20 +164,21 @@ class ExportRepository(object):
             ),
             Export.public == True
         )
-    
+
     def getAllowedExports(self, info_role):
+
         q = Export.query\
-                  .join(CorExportsRoles)\
+                  .outerjoin(CorExportsRoles)\
                   .filter(self.getfilter_CorExportsRoles_clause(info_role))\
                   .order_by(Export.id.desc())
-
+        print(q)
         result = q.all()
         if not result:
             raise NoResultFound('No configured export')
         return result
 
     def getExportIsAllowed(self, id_export, info_role):
-        q = Export.query.join(
+        q = Export.query.outerjoin(
                 CorExportsRoles
             ).filter(
                 Export.id == id_export
