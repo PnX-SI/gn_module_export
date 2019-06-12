@@ -6,7 +6,7 @@ from flask import (
     Blueprint,
     request,
     current_app,
-    send_from_directory, 
+    send_from_directory,
     Response
 )
 from flask_cors import cross_origin
@@ -46,7 +46,7 @@ os.makedirs(EXPORTS_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
 
-#HACK when install the module, the config of the module is not yet available
+# HACK when install the module, the config of the module is not yet available
 # we cannot use current_app.config['EXPORT']
 try:
     MOD_CONF = current_app.config['EXPORTS']
@@ -122,16 +122,21 @@ def export_filename(export):
     )
 def getOneExport(id_export, export_format, info_role):
     if (id_export < 1
-            or export_format not in blueprint.config.get('export_format_map')):
+            or export_format not in blueprint.config.get('export_format_map')
+    ):
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
     current_app.config.update(
-        export_format_map=blueprint.config['export_format_map'])
+        export_format_map=blueprint.config['export_format_map']
+    )
+
     filters = {f: request.args.get(f) for f in request.args}
+
     try:
         export, columns, data = repo.get_by_id(
             info_role, id_export, with_data=True, export_format=export_format,
-            filters=filters, limit=10000, offset=0)
+            filters=filters, limit=10000, offset=0
+        )
 
         if export:
             fname = export_filename(export)
@@ -232,7 +237,7 @@ def etalab_export():
     from geonature.utils.env import DB
     from geonature.utils.utilssqlalchemy import GenericQuery
     from .rdf import OccurrenceStore
-    
+
     conf = current_app.config.get('EXPORTS')
     export_etalab = conf.get('etalab_export')
     seeded = False
@@ -269,8 +274,40 @@ def etalab_export():
                 mimetype='application/json'
             )
             return response
-        
+
 
     return send_from_directory(
         os.path.dirname(export_etalab), os.path.basename(export_etalab)
     )
+
+@blueprint.route('/api/<int:id_export>', methods=['GET'])
+@permissions.check_cruved_scope(
+    'R', True, module_code='EXPORTS',
+    redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
+    redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
+)
+@json_resp
+def get_one_export_api(id_export, info_role):
+    """
+        Génération de l'api pour un export
+    """
+
+    limit = request.args.get('limit', default=1000, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+
+    args = request.args.to_dict()
+    if "limit" in args:
+        args.pop("limit")
+    if "offset" in args:
+        args.pop("offset")
+    filters = {f: args.get(f) for f in args}
+
+    current_app.config.update(
+        export_format_map=blueprint.config['export_format_map']
+    )
+
+    export, columns, data = repo.get_by_id(
+        info_role, id_export, with_data=True, export_format='json',
+        filters=filters, limit=limit, offset=offset
+    )
+    return data
