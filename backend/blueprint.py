@@ -11,8 +11,9 @@ from flask import (
 )
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
-    json_resp, to_json_resp, to_csv_resp)
-from geonature.utils.utilstoml import load_toml, load_and_validate_toml
+    json_resp, to_json_resp, to_csv_resp
+)
+
 from geonature.utils.filemanager import (
     removeDisallowedFilenameChars, delete_recursively)
 from pypnusershub.db.tools import InsufficientRightsError
@@ -35,9 +36,11 @@ repo = ExportRepository()
 
 
 """
+#################################################################
     Configuration de l'admin
+#################################################################
 """
-#FIX: remove init Export model
+# FIX: remove init Export model
 admin.add_view(ModelView(Export, DB.session))
 admin.add_view(ModelView(CorExportsRoles, DB.session))
 
@@ -56,6 +59,12 @@ except KeyError:
 
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 
+
+"""
+#################################################################
+    Configuration de swagger
+#################################################################
+"""
 # extracted from dummy npm install
 SWAGGER_UI_DIST_DIR = os.path.join(ASSETS, 'swagger-ui-dist')
 SWAGGER_UI_SAMPLE_INDEXHTML = 'swagger-ui_index.template.html'
@@ -110,6 +119,13 @@ def export_filename(export):
         datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S'))
 
 
+"""
+#################################################################
+    Configuration des routes qui permettent de réaliser les exports
+#################################################################
+"""
+
+
 @blueprint.route('/<int:id_export>/<export_format>', methods=['GET'])
 @cross_origin(
     supports_credentials=True,
@@ -121,8 +137,10 @@ def export_filename(export):
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
     )
 def getOneExport(id_export, export_format, info_role):
-    if (id_export < 1
-            or export_format not in blueprint.config.get('export_format_map')
+    if (
+        id_export < 1
+        or
+        export_format not in blueprint.config.get('export_format_map')
     ):
         return to_json_resp({'api_error': 'InvalidExport'}, status=404)
 
@@ -214,6 +232,10 @@ def getOneExport(id_export, export_format, info_role):
     )
 @json_resp
 def getExports(info_role):
+    """
+        Fonction qui renvoie la liste des exports
+        accessible pour un role donné
+    """
     try:
         exports = repo.getAllowedExports(info_role)
     except NoResultFound:
@@ -275,10 +297,10 @@ def etalab_export():
             )
             return response
 
-
     return send_from_directory(
         os.path.dirname(export_etalab), os.path.basename(export_etalab)
     )
+
 
 @blueprint.route('/api/<int:id_export>', methods=['GET'])
 @permissions.check_cruved_scope(
@@ -289,9 +311,59 @@ def etalab_export():
 @json_resp
 def get_one_export_api(id_export, info_role):
     """
-        Génération de l'api pour un export
-    """
+        Fonction qui expose les exports disponibles à un role
+            sous forme d'api
 
+        Le requetage des données se base sur la classe GenericQuery qui permet
+            de filter les données de façon dynamique en respectant des
+            conventions de nommage
+
+        Parameters
+        ----------
+        limit : nombre limit de résultats à retourner
+        offset : numéro de page
+
+        FILTRES :
+            nom_col=val: Si nom_col fait partie des colonnes
+                de la vue alors filtre nom_col=val
+            ilikenom_col=val: Si nom_col fait partie des colonnes
+                de la vue et que la colonne est de type texte
+                alors filtre nom_col ilike '%val%'
+            filter_d_up_nom_col=val: Si nom_col fait partie des colonnes
+                de la vue et que la colonne est de type date
+                alors filtre nom_col >= val
+            filter_d_lo_nom_col=val: Si nom_col fait partie des colonnes
+                de la vue et que la colonne est de type date
+                alors filtre nom_col <= val
+            filter_d_eq_nom_col=val: Si nom_col fait partie des colonnes
+                de la vue et que la colonne est de type date
+                alors filtre nom_col == val
+            filter_n_up_nom_col=val: Si nom_col fait partie des colonnes
+                de la vue et que la colonne est de type numérique
+                alors filtre nom_col >= val
+            filter_n_lo_nom_col=val: Si nom_col fait partie des colonnes
+                de la vue et que la colonne est de type numérique
+                alors filtre nom_col <= val
+        ORDONNANCEMENT :
+            orderby: char
+                Nom du champ sur lequel baser l'ordonnancement
+            order: char (asc|desc)
+                Sens de l'ordonnancement
+
+        Returns
+        -------
+        json
+        {
+            'total': Nombre total de résultat,
+            'total_filtered': Nombre total de résultat après filtration,
+            'page': Numéro de la page retournée,
+            'limit': Nombre de résultats,
+            'items': données au format Json ou GeoJson
+        }
+
+
+            order by : @TODO
+    """
     limit = request.args.get('limit', default=1000, type=int)
     offset = request.args.get('offset', default=0, type=int)
 
