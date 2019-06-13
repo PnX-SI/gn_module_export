@@ -168,7 +168,7 @@ export class ExportListComponent implements OnInit {
   }
 
   openAPIDocumentation() {
-    let docs = window.open(`${this.api_endpoint}/swagger-ui/index.html`);
+    let docs = window.open(`${this.api_endpoint}/swagger`);
     docs.focus();
   }
 }

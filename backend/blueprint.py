@@ -7,7 +7,8 @@ from flask import (
     request,
     current_app,
     send_from_directory,
-    Response
+    Response,
+    render_template
 )
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
@@ -32,6 +33,8 @@ logger.setLevel(logging.DEBUG)
 # current_app.config['DEBUG'] = True
 
 blueprint = Blueprint('exports', __name__)
+blueprint.template_folder = os.path.join(blueprint.root_path, 'templates')
+blueprint.static_folder = os.path.join(blueprint.root_path, 'static')
 repo = ExportRepository()
 
 
@@ -59,58 +62,40 @@ except KeyError:
 
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 
-
 """
 #################################################################
     Configuration de swagger
 #################################################################
 """
-# extracted from dummy npm install
-SWAGGER_UI_DIST_DIR = os.path.join(ASSETS, 'swagger-ui-dist')
-SWAGGER_UI_SAMPLE_INDEXHTML = 'swagger-ui_index.template.html'
-SWAGGER_UI_INDEXHTML = 'index.html'
-SWAGGER_API_SAMPLE_YAML = 'swagger-ui_api.template.yml'
-SWAGGER_API_YAML = 'api.yml'
-
-for template, serving in {
-        os.path.join(
-            MOD_CONF_PATH, SWAGGER_API_SAMPLE_YAML): os.path.join(
-                ASSETS, SWAGGER_API_YAML),
-        os.path.join(
-            MOD_CONF_PATH, SWAGGER_UI_SAMPLE_INDEXHTML): os.path.join(
-                SWAGGER_UI_DIST_DIR, SWAGGER_UI_INDEXHTML)
-        }.items():
-    with open(template, 'r') as input_:
-        content = input_.read()
-        host, base_path, *_ = current_app.config['API_ENDPOINT']\
-                                         .replace('https://', '')\
-                                         .replace('http://', '')\
-                                         .split('/', 1) + ['']
-        for k, v in ({
-                'API_ENDPOINT': current_app.config['API_ENDPOINT'],
-                'HOST': host,
-                'BASE_PATH': '/' + base_path if base_path else '',
-                'API_URL': API_URL.lstrip('/') if API_URL else '',
-                'API_YAML': SWAGGER_API_YAML
-                }).items():
-            content = content.replace('{{{{{}}}}}'.format(k), v)
-        with open(serving, 'w') as output:
-            output.write(content)
 
 
-@blueprint.route('/swagger-ui/')
-def swagger_ui():
-    return send_from_directory(SWAGGER_UI_DIST_DIR, 'index.html')
+@blueprint.route('/swagger/')
+@blueprint.route('/swagger/<int:id_export>', methods=['GET'])
+def swagger_ui(id_export=None):
+    """
+        Génération de l'interface de swagger
+    """
+    if not id_export:
+        id_export = ""
 
+    return render_template(
+        'index.html',
+        API_ENDPOINT=API_URL,
+        id_export=id_export
+    )
 
-@blueprint.route('/swagger-ui/<asset>')
-def swagger_assets(asset):
-    return send_from_directory(SWAGGER_UI_DIST_DIR, asset)
-
-
-@blueprint.route('/' + SWAGGER_API_YAML)
-def swagger_api_yml():
-    return send_from_directory(ASSETS, SWAGGER_API_YAML)
+@blueprint.route('/swagger-ressources/', methods=['GET'])
+@blueprint.route('/swagger-ressources/<int:id_export>', methods=['GET'])
+def swagger_ressources(id_export=None):
+    """
+        Génération des spécifications swagger
+    """
+    if not id_export:
+        swagger_spec = render_template('/swagger/main.yml')
+    else:
+        # TODO générer la configuration de l'export automatiquement
+        pass
+    return Response(swagger_spec)
 
 
 def export_filename(export):
