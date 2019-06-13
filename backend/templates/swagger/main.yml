@@ -13,8 +13,8 @@ info:
 externalDocs:
   description: "Find out more about GéoNature"
   url: "http://geonature.fr"
-host: {{HOST}}
-basePath: {{BASE_PATH}}
+host: localhost:8000
+basePath:
 schemes:
   - https
   - http
@@ -149,7 +149,7 @@ paths:
              If supplied with invalid credentials
            schema:
              $ref: '#/definitions/Error'
-  /{{API_URL}}/:
+  /export/:
     get:
       security:
         # - tokenAuth: []
@@ -170,7 +170,7 @@ paths:
           description: Unexpected usage
         '403':
           description: Unauthenticated
-  /{{API_URL}}/{id}/{format}:
+  /export/{id}/{format}:
     get:
       security:
         # - tokenAuth: []

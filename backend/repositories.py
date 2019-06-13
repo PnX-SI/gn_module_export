@@ -171,7 +171,7 @@ class ExportRepository(object):
                   .outerjoin(CorExportsRoles)\
                   .filter(self.getfilter_CorExportsRoles_clause(info_role))\
                   .order_by(Export.id.desc())
-        print(q)
+
         result = q.all()
         if not result:
             raise NoResultFound('No configured export')
