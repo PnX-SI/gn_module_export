@@ -97,7 +97,7 @@ def swagger_ressources(id_export=None):
 
     # return jsonify(swagger_example)
     if not id_export:
-        swagger_spec = render_template('/swagger/main_sawwger_doc.json')
+        swagger_spec = render_template('/swagger/main_swagger_doc.json')
         return Response(swagger_spec)
 
 
