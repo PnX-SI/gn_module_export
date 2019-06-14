@@ -1,6 +1,9 @@
 import os
 from datetime import datetime
 import logging
+
+from pathlib import Path
+
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
@@ -8,7 +11,8 @@ from flask import (
     current_app,
     send_from_directory,
     Response,
-    render_template
+    render_template,
+    jsonify
 )
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
@@ -20,7 +24,7 @@ from geonature.utils.filemanager import (
 from pypnusershub.db.tools import InsufficientRightsError
 from geonature.core.gn_permissions import decorators as permissions
 
-from .repositories import ExportRepository, EmptyDataSetError
+from .repositories import ExportRepository, EmptyDataSetError, generate_swagger_spec
 
 from flask_admin.contrib.sqla import ModelView
 from .models import Export, CorExportsRoles
@@ -90,12 +94,40 @@ def swagger_ressources(id_export=None):
     """
         Génération des spécifications swagger
     """
+
+    # return jsonify(swagger_example)
     if not id_export:
-        swagger_spec = render_template('/swagger/main.yml')
-    else:
-        # TODO générer la configuration de l'export automatiquement
-        pass
+        swagger_spec = render_template('/swagger/main_sawwger_doc.json')
+        return Response(swagger_spec)
+
+
+    # Si l'id export exist et que les droits sont définis
+    try:
+        export = Export.query.filter(Export.id == id_export).one()
+    except (NoResultFound, EmptyDataSetError):
+        return jsonify({"message": "no export with this id"}), 404
+
+    # Si un fichier de surcouche est défini
+    file_name = 'api_specification_' + str(id_export) + '.json'
+    path = Path(blueprint.template_folder, 'swagger', file_name)
+
+    if path.is_file():
+        swagger_spec = render_template('/swagger/' + file_name)
+        return Response(swagger_spec)
+
+    # Génération automatique des spécification
+    export_parameters = generate_swagger_spec(id_export)
+
+    swagger_spec = render_template(
+        '/swagger/generic_swagger_doc.json',
+        export_nom=export.label,
+        export_description=export.desc,
+        export_path="{}/api/{}".format(API_URL, id_export),
+        export_parameters=export_parameters
+    )
+
     return Response(swagger_spec)
+
 
 
 def export_filename(export):

@@ -1,0 +1,116 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "0.1.0",
+    "title": "{{export_nom}}",
+    "description": "{{export_description}}",
+    "contact": {
+      "name": "API Support",
+      "url": "https://github.com/PnX-SI/GeoNature/issues",
+      "email": "geonature@ecrins-parcnational.fr"
+    },
+    "license": {
+      "name": "GNU General Public License v3.0",
+      "url": "https://raw.githubusercontent.com/PnX-SI/GeoNature/master/LICENSE"
+    }
+  },
+  "externalDocs": {
+    "description": "Find out more about GeoNature",
+    "url": "http://geonature.fr"
+  },
+  "host": "{{host}}",
+  "basePath": null,
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "definitions": {
+    "Error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    "Result": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "int",
+          "description": "Nombre total d'enregistrement de l'export"
+        },
+        "total_filtered": {
+          "type": "int",
+          "description": "Nombre d'enregistrements retournés après application des filtres"
+        },
+        "page": {
+          "type": "int",
+          "description": "Numéro de page de la requête"
+        },
+        "limit": {
+          "type": "int",
+          "description": "Nombre limite d'enregistrements retournés"
+        },
+        "items": {
+          "type": "json",
+          "description": "Résultat de la requete, s'il y a une colonne de géométrie alors géojson"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "bearerAuth": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization"
+    }
+  },
+  "paths": {
+    "{{export_path}}": {
+      "get": {
+        "tags": [
+          "{{export_nom}}"
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+
+            ]
+          }
+        ],
+        "summary": "{{export_description}}",
+        "parameters": {{export_parameters|tojson}},
+        "responses": {
+          "200": {
+            "description": "Export Success",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          },
+          "404": {
+            "description": "No configured exports"
+          },
+          "400": {
+            "description": "Unexpected usage"
+          },
+          "403": {
+            "description": "Unauthenticated"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    }
+  }
+}

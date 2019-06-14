@@ -5,7 +5,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from flask import current_app
 # from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
-from geonature.utils.utilssqlalchemy import GenericQuery
+from geonature.utils.utilssqlalchemy import GenericQuery, GenericTable
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
@@ -187,3 +187,33 @@ class ExportRepository(object):
             )
 
         return q.one()
+
+def generate_swagger_spec(id_export):
+    """
+        Fonction qui permet de générer dynamiquement
+        les spécifications swagger d'un export
+    """
+    swagger_parameters = []
+    try:
+        export = Export.query.filter(Export.id == id_export).one()
+    except (NoResultFound, EmptyDataSetError) as e:
+        raise e
+
+    exportTable = GenericTable(
+        tableName=export.view_name,
+        schemaName=export.schema_name,
+        geometry_field=export.geometry_field,
+        srid=export.geometry_srid
+    )
+    for column in exportTable.tableDef.columns:
+        swagger_parameters.append({
+            "in": "query",
+            "name": column.name,
+            "schema": {
+              "type": column.type.__class__.__name__
+            },
+            "description": "The numbers of items to return"
+        })
+        print(column.name, column.type.__class__.__name__)
+
+    return swagger_parameters
