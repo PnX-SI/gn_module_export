@@ -188,6 +188,18 @@ class ExportRepository(object):
 
         return q.one()
 
+
+SWAGGER_TYPE_COR = {
+    "INTEGER": {"type": "int", "format": "int32"},
+    "BIGINT": {"type": "int", "format": "int64"},
+    "TEXT": {"type": "string"},
+    "UUID": {"type": "string", "format": "uuid"},
+    "VARCHAR": {"type": "string"},
+    "TIMESTAMP": {"type": "string", "format": "date-time"},
+    "TIME": {"type": "string", "format": "date-time"},
+    "DATE": {"type": "string", "format": "date"}
+}
+
 def generate_swagger_spec(id_export):
     """
         Fonction qui permet de générer dynamiquement
@@ -206,14 +218,16 @@ def generate_swagger_spec(id_export):
         srid=export.geometry_srid
     )
     for column in exportTable.tableDef.columns:
-        swagger_parameters.append({
+        type = {"type": "string"}
+        if column.type.__class__.__name__ in SWAGGER_TYPE_COR:
+            type = SWAGGER_TYPE_COR[column.type.__class__.__name__]
+        swagger_parameters.append(
+            {
             "in": "query",
             "name": column.name,
-            "schema": {
-              "type": column.type.__class__.__name__
-            },
-            "description": "The numbers of items to return"
-        })
+            **type
+          }
+        )
         print(column.name, column.type.__class__.__name__)
 
     return swagger_parameters

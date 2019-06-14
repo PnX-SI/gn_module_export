@@ -39,6 +39,17 @@
                             (click)="selectFormat(value)">Télécharger</button>
                   </ng-template>
                 </ngx-datatable-column>
+                <ngx-datatable-column name="API" prop="id" [flexGrow]="4">
+                  <ng-template let-value="value" ngx-datatable-cell-template>
+                    <a
+                      class="btn btn-warning"
+                      href="{{api_endpoint}}/swagger/{{value}}"
+                      target="_blank" rel="noopener noreferrer"
+                    >
+                    API
+                  </a>
+                  </ng-template>
+                </ngx-datatable-column>
             </ngx-datatable>
         </div>
         </div>
