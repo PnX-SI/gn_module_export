@@ -44,8 +44,7 @@
         </div>
         <div class="card-footer">
             <div class="d-flex justify-content-between">
-                <button id="api_id_{{value}}" class="btn btn-warning" (click)=openAPIDocumentation()>Explorer l'API
-                </button>
+              <a class="btn btn-warning" href="{{api_endpoint}}/swagger/" target="_blank" rel="noopener noreferrer">Explorer l'API</a>
               <div class="wrapper-licence">
                   <div class="form-check" id="checkLicence">
                     <input type="checkbox" class="form-check-input" id="licence" (click)="follow()" required/>
