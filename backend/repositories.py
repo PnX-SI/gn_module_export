@@ -228,6 +228,19 @@ def generate_swagger_spec(id_export):
             **type
           }
         )
-        print(column.name, column.type.__class__.__name__)
+    general_params = [
+        {
+            "in": "query",
+            "name": "limit",
+            "type": "int",
+            "description": "nombre maximum de résultats à retourner"
+        },
+        {
+            "in": "query",
+            "name": "offset",
+            "type": "int",
+            "description": "numéro de page"
+        }
+    ]
+    return general_params + swagger_parameters
 
-    return swagger_parameters
