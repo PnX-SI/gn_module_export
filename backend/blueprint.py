@@ -29,6 +29,7 @@ from geonature.core.gn_permissions import decorators as permissions
 from .repositories import ExportRepository, EmptyDataSetError, generate_swagger_spec
 
 from flask_admin.contrib.sqla import ModelView
+from flask_admin.helpers import is_form_submitted
 from .models import Export, CorExportsRoles
 from pypnnomenclature.admin import admin
 from geonature.utils.env import DB
@@ -61,16 +62,19 @@ class ExportView(ModelView):
     def validate_form(self, form):
 
         # Essai de récupérer en BD la vue sql déclarée
-        if(form.view_name.data and form.schema_name.data):
+        # Delete n'a pas d'attribut view_name
+        view_name = getattr(form, 'view_name', '')
+        schema_name = getattr(form, 'schema_name', '')
+        if( is_form_submitted() and view_name and schema_name):
             try:
                 query = GenericQuery(
-                    DB.session, form.view_name.data , form.schema_name.data,
+                    DB.session, view_name.data , schema_name.data,
                     geometry_field=None, filters=[]
                 )
                 data = query.return_query()
 
             except KeyError:
-                flash("La vue sql " + form.schema_name.data + "." + form.view_name.data + " n'existe pas.", category='error')
+                flash("La vue sql " + schema_name.data + "." + view_name.data + " n'existe pas.", category='error')
                 return False
 
         return super(ExportView, self).validate_form(form)
