@@ -12,11 +12,13 @@ from flask import (
     send_from_directory,
     Response,
     render_template,
-    jsonify
+    jsonify,
+    flash
 )
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
-    json_resp, to_json_resp, to_csv_resp
+    json_resp, to_json_resp, to_csv_resp,
+    GenericQuery
 )
 
 from geonature.utils.filemanager import (
@@ -47,8 +49,35 @@ repo = ExportRepository()
     Configuration de l'admin
 #################################################################
 """
-# FIX: remove init Export model
-admin.add_view(ModelView(Export, DB.session))
+
+# Création d'une class pour gérer le formulaire d'administration Export
+class ExportView(ModelView):
+
+    def __init__(self, session):
+        # Référence au model utilisé
+        super(ExportView, self).__init__(Export, session)
+
+    # validation personnalisée du form
+    def validate_form(self, form):
+
+        # Essai de récupérer en BD la vue sql déclarée
+        if(form.view_name.data and form.schema_name.data):
+            try:
+                query = GenericQuery(
+                    DB.session, form.view_name.data , form.schema_name.data,
+                    geometry_field=None, filters=[]
+                )
+                data = query.return_query()
+
+            except KeyError:
+                flash("La vue sql " + form.schema_name.data + "." + form.view_name.data + " n'existe pas.", category='error')
+                return False
+
+        return super(ExportView, self).validate_form(form)
+
+
+# Add views
+admin.add_view(ExportView(DB.session))
 admin.add_view(ModelView(CorExportsRoles, DB.session))
 
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
@@ -274,7 +303,6 @@ def etalab_export():
 
     from datetime import time
     from geonature.utils.env import DB
-    from geonature.utils.utilssqlalchemy import GenericQuery
     from .rdf import OccurrenceStore
 
     conf = current_app.config.get('EXPORTS')
