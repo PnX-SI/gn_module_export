@@ -35,6 +35,39 @@ COMMENT ON COLUMN gn_exports.t_exports."desc" IS 'Short or long text to explain 
 COMMENT ON COLUMN gn_exports.t_exports.geometry_field IS 'Name of the geometry field if the export is spatial';
 COMMENT ON COLUMN gn_exports.t_exports.geometry_srid IS 'SRID of the geometry';
 
+-----------
+--LICENCE--
+-----------
+
+-- liste des licences
+CREATE TABLE gn_exports.t_licences (
+    id_licence SERIAL NOT NULL,
+    url_licence text NOT NULL
+);
+COMMENT ON TABLE gn_exports.t_licences IS 'This table is used to declare the licences list.';
+
+ALTER TABLE ONLY gn_exports.t_licences
+    ADD CONSTRAINT pk_gn_exports_t_licences PRIMARY KEY (id_licence);
+
+
+-- relation licence / export
+CREATE TABLE gn_exports.cor_exports_licences (
+    id_licence SERIAL NOT NULL,
+    id_export integer NOT NULL
+);
+COMMENT ON TABLE gn_exports.cor_exports_licences IS 'This table is used to declare export licence.';
+
+ALTER TABLE ONLY gn_exports.cor_exports_licences
+    ADD CONSTRAINT pk_gn_exports_cor_exports_licences PRIMARY KEY (id_licence, id_export);
+
+-- TODO ?
+--ALTER TABLE ONLY gn_exports.cor_exports_licences
+  --  ADD CONSTRAINT unique_gn_exports_cor_exports_licences UNIQUE (id_licence, id_export);
+
+
+---------
+--ROLES--
+---------
 
 CREATE TABLE gn_exports.cor_exports_roles (
     id_export integer NOT NULL,
@@ -49,6 +82,10 @@ ALTER TABLE ONLY gn_exports.cor_exports_roles
 ALTER TABLE ONLY gn_exports.cor_exports_roles
     ADD CONSTRAINT fk_cor_exports_roles_id_role FOREIGN KEY (id_role) REFERENCES utilisateurs.t_roles(id_role) ON UPDATE CASCADE;
 
+
+--------
+--LOGS--
+--------
 
 CREATE TABLE gn_exports.t_exports_logs
 (
@@ -89,6 +126,10 @@ CREATE VIEW gn_exports.v_exports_logs AS
 
 COMMIT;
 
+
+---------
+--VIEWS--
+---------
 
 CREATE OR REPLACE VIEW gn_synthese.v_synthese_sinp AS
  WITH deco AS (
