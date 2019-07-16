@@ -30,7 +30,7 @@ from .repositories import ExportRepository, EmptyDataSetError, generate_swagger_
 
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
-from .models import Export, CorExportsRoles, Licences, CorExportLicences
+from .models import Export, CorExportsRoles, Licences
 from pypnnomenclature.admin import admin
 from geonature.utils.env import DB
 
@@ -84,8 +84,6 @@ class ExportView(ModelView):
 admin.add_view(ExportView(DB.session))
 admin.add_view(ModelView(CorExportsRoles, DB.session))
 admin.add_view(ModelView(Licences, DB.session))
-admin.add_view(ModelView(CorExportLicences, DB.session))
-
 
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)

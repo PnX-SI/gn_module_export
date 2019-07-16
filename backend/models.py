@@ -4,6 +4,19 @@ from geonature.utils.utilssqlalchemy import serializable
 from pypnusershub.db.models import User
 
 
+@serializable
+class Licences(DB.Model):
+    __tablename__ = 't_licences'
+    __table_args__ = {'schema': 'gn_exports'}
+
+    id_licence = DB.Column(DB.Integer, primary_key=True, nullable=False)
+    name_licence = DB.Column(DB.Text, nullable=False)
+    url_licence = DB.Column(DB.Text, nullable=False)
+
+    def __str__(self):
+        return "{}".format(self.name_licence)
+
+    __repr__ = __str__
 
 @serializable
 class Export(DB.Model):
@@ -17,6 +30,10 @@ class Export(DB.Model):
     geometry_field = DB.Column(DB.Text)
     geometry_srid = DB.Column(DB.Integer)
     public = DB.Column(DB.Boolean, nullable=False, default=False)
+    id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence),
+                        primary_key=True, nullable=False)
+
+    licence = DB.relationship('Licences', foreign_keys=[id_licence], lazy='joined')
 
     def __str__(self):
         return "{}".format(self.label)
@@ -95,31 +112,6 @@ class CorExportsRoles(DB.Model):
     role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
 
 
-@serializable
-class Licences(DB.Model):
-    __tablename__ = 't_licences'
-    __table_args__ = {'schema': 'gn_exports'}
 
-    id_licence = DB.Column(DB.Integer, primary_key=True, nullable=False)
-    name_licence = DB.Column(DB.Text, nullable=False)
-    url_licence = DB.Column(DB.Text, nullable=False)
-
-    def __str__(self):
-        return "{}".format(self.name_licence)
-
-    __repr__ = __str__
-
-
-@serializable
-class CorExportLicences(DB.Model):
-    __tablename__ = 'cor_exports_licences'
-    __table_args__ = {'schema': 'gn_exports'}
-
-    id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence),
-                        primary_key=True, nullable=False)
-    licence = DB.relationship('Licences', foreign_keys=[id_licence], lazy='joined')
-    id_export =  DB.Column(DB.Integer(), DB.ForeignKey(Export.id),
-                        primary_key=True, nullable=False)
-    export = DB.relationship('Export', foreign_keys=[id_export], lazy='joined')
 
 
