@@ -42,6 +42,7 @@ COMMENT ON COLUMN gn_exports.t_exports.geometry_srid IS 'SRID of the geometry';
 -- liste des licences
 CREATE TABLE gn_exports.t_licences (
     id_licence SERIAL NOT NULL,
+    name_licence text NOT NULL,
     url_licence text NOT NULL
 );
 COMMENT ON TABLE gn_exports.t_licences IS 'This table is used to declare the licences list.';
@@ -60,9 +61,14 @@ COMMENT ON TABLE gn_exports.cor_exports_licences IS 'This table is used to decla
 ALTER TABLE ONLY gn_exports.cor_exports_licences
     ADD CONSTRAINT pk_gn_exports_cor_exports_licences PRIMARY KEY (id_licence, id_export);
 
--- TODO ?
+-- Une licence par export ?
 --ALTER TABLE ONLY gn_exports.cor_exports_licences
   --  ADD CONSTRAINT unique_gn_exports_cor_exports_licences UNIQUE (id_licence, id_export);
+
+-- Licences par défaut
+INSERT INTO gn_exports.t_licences (name_licence, url_licence) VALUES
+    ('Creative Commons Attribution 1.0 Generic', 'https://spdx.org/licenses/CC-BY-1.0.html'),
+    ('ODC Open Database License v1.0', 'https://spdx.org/licenses/ODbL-1.0.html#licenseText');
 
 
 ---------
