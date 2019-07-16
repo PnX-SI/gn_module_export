@@ -2,7 +2,7 @@ from flask import current_app
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import serializable
 from pypnusershub.db.models import User
-
+from sqlalchemy.orm import backref
 
 @serializable
 class Licences(DB.Model):
@@ -33,7 +33,7 @@ class Export(DB.Model):
     id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence),
                         primary_key=True, nullable=False)
 
-    licence = DB.relationship('Licences', foreign_keys=[id_licence], lazy='joined')
+    licence = DB.relationship('Licences',  lazy='joined')
 
     def __str__(self):
         return "{}".format(self.label)

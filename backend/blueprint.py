@@ -65,16 +65,21 @@ class ExportView(ModelView):
         # Delete n'a pas d'attribut view_name
         view_name = getattr(form, 'view_name', '')
         schema_name = getattr(form, 'schema_name', '')
+        geometry_field = getattr(form, 'geometry_field', None)
+        geometry_srid = getattr(form, 'geometry_srid', None)
         if( is_form_submitted() and view_name and schema_name):
             try:
                 query = GenericQuery(
                     DB.session, view_name.data , schema_name.data,
-                    geometry_field=None, filters=[]
+                    geometry_field=geometry_field.data, filters=[]
                 )
-                data = query.return_query()
+                query.return_query()
 
-            except KeyError:
-                flash("La vue sql " + schema_name.data + "." + view_name.data + " n'existe pas.", category='error')
+                if geometry_field.data and geometry_srid.data is None:
+                    raise KeyError("field Geometry srid is mandatory with Geometry field")
+
+            except Exception as e:
+                flash(e, category='error')
                 return False
 
         return super(ExportView, self).validate_form(form)
