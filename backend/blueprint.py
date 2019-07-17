@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 import logging
-import threading
 
 from pathlib import Path
 
@@ -14,19 +13,20 @@ from flask import (
     Response,
     render_template,
     jsonify,
-    copy_current_request_context
+    flash
 )
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (
-    json_resp, to_json_resp
+    json_resp, to_json_resp,
+    GenericQuery
 )
 
+from geonature.utils.filemanager import (
+    removeDisallowedFilenameChars, delete_recursively)
 from pypnusershub.db.tools import InsufficientRightsError
 from geonature.core.gn_permissions import decorators as permissions
 
-from .repositories import (
-    ExportRepository, EmptyDataSetError, generate_swagger_spec
-)
+from .repositories import ExportRepository, EmptyDataSetError, generate_swagger_spec
 
 from flask_admin.contrib.sqla import ModelView
 from .models import Export, CorExportsRoles
@@ -34,7 +34,6 @@ from .utils_export import thread_export_data
 
 from pypnusershub.db.models import User
 from pypnnomenclature.admin import admin
-
 from geonature.utils.env import DB
 
 logger = current_app.logger
@@ -51,8 +50,43 @@ repo = ExportRepository()
     Configuration de l'admin
 #################################################################
 """
-# FIX: remove init Export model
-admin.add_view(ModelView(Export, DB.session))
+
+# Création d'une class pour gérer le formulaire d'administration Export
+class ExportView(ModelView):
+
+    def __init__(self, session):
+        # Référence au model utilisé
+        super(ExportView, self).__init__(Export, session)
+
+    # validation personnalisée du form
+    def validate_form(self, form):
+
+        # Essai de récupérer en BD la vue sql déclarée
+        # Delete n'a pas d'attribut view_name
+        view_name = getattr(form, 'view_name', '')
+        schema_name = getattr(form, 'schema_name', '')
+        geometry_field = getattr(form, 'geometry_field', None)
+        geometry_srid = getattr(form, 'geometry_srid', None)
+        if( is_form_submitted() and view_name and schema_name):
+            try:
+                query = GenericQuery(
+                    DB.session, view_name.data , schema_name.data,
+                    geometry_field=geometry_field.data, filters=[]
+                )
+                query.return_query()
+
+                if geometry_field.data and geometry_srid.data is None:
+                    raise KeyError("field Geometry srid is mandatory with Geometry field")
+
+            except Exception as e:
+                flash(e, category='error')
+                return False
+
+        return super(ExportView, self).validate_form(form)
+
+
+# Add views
+admin.add_view(ExportView(DB.session))
 admin.add_view(ModelView(CorExportsRoles, DB.session))
 
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
@@ -131,6 +165,7 @@ def swagger_ressources(id_export=None):
     )
 
     return Response(swagger_spec)
+
 
 
 """
@@ -248,7 +283,6 @@ def etalab_export():
 
     from datetime import time
     from geonature.utils.env import DB
-    from geonature.utils.utilssqlalchemy import GenericQuery
     from .rdf import OccurrenceStore
 
     conf = current_app.config.get('EXPORTS')

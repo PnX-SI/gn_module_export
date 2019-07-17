@@ -35,7 +35,6 @@
                   <ng-template let-value="value" ngx-datatable-cell-template>
                     <button id="{{value}}" type="submit"
                             class="btn btn-outline-primary"
-                            [disabled]="!buttonDisabled"
                             (click)="selectFormat(value)">Télécharger</button>
                   </ng-template>
                 </ngx-datatable-column>
@@ -51,24 +50,8 @@
                   </ng-template>
                 </ngx-datatable-column>
             </ngx-datatable>
-        </div>
-        </div>
-        <div class="card-footer">
-            <div class="d-flex justify-content-between">
-              <a class="btn btn-warning" href="{{api_endpoint}}/swagger/" target="_blank" rel="noopener noreferrer">Explorer l'API</a>
-              <div class="wrapper-licence">
-                  <div class="form-check" id="checkLicence">
-                    <input type="checkbox" class="form-check-input" id="licence" (click)="follow()" required/>
-                    <label class="form-check-label" for="licence">Accepter la licence</label>
-                  </div>
-                  <div id="readlicence">
-                    <a href="external_assets/exports/licence.pdf" alt="Télécharger la licence en pdf"  title="Télécharger la licence en pdf" download="licence.pdf" type="application/octet-stream">
-                      <input type="button" class="btn btn-link btn-sm" value="Lire la licence">
-                    </a>
-                  </div>
-              </div>
-            </div>
           </div>
+        </div>
       </div>
     </div>
     <!-- Modal Téléchargement Popup-->
@@ -96,12 +79,24 @@
             <download-progress-bar></download-progress-bar>
           </div>
           <br>
+
+          <div class="wrapper-licence">
+            <div class="form-check" id="checkLicence">
+              <input type="checkbox" class="form-check-input" id="licence" (click)="follow()" required/>
+              <label class="form-check-label" for="licence">Accepter la licence {{ _export.licence.name_licence}} </label>
+            </div>
+            <div id="readlicence">
+              <a href="{{ _export.licence.url_licence }}" alt="Lire la licence"  title="Lire la licence" class="btn btn-link btn-sm" target="_blank">
+                Lire la licence {{ _export.licence.name_licence}}
+              </a>
+            </div>
+          </div>
         </div>
 
         <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
         <div class="modal-footer" id="choicePopup">
           <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Fermer</button>
-          <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="download()">OK</button>
+          <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="download()" [disabled]="!buttonDisabled">OK</button>
         </div>
       </form>
     </ng-template>

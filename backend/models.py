@@ -2,8 +2,21 @@ from flask import current_app
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import serializable
 from pypnusershub.db.models import User
+from sqlalchemy.orm import backref
 
+@serializable
+class Licences(DB.Model):
+    __tablename__ = 't_licences'
+    __table_args__ = {'schema': 'gn_exports'}
 
+    id_licence = DB.Column(DB.Integer, primary_key=True, nullable=False)
+    name_licence = DB.Column(DB.Text, nullable=False)
+    url_licence = DB.Column(DB.Text, nullable=False)
+
+    def __str__(self):
+        return "{}".format(self.name_licence)
+
+    __repr__ = __str__
 
 @serializable
 class Export(DB.Model):
@@ -17,9 +30,13 @@ class Export(DB.Model):
     geometry_field = DB.Column(DB.Text)
     geometry_srid = DB.Column(DB.Integer)
     public = DB.Column(DB.Boolean, nullable=False, default=False)
+    id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence),
+                        primary_key=True, nullable=False)
+
+    licence = DB.relationship('Licences', primaryjoin='Export.id_licence==Licences.id_licence', backref='exports')
 
     def __str__(self):
-        return "<Export(id='{}', label='{}')>".format(self.id, self.label)
+        return "{}".format(self.label)
 
     __repr__ = __str__
 
@@ -93,3 +110,8 @@ class CorExportsRoles(DB.Model):
     id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role),
                         primary_key=True, nullable=False)
     role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
+
+
+
+
+

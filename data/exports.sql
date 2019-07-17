@@ -23,6 +23,7 @@ CREATE TABLE gn_exports.t_exports
     geometry_field character varying(255),
     geometry_srid INTEGER,
     public boolean NOT NULL default FALSE,
+    id_licence INTEGER NOT NULL,
     CONSTRAINT uniq_label UNIQUE (label)
 );
 
@@ -34,7 +35,35 @@ COMMENT ON COLUMN gn_exports.t_exports.label IS 'Export name to display';
 COMMENT ON COLUMN gn_exports.t_exports."desc" IS 'Short or long text to explain the export and/or is content';
 COMMENT ON COLUMN gn_exports.t_exports.geometry_field IS 'Name of the geometry field if the export is spatial';
 COMMENT ON COLUMN gn_exports.t_exports.geometry_srid IS 'SRID of the geometry';
+COMMENT ON COLUMN gn_exports.t_exports.public IS 'data access';
+COMMENT ON COLUMN gn_exports.t_exports.id_licence IS 'Licence id';
 
+-----------
+--LICENCE--
+-----------
+
+-- liste des licences
+CREATE TABLE gn_exports.t_licences (
+    id_licence SERIAL NOT NULL,
+    name_licence text NOT NULL,
+    url_licence text NOT NULL
+);
+COMMENT ON TABLE gn_exports.t_licences IS 'This table is used to declare the licences list.';
+
+ALTER TABLE ONLY gn_exports.t_licences
+    ADD CONSTRAINT pk_gn_exports_t_licences PRIMARY KEY (id_licence);
+ALTER TABLE ONLY gn_exports.t_exports
+    ADD CONSTRAINT fk_gn_exports_t_exports_id_licence FOREIGN KEY (id_licence) REFERENCES gn_exports.t_licences (id_licence);
+
+-- Licences par défaut
+INSERT INTO gn_exports.t_licences (name_licence, url_licence) VALUES
+    ('Creative Commons Attribution 1.0 Generic', 'https://spdx.org/licenses/CC-BY-1.0.html'),
+    ('ODC Open Database License v1.0', 'https://spdx.org/licenses/ODbL-1.0.html#licenseText');
+
+
+---------
+--ROLES--
+---------
 
 CREATE TABLE gn_exports.cor_exports_roles (
     id_export integer NOT NULL,
@@ -49,6 +78,10 @@ ALTER TABLE ONLY gn_exports.cor_exports_roles
 ALTER TABLE ONLY gn_exports.cor_exports_roles
     ADD CONSTRAINT fk_cor_exports_roles_id_role FOREIGN KEY (id_role) REFERENCES utilisateurs.t_roles(id_role) ON UPDATE CASCADE;
 
+
+--------
+--LOGS--
+--------
 
 CREATE TABLE gn_exports.t_exports_logs
 (
@@ -89,6 +122,10 @@ CREATE VIEW gn_exports.v_exports_logs AS
 
 COMMIT;
 
+
+---------
+--VIEWS--
+---------
 
 CREATE OR REPLACE VIEW gn_synthese.v_synthese_sinp AS
  WITH deco AS (
@@ -187,4 +224,4 @@ CREATE OR REPLACE VIEW gn_synthese.v_synthese_sinp AS
      JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
      JOIN deco ON deco.id_synthese = s.id_synthese;
 
-INSERT INTO gn_exports.t_exports (label, schema_name, view_name, "desc", geometry_field, geometry_srid, public) VALUES ('Synthese SINP', 'gn_synthese', 'v_synthese_sinp', 'Export des données de la synthèse au standard SINP', 'geom', 4326, TRUE);
+INSERT INTO gn_exports.t_exports (label, schema_name, view_name, "desc", geometry_field, geometry_srid, public, id_licence) VALUES ('Synthese SINP', 'gn_synthese', 'v_synthese_sinp', 'Export des données de la synthèse au standard SINP', 'geom', 4326, TRUE, 1);

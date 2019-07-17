@@ -2,6 +2,7 @@ import sys
 import logging
 from datetime import datetime
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm import lazyload
 from flask import current_app
 # from geonature.core.gn_meta.models import TDatasets
 from geonature.utils.env import DB
@@ -10,7 +11,7 @@ from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
 
-from .models import (Export, ExportLog, CorExportsRoles)
+from .models import (Export, ExportLog, CorExportsRoles, Licences)
 
 
 logger = current_app.logger
