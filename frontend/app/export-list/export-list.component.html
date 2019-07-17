@@ -82,21 +82,20 @@
 
           <div class="wrapper-licence">
             <div class="form-check" id="checkLicence">
-              <input type="checkbox" class="form-check-input" id="licence" (click)="follow()" required/>
-              <label class="form-check-label" for="licence">Accepter la licence {{ _export.licence.name_licence}} </label>
-            </div>
-            <div id="readlicence">
-              <a href="{{ _export.licence.url_licence }}" alt="Lire la licence"  title="Lire la licence" class="btn btn-link btn-sm" target="_blank">
-                Lire la licence {{ _export.licence.name_licence}}
-              </a>
+              <input type="checkbox" class="form-check-input" id="exportLicence"  formControlName="exportLicence" required/>
+              <label class="form-check-label" for="exportLicence">
+                Accepter la licence
+                <a href="{{ _export.licence.url_licence }}" alt="Lire la licence"  title="Lire la licence" target="_blank">
+                  <b> {{ _export.licence.name_licence}} </b>
+                </a>
+              </label>
             </div>
           </div>
         </div>
-
         <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
         <div class="modal-footer" id="choicePopup">
           <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Fermer</button>
-          <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="download()" [disabled]="!buttonDisabled">OK</button>
+          <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="download()">OK</button>
         </div>
       </form>
     </ng-template>
