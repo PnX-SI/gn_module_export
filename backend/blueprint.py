@@ -234,7 +234,7 @@ def getOneExportThread(id_export, export_format, info_role):
                 "export_format": export_format,
                 "info_role": info_role,
                 "filters": filters,
-                "user":user
+                "user": user
             }
         )
         a.start()
@@ -408,10 +408,5 @@ def get_one_export_api(id_export, info_role):
         info_role, id_export, with_data=True, export_format='json',
         filters=filters, limit=limit, offset=offset
     )
-    if export:
-            export_license = export.get('licence', None)
-            data['license'] = dict()
-            data['license']['name'] = export_license.get('name_licence', None)
-            data['license']['href'] = export_license.get('url_licence', None)
 
     return data

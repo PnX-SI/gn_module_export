@@ -24,9 +24,18 @@ def export_send_mail(role, export, file_name):
             <a href="{}">Lien de téléchargement</a>
         </p>
         <p>
+            Les données de cet export sont associée à la licence <a href="{}">{}</a>.
+            Merci de les utiliser en respectant la licence.
+        </p>
+        <p>
             <b>Attention : Ce fichier sera supprimé sous 15 jours</b>
         </p>
-    """.format(export['label'], url)
+    """.format(
+        export['label'],
+        url,
+        export['licence']['url_licence'],
+        export['licence']['name_licence']
+    )
     send_mail(
         recipients=[role.email],
         subject="[GeoNature]Export {} réalisé".format(export['label']),

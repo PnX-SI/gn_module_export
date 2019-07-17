@@ -53,6 +53,14 @@ class ExportRepository(object):
             limit, offset
         )
         data = query.return_query()
+
+        # Ajout licence
+        if export_:
+            export_license = (export_.as_dict(True)).get('licence', None)
+            data['license'] = dict()
+            data['license']['name'] = export_license.get('name_licence', None)
+            data['license']['href'] = export_license.get('url_licence', None)
+
         return (query.view.db_cols, data)
 
     def get_by_id(

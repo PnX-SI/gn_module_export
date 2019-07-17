@@ -45,8 +45,8 @@ COMMENT ON COLUMN gn_exports.t_exports.id_licence IS 'Licence id';
 -- liste des licences
 CREATE TABLE gn_exports.t_licences (
     id_licence SERIAL NOT NULL,
-    name_licence text NOT NULL,
-    url_licence text NOT NULL
+    name_licence varchar(100) NOT NULL,
+    url_licence varchar(500) NOT NULL
 );
 COMMENT ON TABLE gn_exports.t_licences IS 'This table is used to declare the licences list.';
 
