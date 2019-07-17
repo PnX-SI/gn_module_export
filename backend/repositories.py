@@ -1,17 +1,20 @@
 import sys
 import logging
+
 from datetime import datetime
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.orm import lazyload
+
+
 from flask import current_app
-# from geonature.core.gn_meta.models import TDatasets
+
+
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import GenericQuery, GenericTable
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
 
-from .models import (Export, ExportLog, CorExportsRoles, Licences)
+from .models import (Export, ExportLog, CorExportsRoles)
 
 
 logger = current_app.logger
@@ -42,6 +45,7 @@ class ExportRepository(object):
             Fonction qui retourne les données de l'export passé en paramètre
             en applicant des filtres s'il y a lieu
         """
+
         query = GenericQuery(
             self.session,
             export_.view_name, export_.schema_name, geom_column_header,
@@ -76,8 +80,6 @@ class ExportRepository(object):
                 raise
 
             export_ = Export.query.filter_by(id=id_export).one()
-
-            logger.debug('export: %s', export_.as_dict(True))
 
             if with_data and export_format:
                 geometry = (
@@ -201,6 +203,7 @@ SWAGGER_TYPE_COR = {
     "DATE": {"type": "string", "format": "date"}
 }
 
+
 def generate_swagger_spec(id_export):
     """
         Fonction qui permet de générer dynamiquement
@@ -222,13 +225,11 @@ def generate_swagger_spec(id_export):
         type = {"type": "string"}
         if column.type.__class__.__name__ in SWAGGER_TYPE_COR:
             type = SWAGGER_TYPE_COR[column.type.__class__.__name__]
-        swagger_parameters.append(
-            {
+        swagger_parameters.append({
             "in": "query",
             "name": column.name,
             **type
-          }
-        )
+        })
     general_params = [
         {
             "in": "query",
@@ -244,4 +245,3 @@ def generate_swagger_spec(id_export):
         }
     ]
     return general_params + swagger_parameters
-

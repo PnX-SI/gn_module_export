@@ -1,8 +1,9 @@
 import os
-from datetime import datetime
 import logging
+import threading
 
 from pathlib import Path
+from datetime import datetime
 
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
@@ -13,31 +14,31 @@ from flask import (
     Response,
     render_template,
     jsonify,
-    flash
+    flash,
+    copy_current_request_context
 )
 from flask_cors import cross_origin
+from flask_admin.contrib.sqla import ModelView
+
 from geonature.utils.utilssqlalchemy import (
-    json_resp, to_json_resp, to_csv_resp,
+    json_resp, to_json_resp,
     GenericQuery
 )
-
-from geonature.utils.filemanager import (
-    removeDisallowedFilenameChars, delete_recursively)
-from pypnusershub.db.tools import InsufficientRightsError
 from geonature.core.gn_permissions import decorators as permissions
-
-from .repositories import ExportRepository, EmptyDataSetError, generate_swagger_spec
-
-from flask_admin.contrib.sqla import ModelView
-from flask_admin.helpers import is_form_submitted
-from .models import Export, CorExportsRoles, Licences
-from pypnnomenclature.admin import admin
 from geonature.utils.env import DB
+
+from pypnusershub.db.models import User
+from pypnnomenclature.admin import admin
+
+from .repositories import (
+    ExportRepository, EmptyDataSetError, generate_swagger_spec
+)
+from .models import Export, CorExportsRoles
+from .utils_export import thread_export_data
+
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
-# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-# current_app.config['DEBUG'] = True
 
 blueprint = Blueprint('exports', __name__)
 blueprint.template_folder = os.path.join(blueprint.root_path, 'templates')
@@ -88,7 +89,6 @@ class ExportView(ModelView):
 # Add views
 admin.add_view(ExportView(DB.session))
 admin.add_view(ModelView(CorExportsRoles, DB.session))
-admin.add_view(ModelView(Licences, DB.session))
 
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)
@@ -169,18 +169,11 @@ def swagger_ressources(id_export=None):
 
 
 
-def export_filename(export):
-    return '{}_{}'.format(
-        removeDisallowedFilenameChars(export.get('label')),
-        datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S'))
-
-
 """
 #################################################################
     Configuration des routes qui permettent de réaliser les exports
 #################################################################
 """
-
 
 @blueprint.route('/<int:id_export>/<export_format>', methods=['GET'])
 @cross_origin(
@@ -192,7 +185,10 @@ def export_filename(export):
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
     )
-def getOneExport(id_export, export_format, info_role):
+def getOneExportThread(id_export, export_format, info_role):
+    """
+        Run export with thread
+    """
     if (
         id_export < 1
         or
@@ -207,72 +203,47 @@ def getOneExport(id_export, export_format, info_role):
     filters = {f: request.args.get(f) for f in request.args}
 
     try:
-        export, columns, data = repo.get_by_id(
-            info_role, id_export, with_data=True, export_format=export_format,
-            filters=filters, limit=10000, offset=0
+        @copy_current_request_context
+        def get_data(id_export, export_format, info_role, filters, user):
+            thread_export_data(
+                id_export, export_format, info_role, filters, user
+            )
+
+        try:
+            user = (
+                DB.session.query(User)
+                .filter(User.id_role == info_role.id_role)
+                .one()
+            )
+            if not user.email:
+                return to_json_resp(
+                    {'msg': "Error : user doesn't have email"},
+                    status=500
+                )
+        except NoResultFound:
+            return to_json_resp(
+                {'msg': "Error : user doesn't exist"},
+                status=500
+            )
+
+        a = threading.Thread(
+            name="export_data",
+            target=get_data,
+            kwargs={
+                "id_export": id_export,
+                "export_format": export_format,
+                "info_role": info_role,
+                "filters": filters,
+                "user":user
+            }
+        )
+        a.start()
+
+        return to_json_resp(
+            {'msg': 'En cours de traitement vous allez recevoir un couriel'},
+            status=200
         )
 
-        if export:
-            fname = export_filename(export)
-            has_geometry = export.get('geometry_field', None)
-
-            if export_format == 'json':
-                return to_json_resp(
-                    data.get('items'),
-                    as_file=True,
-                    filename=fname,
-                    indent=4)
-
-            if export_format == 'csv':
-                return to_csv_resp(
-                    fname,
-                    data.get('items'),
-                    [c.name for c in columns],
-                    separator=',')
-
-            if (export_format == 'shp' and has_geometry):
-                from geoalchemy2.shape import from_shape
-                from shapely.geometry import asShape
-                from geonature.utils.utilsgeometry import FionaShapeService as ShapeService  # noqa: E501
-
-                delete_recursively(
-                    SHAPEFILES_DIR, excluded_files=['.gitkeep'])
-
-                ShapeService.create_shapes_struct(
-                    db_cols=columns, srid=export.get('geometry_srid'),
-                    dir_path=SHAPEFILES_DIR, file_name=''.join(['export_', fname]))  # noqa: E501
-
-                items = data.get('items')
-
-                for feature in items['features']:
-                    geom, props = (feature.get(field)
-                                   for field in ('geometry', 'properties'))
-
-                    ShapeService.create_feature(
-                            props, from_shape(
-                                asShape(geom), export.get('geometry_srid')))
-
-                ShapeService.save_and_zip_shapefiles()
-
-                return send_from_directory(
-                    SHAPEFILES_DIR, ''.join(['export_', fname, '.zip']),
-                    as_attachment=True)
-
-            else:
-                return to_json_resp(
-                    {'api_error': 'NonTransformableError'}, status=404)
-
-    except NoResultFound as e:
-        return to_json_resp(
-            {'api_error': 'NoResultFound',
-             'message': str(e)}, status=404)
-    except InsufficientRightsError:
-        return to_json_resp(
-            {'api_error': 'InsufficientRightsError'}, status=403)
-    except EmptyDataSetError as e:
-        return to_json_resp(
-            {'api_error': 'EmptyDataSetError',
-             'message': str(e)}, status=404)
     except Exception as e:
         logger.critical('%s', e)
         if current_app.config['DEBUG']:
@@ -301,7 +272,7 @@ def getExports(info_role):
         logger.critical('%s', str(e))
         return {'api_error': 'LoggedError'}, 400
     else:
-        return [export.as_dict(True) for export in exports]
+        return [export.as_dict() for export in exports]
 
 
 @blueprint.route('/etalab', methods=['GET'])
