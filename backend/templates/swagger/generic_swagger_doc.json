@@ -4,14 +4,15 @@
     "version": "0.1.0",
     "title": "{{export_nom}}",
     "description": "{{export_description}}",
+    "license": {
+      "name": "{{licence_nom}}",
+      "url": "{{licence_description}}",
+      "description": "Licence associé au jeux de données"
+    },
     "contact": {
       "name": "API Support",
       "url": "https://github.com/PnX-SI/GeoNature/issues",
       "email": "geonature@ecrins-parcnational.fr"
-    },
-    "license": {
-      "name": "GNU General Public License v3.0",
-      "url": "https://raw.githubusercontent.com/PnX-SI/GeoNature/master/LICENSE"
     }
   },
   "externalDocs": {

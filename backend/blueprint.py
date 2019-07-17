@@ -162,7 +162,9 @@ def swagger_ressources(id_export=None):
         export_nom=export.label,
         export_description=export.desc,
         export_path="{}/api/{}".format(API_URL, id_export),
-        export_parameters=export_parameters
+        export_parameters=export_parameters,
+        licence_nom=export.licence.name_licence,
+        licence_description=export.licence.url_licence
     )
 
     return Response(swagger_spec)

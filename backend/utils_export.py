@@ -128,7 +128,7 @@ class GenerateExport():
 
         if out:
             with open(
-                Path(EXPORTS_DIR, self.file_name + '.' + self.format),
+                "{}/{}.{}".format(EXPORTS_DIR, self.file_name, self.format),
                 'a'
             ) as f:
                 f.write(out)
