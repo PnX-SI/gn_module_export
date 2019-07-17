@@ -77,7 +77,7 @@ class ExportRepository(object):
 
             export_ = Export.query.filter_by(id=id_export).one()
 
-            logger.debug('export: %s', export_.as_dict())
+            logger.debug('export: %s', export_.as_dict(True))
 
             if with_data and export_format:
                 geometry = (
@@ -106,7 +106,7 @@ class ExportRepository(object):
                         )
                     )
             else:
-                return export_.as_dict()
+                return export_.as_dict(True)
 
         except (InsufficientRightsError,
                 NoResultFound,
@@ -120,7 +120,7 @@ class ExportRepository(object):
             raise
         else:
             status = 0
-            result = (export_.as_dict(), columns, data)
+            result = (export_.as_dict(True), columns, data)
         finally:
             end_time = datetime.utcnow()
             if exc:
