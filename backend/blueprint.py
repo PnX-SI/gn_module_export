@@ -272,7 +272,7 @@ def getExports(info_role):
         logger.critical('%s', str(e))
         return {'api_error': 'LoggedError'}, 400
     else:
-        return [export.as_dict() for export in exports]
+        return [export.as_dict(recursif=True) for export in exports]
 
 
 @blueprint.route('/etalab', methods=['GET'])
