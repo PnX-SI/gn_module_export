@@ -1,17 +1,20 @@
 import sys
 import logging
+
 from datetime import datetime
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.orm import lazyload
+
+
 from flask import current_app
-# from geonature.core.gn_meta.models import TDatasets
+
+
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import GenericQuery, GenericTable
 from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
 
-from .models import (Export, ExportLog, CorExportsRoles, Licences)
+from .models import (Export, ExportLog, CorExportsRoles)
 
 
 logger = current_app.logger
@@ -77,8 +80,6 @@ class ExportRepository(object):
                 raise
 
             export_ = Export.query.filter_by(id=id_export).one()
-
-            logger.debug('export: %s', export_.as_dict())
 
             if with_data and export_format:
                 geometry = (
@@ -244,4 +245,3 @@ def generate_swagger_spec(id_export):
         }
     ]
     return general_params + swagger_parameters
-

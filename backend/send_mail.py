@@ -1,10 +1,7 @@
 # Fonctions permettant l'envoie de mail
-from flask import current_app, url_for
+from flask import url_for
 
-from geonature.utils.env import DB
 from geonature.utils.utilsmails import send_mail
-
-from pypnusershub.db.models import User
 
 def export_send_mail(role, export, file_name):
 

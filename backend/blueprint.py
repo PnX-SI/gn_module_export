@@ -1,8 +1,9 @@
 import os
-from datetime import datetime
 import logging
+import threading
 
 from pathlib import Path
+from datetime import datetime
 
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
@@ -13,7 +14,8 @@ from flask import (
     Response,
     render_template,
     jsonify,
-    flash
+    flash,
+    copy_current_request_context
 )
 from flask_cors import cross_origin
 from geonature.utils.utilssqlalchemy import (

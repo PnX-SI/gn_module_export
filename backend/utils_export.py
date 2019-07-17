@@ -32,8 +32,8 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
         Lance un thread qui permet d'executer les fonctions d'export
             en arrière plan
 
-        .. :quickref: Lance un thread qui permet d'executer les fonctions d'export
-            en arrière plan
+        .. :quickref: Lance un thread qui permet d'executer les fonctions
+            d'export en arrière plan
 
         :query int id_export: Identifiant de l'export
         :query str export_format: format de l'export (csv, json, shp)
@@ -80,7 +80,6 @@ class GenerateExport():
         self.columns = columns
         self.export = export
         self.has_geometry = export.get('geometry_field', None)
-
 
     def generate_data_export(self):
         from .blueprint import EXPORTS_DIR
