@@ -33,7 +33,7 @@ class Export(DB.Model):
     id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence),
                         primary_key=True, nullable=False)
 
-    licence = DB.relationship('Licences',  lazy='joined')
+    licence = DB.relationship('Licences', primaryjoin='Export.id_licence==Licences.id_licence', backref='exports')
 
     def __str__(self):
         return "{}".format(self.label)

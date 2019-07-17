@@ -95,7 +95,8 @@ export class ExportListComponent implements OnInit {
 
   ngOnInit() {
     this.modalForm = this._fb.group({
-      formatSelection: ["", Validators.required]
+      formatSelection: ["", Validators.required],
+      checkLicence: ["", Validators.required]
     });
 
     this.loadingIndicator = true;
