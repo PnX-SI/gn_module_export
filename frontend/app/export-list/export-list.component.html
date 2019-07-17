@@ -74,10 +74,6 @@
                   <option value="shp" [disabled]="!_export.geometry_field">SHP</option>
                   <!-- <option value="rdf" [disabled]="true">RDF</option> -->
           </select>
-          <!-- Affichage d'une barre de progression lors du téléchargement du fichier -->
-          <div *ngIf="downloading">
-            <download-progress-bar></download-progress-bar>
-          </div>
           <br>
 
           <div class="wrapper-licence">

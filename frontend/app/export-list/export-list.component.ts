@@ -2,34 +2,25 @@ import {
   Component,
   OnInit,
   Input,
-  Renderer2,
   ViewChild,
   ElementRef,
-  Pipe,
-  PipeTransform
 } from "@angular/core";
-import { DatePipe } from "@angular/common";
 import {
-  FormControl,
   FormGroup,
   FormBuilder,
-  FormsModule,
-  ReactiveFormsModule,
   Validators
 } from "@angular/forms";
 import { Router } from "@angular/router";
 import { Observable } from "rxjs/Observable";
 import { TranslateService } from "@ngx-translate/core";
-import { NgbModal, ModalDismissReasons } from "@ng-bootstrap/ng-bootstrap";
+import { NgbModal, NgbModalRef} from "@ng-bootstrap/ng-bootstrap";
 import { ToastrService } from "ngx-toastr";
 import { CommonService } from "@geonature_common/service/common.service";
-// import { DynamicFormComponent } from "@geonature_common/form/dynamic-form/dynamic-form.component"
-// import { DynamicFormService } from "@geonature_common/form/dynamic-form/dynamic-form.service"
 
 import { AppConfig } from "@geonature_config/app.config";
 
 import { ModuleConfig } from "../module.config";
-import { Export, ExportService, Collection } from "../services/export.service";
+import { Export, ExportService } from "../services/export.service";
 
 @Component({
   selector: "download-progress-bar",
@@ -80,6 +71,8 @@ export class ExportListComponent implements OnInit {
   public loadingIndicator = false;
   public closeResult: string;
   private _export: Export;
+  private _modalRef: NgbModalRef;
+
 
   @ViewChild("content") FormatSelector: ElementRef;
   constructor(
@@ -88,7 +81,6 @@ export class ExportListComponent implements OnInit {
     private _translate: TranslateService,
     private _router: Router,
     private _fb: FormBuilder,
-    // private _dynformService: DynamicFormService,
     private modalService: NgbModal,
     private toastr: ToastrService
   ) {}
@@ -110,32 +102,7 @@ export class ExportListComponent implements OnInit {
   }
 
   open(content) {
-    this.modalService.open(content).result.then(
-      result => {
-        this.closeResult = `Closed with: ${result}`;
-        console.debug("modalclosed result", this.closeResult);
-        this.downloading = false;
-      },
-      reason => {
-        this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
-        this.downloading = false;
-      }
-    );
-  }
-
-  private getDismissReason(reason: any): string {
-    if (reason === ModalDismissReasons.ESC) {
-      return "by pressing ESC";
-    } else if (reason === ModalDismissReasons.BACKDROP_CLICK) {
-      return "by clicking on a backdrop";
-    } else {
-      return `with: ${reason}`;
-    }
-  }
-
-  //Fonction qui bloque le boutton de validation tant que la licence n'est pas checkée
-  follow() {
-    this.buttonDisabled = !this.buttonDisabled;
+    this._modalRef = this.modalService.open(content);
   }
 
   selectFormat(id_export: number) {
@@ -161,6 +128,7 @@ export class ExportListComponent implements OnInit {
   download() {
     if (this.modalForm.valid && this._export.id) {
       this.downloading = !this.downloading;
+      this._modalRef.close();
       this._exportService.downloadExport(
         this._export,
         this.formatSelection.value

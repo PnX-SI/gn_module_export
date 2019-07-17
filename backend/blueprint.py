@@ -19,6 +19,7 @@ from flask import (
 )
 from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
+from flask_admin.helpers import is_form_submitted
 
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp,
@@ -33,7 +34,7 @@ from pypnnomenclature.admin import admin
 from .repositories import (
     ExportRepository, EmptyDataSetError, generate_swagger_spec
 )
-from .models import Export, CorExportsRoles
+from .models import Export, CorExportsRoles, Licences
 from .utils_export import thread_export_data
 
 
@@ -89,6 +90,8 @@ class ExportView(ModelView):
 # Add views
 admin.add_view(ExportView(DB.session))
 admin.add_view(ModelView(CorExportsRoles, DB.session))
+admin.add_view(ModelView(Licences, DB.session))
+
 
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)
@@ -219,12 +222,12 @@ def getOneExportThread(id_export, export_format, info_role):
             )
             if not user.email:
                 return to_json_resp(
-                    {'msg': "Error : user doesn't have email"},
+                    {'message': "Error : user doesn't have email"},
                     status=500
                 )
         except NoResultFound:
             return to_json_resp(
-                {'msg': "Error : user doesn't exist"},
+                {'message': "Error : user doesn't exist"},
                 status=500
             )
 
@@ -242,7 +245,7 @@ def getOneExportThread(id_export, export_format, info_role):
         a.start()
 
         return to_json_resp(
-            {'msg': 'En cours de traitement vous allez recevoir un couriel'},
+            {'message': 'En cours de traitement vous allez recevoir un couriel'},
             status=200
         )
 
