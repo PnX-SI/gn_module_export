@@ -18,25 +18,24 @@ from flask import (
     copy_current_request_context
 )
 from flask_cors import cross_origin
+from flask_admin.contrib.sqla import ModelView
+
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp,
     GenericQuery
 )
-
-from geonature.utils.filemanager import (
-    removeDisallowedFilenameChars, delete_recursively)
-from pypnusershub.db.tools import InsufficientRightsError
 from geonature.core.gn_permissions import decorators as permissions
-
-from .repositories import ExportRepository, EmptyDataSetError, generate_swagger_spec
-
-from flask_admin.contrib.sqla import ModelView
-from .models import Export, CorExportsRoles
-from .utils_export import thread_export_data
+from geonature.utils.env import DB
 
 from pypnusershub.db.models import User
 from pypnnomenclature.admin import admin
-from geonature.utils.env import DB
+
+from .repositories import (
+    ExportRepository, EmptyDataSetError, generate_swagger_spec
+)
+from .models import Export, CorExportsRoles
+from .utils_export import thread_export_data
+
 
 logger = current_app.logger
 logger.setLevel(logging.DEBUG)
