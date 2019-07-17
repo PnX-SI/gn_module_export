@@ -108,7 +108,7 @@ class ExportRepository(object):
                         )
                     )
             else:
-                return export_.as_dict()
+                return export_.as_dict(True)
 
         except (InsufficientRightsError,
                 NoResultFound,
@@ -122,7 +122,7 @@ class ExportRepository(object):
             raise
         else:
             status = 0
-            result = (export_.as_dict(), columns, data)
+            result = (export_.as_dict(True), columns, data)
         finally:
             end_time = datetime.utcnow()
             if exc:
