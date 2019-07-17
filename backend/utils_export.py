@@ -17,7 +17,7 @@ from geonature.utils.filemanager import (
 from .repositories import (
     ExportRepository
 )
-from .send_mail import export_send_mail
+from .send_mail import export_send_mail, export_send_mail_error
 
 
 def export_filename(export):
@@ -49,30 +49,57 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
     repo = ExportRepository()
 
     # export data
-    export, columns, data = repo.get_by_id(
-        info_role, id_export, with_data=True,
-        export_format=export_format,
-        filters=filters, limit=-1, offset=0
-    )
+    try:
+        export, columns, data = repo.get_by_id(
+            info_role, id_export, with_data=True,
+            export_format=export_format,
+            filters=filters, limit=-1, offset=0
+        )
+    except Exception as e:
+        export_send_mail_error(
+            user,
+            None,
+            "Error when export data : {}".format(repr(e))
+        )
+        return
+
     # Generate and store export file
-    file_name = export_filename(export)
-    full_file_name = GenerateExport(
-        file_name=file_name,
-        format=export_format,
-        data=data,
-        columns=columns,
-        export=export
-    ).generate_data_export()
+    try:
+        file_name = export_filename(export)
+        full_file_name = GenerateExport(
+            file_name=file_name,
+            format=export_format,
+            data=data,
+            columns=columns,
+            export=export
+        ).generate_data_export()
+    except Exception as e:
+        export_send_mail_error(
+            user,
+            export,
+            "Error when create export file : {}".format(repr(e))
+        )
+        return
 
     # Send mail
-    export_send_mail(
-        role=user,
-        export=export,
-        file_name=full_file_name
-    )
+    try:
+        export_send_mail(
+            role=user,
+            export=export,
+            file_name=full_file_name
+        )
+    except Exception as e:
+        export_send_mail_error(
+            user,
+            export,
+            "Error when sending mail : {}".format(repr(e))
+        )
 
 
 class GenerateExport():
+    """
+        Classe permettant de générer un fichier d'export dans le format spécfié
+    """
     def __init__(self, file_name, format, data, columns, export):
         self.file_name = file_name
         self.format = format
