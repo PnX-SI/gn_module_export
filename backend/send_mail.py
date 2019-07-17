@@ -3,8 +3,18 @@ from flask import url_for
 
 from geonature.utils.utilsmails import send_mail
 
-def export_send_mail(role, export, file_name):
 
+def export_send_mail(role, export, file_name):
+    """
+        Send email after export is done
+
+        .. :quickref: Send email after export is done
+
+
+        :query User role: User who run the export
+        :query {} export: Export definition
+        :query str file_name: Name of exported file
+    """
     url = url_for('static', filename='exports/'+file_name)
 
     msg = """
@@ -23,4 +33,40 @@ def export_send_mail(role, export, file_name):
         msg_html=msg
     )
 
+
+def export_send_mail_error(role, export, error):
+    """
+        Send email after export is failed
+
+        .. :quickref: Send email after export is failed
+
+
+        :query User role: User who run the export
+        :query {} export: Export definition
+        :query str error: Detail of the exception raised
+
+    """
+
+    label = ""
+    if export:
+        label = export['label']
+
+    msg = """
+        Bonjour,
+        <p>
+            Votre export {} n'a pas fonctionné correctement
+        </p>
+        <p>
+            <b>Detail</b>
+            {}
+        </p>
+        <p>
+            Veuillez signaler le problème à l'administrateur du site
+        </p>
+    """.format(label, error)
+    send_mail(
+        recipients=[role.email],
+        subject="[GeoNature][ERREUR]Export {}".format(label),
+        msg_html=msg
+    )
 
