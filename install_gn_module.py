@@ -2,6 +2,10 @@ import sys
 import subprocess
 from pathlib import Path
 
+
+from geonature.utils.utilsmails import send_mail
+from geonature.utils.errors import GNModuleInstallError
+
 ROOT_DIR = Path(__file__).absolute().parent
 
 
@@ -13,6 +17,13 @@ def gnmodule_install_app(gn_db, gn_app):
             - Module (pour le moment rien)
     '''
     with gn_app.app_context():
+        try:
+            test_mail_config(gn_app)
+        except GNModuleInstallError as e:
+            raise e
+        except Exception:
+            raise GNModuleInstallError("Mail config is not correct please read the doc")
+
         here = Path(__file__).parent
         requirements_path = here / 'backend' / 'requirements.txt'
         assert requirements_path.is_file()
@@ -20,3 +31,18 @@ def gnmodule_install_app(gn_db, gn_app):
             [sys.executable, '-m', 'pip', 'install', '-r', '{}'.format(requirements_path)],  # noqa: E501
             cwd=str(ROOT_DIR))
         subprocess.call(['./install_db.sh'], cwd=str(ROOT_DIR))
+
+def test_mail_config(gn_app):
+    """
+        Fonction qui test si l'envoie de mail est
+        possible et correctement configuré lors de l'installation du module
+    """
+    if gn_app.config['MAIL_CONFIG']:
+        print(" ...Test mail configuration")
+        send_mail(
+            [gn_app.config['MAIL_CONFIG']['MAIL_USERNAME']],
+            "[GeoNature][Export]Installation module export",
+            "Si vous avez reçut cet mail c'est que les paramètres de configuration des mails sont corrects"
+        )
+    else:
+        raise GNModuleInstallError("Mail config is mandatory")
