@@ -127,7 +127,7 @@ COMMIT;
 --VIEWS--
 ---------
 
-CREATE OR REPLACE VIEW gn_synthese.v_synthese_sinp AS
+CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
  WITH deco AS (
          SELECT s_1.id_synthese,
             n1.label_default AS "ObjGeoTyp",
@@ -225,4 +225,4 @@ CREATE OR REPLACE VIEW gn_synthese.v_synthese_sinp AS
      JOIN deco ON deco.id_synthese = s.id_synthese;
 
 INSERT INTO gn_exports.t_exports (label, schema_name, view_name, "desc", geometry_field, geometry_srid, public, id_licence)
-VALUES ('Synthese SINP', 'gn_synthese', 'v_synthese_sinp', 'Export des données de la synthèse au standard SINP', 'geom', 4326, TRUE, 1);
+VALUES ('Synthese SINP', 'gn_exports', 'v_synthese_sinp', 'Export des données de la synthèse au standard SINP', 'geom', 4326, TRUE, 1);
