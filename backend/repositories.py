@@ -313,6 +313,7 @@ def generate_swagger_spec(id_export):
         geometry_field=export.geometry_field,
         srid=export.geometry_srid
     )
+
     for column in export_table.tableDef.columns:
         type = {"type": "string"}
         if column.type.__class__.__name__ in SWAGGER_TYPE_COR:
@@ -320,6 +321,7 @@ def generate_swagger_spec(id_export):
         swagger_parameters.append({
             "in": "query",
             "name": column.name,
+            "description": column.comment,
             **type
         })
     general_params = [
