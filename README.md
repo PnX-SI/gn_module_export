@@ -27,12 +27,6 @@ La configuration des mails utilise les paramètres définis pas Flask_mail. Pour
     MAIL_DEFAULT_SENDER = "user@monserver.mail"
 ```
 
-### Base de données
-copier le fichier `config\settings.ini.sample` et le renommer en `config\settings.ini`
-
-Renseigner les paramètres de la base de données GéoNature
-
-
 ## Commande d'installation
 ```
 source backend/venv/bin/activate
