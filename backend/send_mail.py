@@ -1,4 +1,6 @@
-# Fonctions permettant l'envoie de mail
+"""
+     Fonctions permettant l'envoie de mail
+"""
 from flask import url_for, current_app
 
 from geonature.utils.utilsmails import send_mail
@@ -79,4 +81,3 @@ def export_send_mail_error(role, export, error):
         subject="[GeoNature][ERREUR]Export {}".format(label),
         msg_html=msg
     )
-

@@ -1,8 +1,10 @@
-# Fonctions permettant la génération des fichiers d'export
+"""
+    Fonctions permettant la génération des fichiers d'export
+"""
 import json
 import shutil
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from flask import current_app
@@ -22,6 +24,9 @@ from .send_mail import export_send_mail, export_send_mail_error
 
 
 def export_filename(export):
+    """
+        Génération du nom du fichier d'export
+    """
     return '{}_{}'.format(
         removeDisallowedFilenameChars(export.get('label')),
         datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')
@@ -56,11 +61,11 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
             export_format=export_format,
             filters=filters, limit=-1, offset=0
         )
-    except Exception as e:
+    except Exception as exp:
         export_send_mail_error(
             user,
             None,
-            "Error when export data : {}".format(repr(e))
+            "Error when export data : {}".format(repr(exp))
         )
         return
 
@@ -74,11 +79,11 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
             columns=columns,
             export=export
         ).generate_data_export()
-    except Exception as e:
+    except Exception as exp:
         export_send_mail_error(
             user,
             export,
-            "Error when create export file : {}".format(repr(e))
+            "Error when create export file : {}".format(repr(exp))
         )
         return
 
@@ -89,11 +94,11 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
             export=export,
             file_name=full_file_name
         )
-    except Exception as e:
+    except Exception as exp:
         export_send_mail_error(
             user,
             export,
-            "Error when sending mail : {}".format(repr(e))
+            "Error when sending mail : {}".format(repr(exp))
         )
 
 
@@ -117,16 +122,18 @@ class GenerateExport():
             nb_days=current_app.config['EXPORTS']['nb_days_keep_file']
         )
 
-
     def generate_data_export(self):
+        """
+            Génération des fichier d'export en fonction du format demandé
+        """
         out = None
 
         if self.format not in ['json', 'csv', 'shp']:
             raise Exception('Unsuported format')
 
         if (
-            self.format == 'shp' and
-            self.has_geometry
+                self.format == 'shp' and
+                self.has_geometry
         ):
             self.generate_shp()
             return self.file_name + '.zip'
@@ -137,13 +144,17 @@ class GenerateExport():
 
         if out:
             with open(
-                "{}/{}.{}".format(self.export_dir, self.file_name, self.format),
-                'a'
-            ) as f:
-                f.write(out)
+                    "{}/{}.{}".format(
+                        self.export_dir, self.file_name, self.format
+                    ), 'a'
+            ) as file:
+                file.write(out)
         return self.file_name + '.' + self.format
 
     def generate_csv(self):
+        """
+            transformation des données au format csv
+        """
         return generate_csv_content(
             columns=[c.name for c in self.columns],
             data=self.data.get('items'),
@@ -151,6 +162,9 @@ class GenerateExport():
         )
 
     def generate_json(self):
+        """
+            transformation des données au format json/geojson
+        """
         return json.dumps(
             self.data,
             ensure_ascii=False,
@@ -158,6 +172,10 @@ class GenerateExport():
         )
 
     def generate_shp(self):
+        """
+            transformation des données au format shp
+            et sauvegarde sous forme d'une archive
+        """
         FionaShapeService.create_shapes_struct(
             db_cols=self.columns,
             srid=self.export.get('geometry_srid'),
@@ -182,14 +200,11 @@ class GenerateExport():
 
         # Suppression des fichiers générés et non compressé
         for gtype in ['POINT', 'POLYGON', 'POLYLINE']:
-            p = Path(self.export_dir, gtype + '_' + self.file_name)
-            if p.is_dir():
-                shutil.rmtree(p)
+            file_path = Path(self.export_dir, gtype + '_' + self.file_name)
+            if file_path.is_dir():
+                shutil.rmtree(file_path)
 
         return True
-
-from datetime import datetime, timedelta
-
 
 
 def clean_export_file(dir_to_del, nb_days):
@@ -201,20 +216,22 @@ def clean_export_file(dir_to_del, nb_days):
             fichiers générés par le module export ayant plus de X jours
 
 
-        :query str dir_to_del: Répertoire où les fichiers doivent être supprimés
-        :query int nb_days: Nb de jours à partir duquel les fichiers sont considérés comme à supprimer
+        :query str dir_to_del: Répertoire où les fichiers doivent
+            être supprimés
+        :query int nb_days: Nb de jours à partir duquel les fichiers
+            sont considérés comme à supprimer
 
 
 
     """
     # Date limite de suppression
-    criticalTime = datetime.timestamp(
+    time_to_del = datetime.timestamp(
         datetime.today() - timedelta(days=nb_days)
     )
 
     for item in Path(dir_to_del).glob('*'):
-        itemTime = item.stat().st_mtime
-        if itemTime < criticalTime:
+        item_time = item.stat().st_mtime
+        if item_time < time_to_del:
             if item.is_dir():
                 shutil.rmtree(item)
             if item.is_file():

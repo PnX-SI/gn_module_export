@@ -1,8 +1,8 @@
-from flask import current_app
+
 from geonature.utils.env import DB
 from geonature.utils.utilssqlalchemy import serializable
 from pypnusershub.db.models import User
-from sqlalchemy.orm import backref
+
 
 @serializable
 class Licences(DB.Model):
@@ -18,6 +18,7 @@ class Licences(DB.Model):
 
     __repr__ = __str__
 
+
 @serializable
 class Export(DB.Model):
     __tablename__ = 't_exports'
@@ -30,10 +31,16 @@ class Export(DB.Model):
     geometry_field = DB.Column(DB.Text)
     geometry_srid = DB.Column(DB.Integer)
     public = DB.Column(DB.Boolean, nullable=False, default=False)
-    id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence),
-                        primary_key=True, nullable=False)
+    id_licence = DB.Column(
+        DB.Integer(), DB.ForeignKey(Licences.id_licence),
+        primary_key=True, nullable=False
+    )
 
-    licence = DB.relationship('Licences', primaryjoin='Export.id_licence==Licences.id_licence', backref='exports')
+    licence = DB.relationship(
+        'Licences',
+        primaryjoin='Export.id_licence==Licences.id_licence',
+        backref='exports'
+    )
 
     def __str__(self):
         return "{}".format(self.label)
@@ -87,7 +94,8 @@ class ExportLog(DB.Model):
             start_time=adict['start_time'],
             end_time=adict['end_time'],
             status=adict['status'],
-            log=adict['log'])
+            log=adict['log']
+        )
         return export_log
 
     @classmethod
@@ -110,8 +118,3 @@ class CorExportsRoles(DB.Model):
     id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role),
                         primary_key=True, nullable=False)
     role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
-
-
-
-
-
