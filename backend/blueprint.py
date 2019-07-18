@@ -32,7 +32,7 @@ from pypnusershub.db.models import User
 from pypnnomenclature.admin import admin
 
 from .repositories import (
-    ExportRepository, EmptyDataSetError, generate_swagger_spec
+    ExportRepository, EmptyDataSetError, generate_swagger_spec,
 )
 from .models import Export, CorExportsRoles, Licences
 from .utils_export import thread_export_data
@@ -214,6 +214,16 @@ def getOneExportThread(id_export, export_format, info_role):
                 id_export, export_format, info_role, filters, user
             )
 
+        # Test if export is allowed
+        try:
+            repo.getExportIsAllowed(id_export, info_role)
+        except Exception:
+            return to_json_resp(
+                {'message': "Not Allowed"},
+                status=403
+            )
+
+        # Test if user have an email
         try:
             user = (
                 DB.session.query(User)
@@ -231,6 +241,7 @@ def getOneExportThread(id_export, export_format, info_role):
                 status=500
             )
 
+        # Run export
         a = threading.Thread(
             name="export_data",
             target=get_data,
@@ -395,6 +406,15 @@ def get_one_export_api(id_export, info_role):
 
             order by : @TODO
     """
+    # Test if export is allowed
+    try:
+        repo.getExportIsAllowed(id_export, info_role)
+    except Exception:
+        return (
+            {'message': "Not Allowed"},
+            403
+        )
+
     limit = request.args.get('limit', default=1000, type=int)
     offset = request.args.get('offset', default=0, type=int)
 
