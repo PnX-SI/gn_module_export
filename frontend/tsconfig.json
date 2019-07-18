@@ -1,0 +1,29 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es5",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "types":[
+    ],
+    "lib": [
+      "es2016",
+      "dom"
+    ],
+    "baseUrl": "/home/pat/geonature/frontend/node_modules",
+    "paths": {
+      "@angular/*": ["/home/pat/geonature/frontend/node_modules/@angular/*"],
+      "@geonature_common/*" : ["/home/pat/geonature/frontend/src/app/GN2CommonModule/*"],
+      "@geonature/*" : ["/home/pat/geonature/frontend/src/app/*"],
+      "@geonature_config/*" : ["/home/pat/geonature/frontend/src/conf/*"],
+
+    }
+  }
+}

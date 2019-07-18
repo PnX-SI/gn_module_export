@@ -1,0 +1,98 @@
+<div id="all" class="container-fluid">
+    <div class="row row-m">
+      <div class="container card">
+        <div class="card-body">
+          <div id="title">
+            <h2>EXPORTS</h2>
+            <hr >
+          </div>
+          <div id="textPresentation">
+            <p>Voici la liste des exports disponibles. Ces exports ont été programmés par l'administrateur de GeoNature.</p>
+          </div>
+          <div id="textPresentation">
+            <p>Pour modifier cette liste ou disposer d'exports supplémentaires, veuillez contacter le service administrateur.</p>
+          </div>
+          <!-- Liste des exports disponibles au téléchargement -->
+          <div>
+            <ngx-datatable
+              [loadingIndicator]="loadingIndicator"
+              [rows]="exports$ | async"
+              [columnMode]="'flex'"
+              [rowHeight]="'auto'"
+              [limit]="6"
+              [reorderable]="true">
+                <ngx-datatable-column name="Nom export" prop="label" [flexGrow]="1">
+                  <ng-template let-value="value" ngx-datatable-cell-template>
+                    {{value}}
+                  </ng-template>
+                </ngx-datatable-column>
+                <ngx-datatable-column name="Description" prop="desc" [flexGrow]="2">
+                  <ng-template let-value="value" ngx-datatable-cell-template>
+                    {{value}}
+                  </ng-template>
+                </ngx-datatable-column>
+                <ngx-datatable-column name="Actions" prop="id" [flexGrow]="3">
+                  <ng-template let-value="value" ngx-datatable-cell-template>
+                    <button id="{{value}}" type="submit"
+                            class="btn btn-outline-primary"
+                            (click)="selectFormat(value)">Télécharger</button>
+                  </ng-template>
+                </ngx-datatable-column>
+                <ngx-datatable-column name="API" prop="id" [flexGrow]="4">
+                  <ng-template let-value="value" ngx-datatable-cell-template>
+                    <a
+                      class="btn btn-warning"
+                      href="{{api_endpoint}}/swagger/{{value}}"
+                      target="_blank" rel="noopener noreferrer"
+                    >
+                    API
+                  </a>
+                  </ng-template>
+                </ngx-datatable-column>
+            </ngx-datatable>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Modal Téléchargement Popup-->
+    <ng-template #content let-c="close" let-d="dismiss">
+      <form [formGroup]="modalForm" class="modal-content">
+        <!-- Modal content-->
+        <div class="modal-header">
+            <h4 class="modal-title">Configuration de l'export</h4>
+        </div>
+
+        <div class="modal-body">
+          <!-- Formulaire pour le choix des standards et des formats de téléchargement des fichiers -->
+          <br>
+          <ul> <li> Choisir un format </li> </ul>
+          <select class="form-control" id="formatSelection"
+                  formControlName="formatSelection" required autocomplete="off"
+                  (change)="downloading=false">
+                  <option value="csv">CSV</option>
+                  <option value="json">JSON</option>
+                  <option value="shp" [disabled]="!_export.geometry_field">SHP</option>
+                  <!-- <option value="rdf" [disabled]="true">RDF</option> -->
+          </select>
+          <br>
+
+          <div class="wrapper-licence">
+            <div class="form-check" id="checkLicence">
+              <input type="checkbox" class="form-check-input" id="exportLicence"  formControlName="exportLicence" required/>
+              <label class="form-check-label" for="exportLicence">
+                Accepter la licence
+                <a href="{{ _export.licence.url_licence }}" alt="Lire la licence"  title="Lire la licence" target="_blank">
+                  <b> {{ _export.licence.name_licence}} </b>
+                </a>
+              </label>
+            </div>
+          </div>
+        </div>
+        <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
+        <div class="modal-footer" id="choicePopup">
+          <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Fermer</button>
+          <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="download()">OK</button>
+        </div>
+      </form>
+    </ng-template>
+</div>

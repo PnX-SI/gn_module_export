@@ -1,0 +1,51 @@
+*~
+*.orig
+__pycache__
+*.py[cod]
+instance/
+.webassets-cache
+node_modules
+*.swp
+.tags*
+venv*
+tmp_*
+*.sublime-project
+*.sublime-workspace
+.idea
+.vscode*
+.ropeproject
+.spyderproject
+.spyproject
+.ipynb_checkpoints
+.flake8
+.pylintrc
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+.mypy_cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+uninstall.sh
+
+# instance tunable
+config/settings.ini
+config/conf_gn_module.toml
+
+# Overwritten with app start
+backend/assets/api.yml
+backend/assets/swagger-ui-dist/index.html
+
+# Surchage des specification swagger
+backend/templates/swagger/api_specification_*.json
+
+# generated/updated with geonature commands
+config/conf_gn_module.toml
+frontend/app/module.config.ts
+
+# logs
+var/

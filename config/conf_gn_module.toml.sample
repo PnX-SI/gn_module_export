@@ -1,0 +1,3 @@
+# Emplacement du fichier d'export RDF
+# Valeur par défaut
+# etalab_export = '/home/geonatureadmin/geonature/backend/static/exports/export_etalab.ttl'
