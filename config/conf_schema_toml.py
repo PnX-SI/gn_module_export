@@ -31,3 +31,4 @@ class GnModuleSchemaConf(Schema):
     export_format_map = fields.Dict(missing=export_format_map)
     default_schema = fields.String(missing=default_schema)
     etalab_export = fields.String(missing=etalab_export)
+    nb_days_keep_file = fields.Int(missing=15)

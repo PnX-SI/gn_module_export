@@ -3,8 +3,9 @@ import json
 import shutil
 
 from datetime import datetime
-
 from pathlib import Path
+
+from flask import current_app
 from geoalchemy2.shape import from_shape
 from shapely.geometry import asShape
 
@@ -107,9 +108,17 @@ class GenerateExport():
         self.columns = columns
         self.export = export
         self.has_geometry = export.get('geometry_field', None)
+        from .blueprint import EXPORTS_DIR
+        self.export_dir = EXPORTS_DIR
+
+        # Nettoyage des anciens export clean_export_file()
+        clean_export_file(
+            dir_to_del=self.export_dir,
+            nb_days=current_app.config['EXPORTS']['nb_days_keep_file']
+        )
+
 
     def generate_data_export(self):
-        from .blueprint import EXPORTS_DIR
         out = None
 
         if self.format not in ['json', 'csv', 'shp']:
@@ -128,7 +137,7 @@ class GenerateExport():
 
         if out:
             with open(
-                "{}/{}.{}".format(EXPORTS_DIR, self.file_name, self.format),
+                "{}/{}.{}".format(self.export_dir, self.file_name, self.format),
                 'a'
             ) as f:
                 f.write(out)
@@ -149,11 +158,10 @@ class GenerateExport():
         )
 
     def generate_shp(self):
-        from .blueprint import EXPORTS_DIR
         FionaShapeService.create_shapes_struct(
             db_cols=self.columns,
             srid=self.export.get('geometry_srid'),
-            dir_path=EXPORTS_DIR,
+            dir_path=self.export_dir,
             file_name=self.file_name
         )
 
@@ -174,10 +182,40 @@ class GenerateExport():
 
         # Suppression des fichiers générés et non compressé
         for gtype in ['POINT', 'POLYGON', 'POLYLINE']:
-            p = Path(EXPORTS_DIR, gtype + '_' + self.file_name)
+            p = Path(self.export_dir, gtype + '_' + self.file_name)
             if p.is_dir():
                 shutil.rmtree(p)
 
         return True
 
+from datetime import datetime, timedelta
 
+
+
+def clean_export_file(dir_to_del, nb_days):
+    """
+        Fonction permettant de supprimer les fichiers générés
+        par le module export ayant plus de X jours
+
+        .. :quickref: Fonction permettant de supprimer les
+            fichiers générés par le module export ayant plus de X jours
+
+
+        :query str dir_to_del: Répertoire où les fichiers doivent être supprimés
+        :query int nb_days: Nb de jours à partir duquel les fichiers sont considérés comme à supprimer
+
+
+
+    """
+    # Date limite de suppression
+    criticalTime = datetime.timestamp(
+        datetime.today() - timedelta(days=nb_days)
+    )
+
+    for item in Path(dir_to_del).glob('*'):
+        itemTime = item.stat().st_mtime
+        if itemTime < criticalTime:
+            if item.is_dir():
+                shutil.rmtree(item)
+            if item.is_file():
+                item.unlink()
