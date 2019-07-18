@@ -1,5 +1,5 @@
 # Fonctions permettant l'envoie de mail
-from flask import url_for
+from flask import url_for, current_app
 
 from geonature.utils.utilsmails import send_mail
 
@@ -28,13 +28,14 @@ def export_send_mail(role, export, file_name):
             Merci de les utiliser en respectant la licence.
         </p>
         <p>
-            <b>Attention : Ce fichier sera supprimé sous 15 jours</b>
+            <b>Attention : Ce fichier sera supprimé sous {} jours</b>
         </p>
     """.format(
         export['label'],
         url,
         export['licence']['url_licence'],
-        export['licence']['name_licence']
+        export['licence']['name_licence'],
+        str(current_app.config['EXPORTS']['nb_days_keep_file'])
     )
     send_mail(
         recipients=[role.email],
