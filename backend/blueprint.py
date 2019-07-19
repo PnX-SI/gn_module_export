@@ -26,8 +26,8 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
 
 from pypnusershub.db.models import User
-from pypnnomenclature.admin import admin
 
+from geonature.core.admin.admin import flask_admin
 from geonature.utils.utilssqlalchemy import (
     json_resp, to_json_resp,
     GenericQuery
@@ -63,9 +63,9 @@ class ExportView(ModelView):
     """
         Création d'une class pour gérer le formulaire d'administration Export
     """
-    def __init__(self, session):
+    def __init__(self, session, **kwargs):
         # Référence au model utilisé
-        super(ExportView, self).__init__(Export, session)
+        super(ExportView, self).__init__(Export,  session, **kwargs)
 
     def validate_form(self, form):
         """
@@ -98,9 +98,14 @@ class ExportView(ModelView):
 
 
 # Add views
-admin.add_view(ExportView(DB.session))
-admin.add_view(ModelView(CorExportsRoles, DB.session))
-admin.add_view(ModelView(Licences, DB.session))
+flask_admin.add_view(ExportView(DB.session, category="Export"))
+flask_admin.add_view(ModelView(
+    CorExportsRoles,
+    DB.session,
+    name="Associer roles aux exports",
+    category="Export"
+))
+flask_admin.add_view(ModelView(Licences, DB.session, category="Export"))
 
 
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
@@ -153,7 +158,7 @@ def swagger_ressources(id_export=None):
         swagger_spec = render_template('/swagger/main_swagger_doc.json')
         return Response(swagger_spec)
 
-    # Si l'id export exist et que les droits sont définis
+    # Si l'id export existe et que les droits sont définis
     try:
         export = Export.query.filter(Export.id == id_export).one()
     except (NoResultFound, EmptyDataSetError):
