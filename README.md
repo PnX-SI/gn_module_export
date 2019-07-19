@@ -5,7 +5,7 @@ Module permetant d'ajouter de fonctionnalités d'export à l'application GéoNat
 ## Fonctionnalités principales
 * Interface administrateur de gestion des exports
 * Interface utilisateur permettant de réaliser des exports
-* API d'intérogation des exports
+* API d'Interrogation des exports
 * Export nocture des exports [TODO]
 * Export RDF au format Darwin-SW [TODO]
 
