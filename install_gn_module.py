@@ -54,7 +54,7 @@ def test_mail_config(gn_app):
         send_mail(
             [gn_app.config['MAIL_CONFIG']['MAIL_USERNAME']],
             "[GeoNature][Export]Installation module export",
-            "Si vous avez reçut cet mail c'est que les paramètres de configuration des mails sont corrects"
+            "Si vous avez reçu ce mail c'est que les paramètres de configuration des mails sont corrects et que le module est en cours d'installation"
         )
     else:
         raise GNModuleInstallError("Mail config is mandatory")
