@@ -1,6 +1,6 @@
 # Module export
 
-Module permmant d'ajouter de fonctionnalités d'export à l'application GéoNature
+Module permetant d'ajouter de fonctionnalités d'export à l'application GéoNature
 
 ## Fonctionnalités principales
 * Interface administrateur de gestion des exports
@@ -35,26 +35,26 @@ geonature install_gn_module /PATH_TO_MODULE/gn_module_export exports
 
 Pour avoir des exports disponibles il faut les renseigner au niveau de la base de données dans la table `gn_exports.t_exports`.
 
-# Ajout d'un nouvel export
-Pour créer un nouvel export il faut suite les étapes décrites ci dessous
+# Administration du module
 
-## Créer d'une vue correspondant à l'export désiré.
+## Création d'une nouvelle vue en base
+Pour créer un nouvel export il faut au préalable créer une vue dans la base de données correspondante à l'export désiré.
 
-Pour des questions de lisibilité il est conseillé de créer la vue dans le schéma gn_export
+Pour des questions de lisibilité il est conseillé de créer la vue dans le schéma `gn_export`
 
 ## Enregistrer l'export créé dans l'admin
+L'interface d'administration est accessible dans Géonature via le menu `admin` puis `backoffice GeoNature`
 
-Aller sur la page : `URL_APLLICATION_BACKEND/nomenclatures/admin/export/`
-
-Cliquer sur create et renseigner les valeurs
+Dans la rubrique Exports selectionner le menu Export puis cliquer sur create et renseigner les valeurs
 
 ## Associer les roles ayant la permission d'accéder à cet export
 
-Aller sur la page : `URL_APLLICATION_BACKEND/nomenclatures/admin/export/corexportsroles/`
+Aller sur la page : Associer roles aux exports
 
-Puis créer des association entre les rôles et l'export en question
+Puis créer des associations entre les rôles et l'export en question
+
 ```
-Seul les roles ayant des emails peuvent être associé à un export
+Seul les roles ayant des emails peuvent être associé à un export exception faite des groupes
 ```
 
 # Documentation swagger d'un export
