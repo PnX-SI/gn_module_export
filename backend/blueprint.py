@@ -8,6 +8,7 @@ import threading
 
 from pathlib import Path
 from datetime import datetime
+from urllib.parse import urlparse
 
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
@@ -113,14 +114,6 @@ os.makedirs(EXPORTS_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
 
-# HACK when install the module, the config of the module is not yet available
-# we cannot use current_app.config['EXPORT']
-try:
-    MOD_CONF = current_app.config['EXPORTS']
-    API_URL = MOD_CONF['MODULE_URL']
-except KeyError:
-    API_URL = ''
-
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 
 """
@@ -141,7 +134,10 @@ def swagger_ui(id_export=None):
 
     return render_template(
         'index.html',
-        API_ENDPOINT=API_URL,
+        API_ENDPOINT=(
+            current_app.config['API_ENDPOINT'] +
+            current_app.config['EXPORTS']['MODULE_URL']
+        ),
         id_export=id_export
     )
 
@@ -175,14 +171,28 @@ def swagger_ressources(id_export=None):
     # Génération automatique des spécification
     export_parameters = generate_swagger_spec(id_export)
 
+    # Récupération des paramètres url du backend
+    backend_url = urlparse(current_app.config['API_ENDPOINT'])
+
+    if backend_url.scheme:
+        scheme = [backend_url.scheme]
+    else:
+        scheme = ["https", "http"]
+
     swagger_spec = render_template(
         '/swagger/generic_swagger_doc.json',
         export_nom=export.label,
         export_description=export.desc,
-        export_path="{}/api/{}".format(API_URL, id_export),
+        export_path="{}/api/{}".format(
+            current_app.config['EXPORTS']['MODULE_URL'],
+            id_export
+        ),
         export_parameters=export_parameters,
         licence_nom=export.licence.name_licence,
-        licence_description=export.licence.url_licence
+        licence_description=export.licence.url_licence,
+        host=backend_url.netloc,
+        base_path=backend_url.path,
+        schemes=scheme
     )
 
     return Response(swagger_spec)
