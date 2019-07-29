@@ -1,6 +1,6 @@
 # Configurations de l'import pour l'instance locale
 TABLE_IMPORT = 'test.test_import'
-IMPORT_NAME = 'test_import'
+IMPORT_NAME = 'nom_import'
 # Importer également les métadonnées (susceptible de créer des rôles ou organismes dans la BDD):
 IMPORT_MTD = false
 # Si 'false', id du jeu de données local importer les données
