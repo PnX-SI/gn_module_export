@@ -1,0 +1,6 @@
+MAIN_URL = 'http://demo.geonature.fr/geonature/api'
+EXPORT_API_URL = '/exports/api/'
+ID_EXPORT = 1
+LOGIN = 'admin'
+PASSWORD = 'admin'
+ID_APPLICATION = 3

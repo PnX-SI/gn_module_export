@@ -4,18 +4,17 @@
 import sys
 import json
 import requests
-##import psycopg2
-
-# from config import *
+import config
+#import psycopg2
 
 # Connexion à l'instance
 # MAIN_URL = 'http://carnets.flavia-ape.fr/geonature/api'
-MAIN_URL = 'http://demo.geonature.fr/geonature/api'
-EXPORT_API_URL = '/exports/api/'
-ID_EXPORT = 1
-LOGIN = 'admin'
-PASSWORD = 'admin'
-ID_APPLICATION = 3
+MAIN_URL = config.MAIN_URL
+EXPORT_API_URL = config.EXPORT_API_URL
+ID_EXPORT = config.ID_EXPORT
+LOGIN = config.LOGIN
+PASSWORD = config.PASSWORD
+ID_APPLICATION = config.ID_APPLICATION
 
 # MAIN_URL = 'http://0.0.0.0:8000'
 # EXPORT_API_URL = '/exports/api/'
@@ -23,7 +22,6 @@ ID_APPLICATION = 3
 # LOGIN = 'lpoaura_fcl'
 # PASSWORD = 'Philogas80#GeoNature!'
 # ID_APPLICATION = 3
-
 
 session = requests.Session()
 
@@ -33,7 +31,6 @@ data = {
     "login": LOGIN,
     "password": PASSWORD
 }
-
 
 
 AUTH_URL = MAIN_URL + "/auth/login"
