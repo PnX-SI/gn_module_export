@@ -1,24 +1,20 @@
-# Configuration de l'import pour l'instance locale
-SQLALCHEMY_DATABASE_URI =
-TABLE_IMPORT = 
+# Configurations de l'import pour l'instance locale
+TABLE_IMPORT = 'test.test_import'
+IMPORT_NAME = 'test_import'
+# Importer également les métadonnées (susceptible de créer des rôles ou organismes dans la BDD):
+IMPORT_MTD = false
+# Si 'false', id du jeu de données local importer les données
+LOCAL_DATASET_ID = 1
 
-# Configuration de l'api de l'instance fournissant les données
+# Configurations liées à l'api de l'instance fournissant les données
 MAIN_URL = 'http://demo.geonature.fr/geonature/api'
 ID_EXPORT = 1
 LOGIN = 'admin'
 PASSWORD = 'admin'
 
-# Importer également les métadonnées (susceptible de créer des rôles ou organismes dans la BDD):
-IMPORT_MTD =
-# Si 'false', id du jeu de données local importer les données
-LOCAL_DATASET_ID =
-
-
-
-# Ne pas modifier
 # A renseigner dans les cas particuliers uniquement
 AUTH_API_URL = '/auth/login'
 EXPORT_API_URL = '/exports/api/'
-URL_API_MTD_DATASET = '/api/meta/dataset'
-URL_API_MTD_ACQUISITION_FRAMEWORK = '/api/meta/acquisition_framework'
+URL_API_MTD_DATASET = '/api/meta/dataset/'
+URL_API_MTD_ACQUISITION_FRAMEWORK = '/api/meta/acquisition_framework/'
 ID_APPLICATION = 3
