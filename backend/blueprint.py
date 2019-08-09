@@ -52,21 +52,80 @@ blueprint.template_folder = os.path.join(blueprint.root_path, 'templates')
 blueprint.static_folder = os.path.join(blueprint.root_path, 'static')
 repo = ExportRepository()
 
-
 """
 #################################################################
     Configuration de l'admin
 #################################################################
 """
+class LicenceView(ModelView):
+    """
+        Surcharge de l'administration des licences
+    """
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(LicenceView, self).__init__(Licences,  session, **kwargs)
 
+    # exclusion du champ exports
+    form_excluded_columns = ('exports')
+    # Nom de colonne user friendly
+    column_labels = dict(
+        name_licence='Nom de la licence',
+        url_licence='Description de la licence'
+        )
+    # Description des colonnes
+    column_descriptions = dict(
+        name_licence='Nom de la licence',
+        url_licence='Url de la documentation de la licence',
+    )
+
+class ExportRoleView(ModelView):
+    """
+        Surcharge de l'administration de l'association role/export
+    """
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(ExportRoleView, self).__init__(CorExportsRoles,  session, **kwargs)
+
+    # Nom de colonne user friendly
+    column_labels = dict(
+        export='Nom de l\'export',
+        role='Nom du role'
+        )
+    # Description des colonnes
+    column_descriptions = dict(
+        role='Role associé à l\'export'
+    )
 
 class ExportView(ModelView):
     """
-        Création d'une class pour gérer le formulaire d'administration Export
+         Surcharge du formulaire d'administration Export
     """
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
         super(ExportView, self).__init__(Export,  session, **kwargs)
+
+    # Ordonne les colonnes pour avoir la licence à la fin de la liste
+    column_list = ['id', 'label', 'schema_name', 'view_name', 'desc', 'geometry_field', 'geometry_srid', 'public', 'licence']
+    # Nom de colonne user friendly
+    column_labels = dict(
+        id='Identifiant',
+        label='Nom de l\'export',
+        schema_name='Nom du schema PostgreSQL',
+        view_name='Nom de la vue SQL',
+        desc='Description',
+        geometry_field='Nom de champ géométrique',
+        geometry_srid='SRID du champ géométrique'
+        )
+    # Description des colonnes
+    column_descriptions = dict(
+        label='Nom libre de l\'export',
+        desc='Décrit la nature de l\'export',
+        schema_name='Nom exact du schéma postgreSQL contenant la vue SQL.',
+        view_name='Nom exact de la vue SQL permettant l\'export de vos données.',
+        public='L\'export est accessible à tous'
+    )
+    # Ordonne des champs pour avoir la licence à la fin du formulaire
+    form_columns = ('label', 'schema_name', 'view_name', 'desc', 'geometry_field', 'geometry_srid', 'public', 'licence')
 
     def validate_form(self, form):
         """
@@ -99,16 +158,23 @@ class ExportView(ModelView):
 
 
 # Add views
-flask_admin.add_view(ExportView(DB.session, category="Export"))
-flask_admin.add_view(ModelView(
-    CorExportsRoles,
+flask_admin.add_view(ExportView(
     DB.session,
-    name="Associer roles aux exports",
+    name="Exports",
     category="Export"
 ))
-flask_admin.add_view(ModelView(Licences, DB.session, category="Export"))
+flask_admin.add_view(ExportRoleView(
+    DB.session,
+    name="Associer un rôle à un export",
+    category="Export"
+))
+flask_admin.add_view(LicenceView(
+    DB.session,
+    name="Licences",
+    category="Export"
+))
 
-
+# Nécessaire ?
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
