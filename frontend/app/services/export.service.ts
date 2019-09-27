@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
 import {
   HttpClient,
-  HttpErrorResponse
+  HttpErrorResponse,
+  HttpParams
 } from "@angular/common/http";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
 import { ToastrService } from "ngx-toastr";
@@ -37,9 +38,10 @@ export class ExportService {
 
   }
 
-  downloadExport(x: Export, format: string) {
+  downloadExport(x: Export, format: string, data:any) {
     return this._api
-      .get(`${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}/${x.id}/${format}`)
+      .post(`${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}/${x.id}/${format}`,
+      data)
   }
 
 }

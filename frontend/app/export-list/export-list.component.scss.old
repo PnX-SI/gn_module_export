@@ -1,0 +1,327 @@
+#redirect{
+  position: absolute;
+  right: 1%;
+  z-index: 1000;
+  margin-left: 15px;
+  margin-top: 15px;
+  padding-right: 0px;
+  padding-left: 0px;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+  border-radius: 30px;
+  box-shadow: 4px 5px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  //padding: 0px;
+}
+
+i.action {
+  margin-top: 30px;
+  margin-left: 10px;
+}
+
+#settings {
+  padding-left: 10px;
+  color: #7e7e7e
+}
+
+.filter-control {
+  height: 2.1rem !important;
+}
+
+.dynamic-form{
+  display: flex;
+  margin-right: 5px;
+  max-width: 15%;
+}
+
+#title {
+  line-height: 35px;
+  margin-left:5px;
+  margin-top: 15px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.col-list{
+  list-style: none;
+}
+
+ngx-datatable {
+  min-height: 4vh;
+  overflow-y: auto;
+  left:5px;
+}
+
+.form-control-sm {
+  height: 5.0rem !important;
+}
+
+/deep/ input[type="checkbox"].form-control {
+  height: auto !important;
+}
+
+:host /deep/ #dataset-form {
+  height: 2.05rem !important;
+}
+
+:host /deep/ .ngx-datatable.bootstrap .datatable-footer .page-count{
+  padding: 5px;
+  line-height: 1.2;
+  height: 40px;
+}
+
+.modal-body {
+  text-align: left!important;
+  height:auto;
+  overflow: auto;
+  text-align: center;
+  position: relative;
+  overflow-y: auto;
+  max-height:100%;
+}
+
+:host /deep/ .datatable-body-row.active .datatable-row-group {
+  background-color: rgb(117, 227, 118) !important;
+}
+
+.card-padding {
+  background-color: white;
+  padding: 10px;
+
+}
+
+.ngx-datatable.bootstrap {
+  box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12) !important;
+}
+
+button:disabled, .btn.disabled, .btn:disabled, .disabled {
+  cursor: not-allowed !important;
+}
+
+.all {
+  min-height: 100vh;
+}
+
+#button-export {
+  left:5px;
+  margin-top: 20px;
+  margin-bottom: 5px;
+  align-self: center;
+  width: 50%;
+  height: auto;
+}
+
+#choice {
+  align-self: flex-end;
+  float:right;
+  display:inline;
+}
+
+#choiceAdmin {
+  align-self: flex-start;
+  float:left;
+  display:inline;
+}
+
+#globalChoice {
+  margin-left:5px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+
+}
+
+#readlicence{
+  margin-bottom: 10px;
+  .btn.btn-link {
+    padding-left: 0;
+  }
+}
+
+#myModal{
+  z-index: 1020;
+  background: rgba(0, 0, 0, 0.527);
+  max-width: 100%;
+  max-height: 100%;
+  overflow: auto;
+  overflow-y: scroll;
+  height:auto;
+  display: table;
+}
+
+#widthButton{
+  width: 100px;
+  align-self: center;
+  align-content: center;
+}
+
+#AccueilButton{
+  width: 150px;
+  align-self: center;
+  align-content: center;
+  margin-top: 25px;
+  margin-bottom: 25px;
+}
+
+#AccueilButtonAdmin{
+  width: 150px;
+  align-self: left;
+  align-content: left;
+  // margin-top: 25px;
+  // margin-bottom: 25px;
+}
+
+#adresseMail{
+  margin-top: 5px;
+  margin-bottom: 15px;
+  align-self: center;
+  align-content: center;
+}
+
+#mailText{
+margin-left: 27%;
+}
+
+#choicePopup {
+  margin-left:30%;
+  margin-top: 25px;
+  margin-bottom: 5px;
+}
+
+#textPresentation {
+  margin-bottom: 5px;
+  align-self: left;
+  align-content: center;
+}
+
+#telechargement{
+  margin-bottom: 15px;
+  align-content: center;
+  align-self: center;
+}
+
+.ng-valid[required], .ng-valid.required  {
+  border-left: 5px solid #42A948;
+}
+
+.ng-invalid[required], .ng-invalid.required  {
+  border-left: 5px solid rgb(184, 101, 101);
+}
+
+.alert{
+  line-height:15px;
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: rgba(134, 133, 133, 0.575);
+  opacity: 1; /* Firefox */
+}
+
+#adminModal {
+  width: 1000px;
+  position: absolute;
+  margin-left: -250px;
+}
+
+.alert-info {
+  background: #f9fafa;
+  color: #18294e;
+  border-color: #18294e;
+  text-align : center;
+}
+
+#formatSelectionAdminText {
+  margin-left: 400px;
+}
+
+#formatSelectionAdmin {
+  width: 270px;
+  margin-left: 350px;
+}
+
+#alertformatSelectionAdmin{
+  align-content: center;
+  align-self: center;
+  text-align : center;
+}
+
+#textAdmin{
+  margin-left: 20px;
+}
+
+.classification.row{
+    text-align: center;
+}
+
+#textareaApi{
+  width: 100%;
+  height: 45px;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  background-color: #dfe1e786;
+  resize: none;
+}
+
+.textareaApi.ng-touched{
+  border: rgb(248, 185, 185);
+}
+
+ /*the container must be positioned relative:*/
+ .custom-select {
+  position: relative;
+  font-family: Arial;
+}
+.custom-select select {
+  display: none; /*hide original SELECT element:*/
+}
+.select-selected {
+  background-color: DodgerBlue;
+}
+/*style the arrow inside the select element:*/
+.select-selected:after {
+  position: absolute;
+  content: "";
+  top: 14px;
+  right: 10px;
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-color: #fff transparent transparent transparent;
+}
+/*point the arrow upwards when the select box is open (active):*/
+.select-selected.select-arrow-active:after {
+  border-color: transparent transparent #fff transparent;
+  top: 7px;
+}
+/*style the items (options), including the selected item:*/
+.select-items div,.select-selected {
+  color: #ffffff;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+  cursor: pointer;
+}
+/*style items (options):*/
+.select-items {
+  position: absolute;
+  background-color: DodgerBlue;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+}
+/*hide the items when the select box is closed:*/
+.select-hide {
+  display: none;
+}
+.select-items div:hover, .same-as-selected {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+#rowApi{
+  align-content: center;
+  text-align : center;
+  display: block;
+  vertical-align: 50%;
+}

@@ -6,9 +6,12 @@
             <h2>EXPORTS</h2>
             <hr >
           </div>
-          <div class="alert alert-secondary">
+          <div class="alert alert-info">
             Voici la liste des exports disponibles. Ces exports ont été programmés par l'administrateur de GeoNature.<br>
             Pour modifier cette liste ou disposer d'exports supplémentaires, veuillez contacter le service administrateur.
+          </div>
+          <div class="alert alert-warning">
+            Votre compte utilisateur doit avoir un email valide afin de recevoir les liens de téléchargement vers les exports demandés.
           </div>
           <!-- Liste des exports disponibles au téléchargement -->
           <div *ngIf="exports">
@@ -26,7 +29,7 @@
                     </a>
                     <button id="{{export.id}}" type="submit"
                     class="btn btn-primary btn-sm ml-3"
-                    (click)="selectFormat(export.id, content)">
+                    (click)="selectFormat(export.id, export_download)">
                       Télécharger
                     </button>
                 </div>
@@ -43,7 +46,7 @@
     </div>
 
     <!-- Modal Téléchargement Popup-->
-    <ng-template #content let-c="close" let-d="dismiss">
+    <ng-template #export_download let-c="close" let-d="dismiss">
       <div class="modal-content">
         <!-- Modal content-->
         <div class="modal-header">
@@ -80,7 +83,7 @@
         </div>
         <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
         <div class="modal-footer" id="choicePopup">
-          <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Fermer</button>
+          <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Annuler</button>
           <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="download()">OK</button>
         </div>
       </div>
