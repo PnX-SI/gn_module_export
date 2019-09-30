@@ -177,7 +177,7 @@ class OccurrenceStore:
         return taxon
 
 
-if __name__ == '__main__':
+""" if __name__ == '__main__':
     record = {
         'permId': '311abde1-a45d-4daa-8475-b538637d37dd',
         'statObs': 'Pr',
@@ -236,4 +236,4 @@ if __name__ == '__main__':
     organism = store.build_organism(occurrence, record)
     identification = store.build_identification(organism, record)
     taxon = store.build_taxon(identification, record)
-    store.save(store_uri='file:///tmp/export_etalab.ttl')
+    store.save(store_uri='file:///tmp/export_etalab.ttl') """
