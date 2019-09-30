@@ -1,6 +1,14 @@
+"""
+    Définition des routes du module export
+"""
+
 import os
-from datetime import datetime
 import logging
+import threading
+
+from pathlib import Path
+from datetime import datetime
+
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
     Blueprint,
@@ -8,29 +16,35 @@ from flask import (
     current_app,
     send_from_directory,
     Response,
-    render_template
+    render_template,
+    jsonify,
+    flash,
+    copy_current_request_context
 )
 from flask_cors import cross_origin
-from geonature.utils.utilssqlalchemy import (
-    json_resp, to_json_resp, to_csv_resp
-)
-
-from geonature.utils.filemanager import (
-    removeDisallowedFilenameChars, delete_recursively)
-from pypnusershub.db.tools import InsufficientRightsError
-from geonature.core.gn_permissions import decorators as permissions
-
-from .repositories import ExportRepository, EmptyDataSetError
-
 from flask_admin.contrib.sqla import ModelView
-from .models import Export, CorExportsRoles
-from pypnnomenclature.admin import admin
+from flask_admin.helpers import is_form_submitted
+
+from pypnusershub.db.models import User
+
+from geonature.core.admin.admin import flask_admin
+from geonature.utils.utilssqlalchemy import (
+    json_resp, to_json_resp,
+    GenericQuery
+)
+from geonature.core.gn_permissions import decorators as permissions
 from geonature.utils.env import DB
 
-logger = current_app.logger
-logger.setLevel(logging.DEBUG)
-# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-# current_app.config['DEBUG'] = True
+
+from .repositories import (
+    ExportRepository, EmptyDataSetError, generate_swagger_spec,
+)
+from .models import Export, CorExportsRoles, Licences
+from .utils_export import thread_export_data
+
+
+LOGGER = current_app.logger
+LOGGER.setLevel(logging.DEBUG)
 
 blueprint = Blueprint('exports', __name__)
 blueprint.template_folder = os.path.join(blueprint.root_path, 'templates')
@@ -43,9 +57,56 @@ repo = ExportRepository()
     Configuration de l'admin
 #################################################################
 """
-# FIX: remove init Export model
-admin.add_view(ModelView(Export, DB.session))
-admin.add_view(ModelView(CorExportsRoles, DB.session))
+
+
+class ExportView(ModelView):
+    """
+        Création d'une class pour gérer le formulaire d'administration Export
+    """
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(ExportView, self).__init__(Export,  session, **kwargs)
+
+    def validate_form(self, form):
+        """
+            validation personnalisée du form
+        """
+        # Essai de récupérer en BD la vue sql déclarée
+        # Delete n'a pas d'attribut view_name
+        view_name = getattr(form, 'view_name', '')
+        schema_name = getattr(form, 'schema_name', '')
+        geometry_field = getattr(form, 'geometry_field', None)
+        geometry_srid = getattr(form, 'geometry_srid', None)
+        if (is_form_submitted() and view_name and schema_name):
+            try:
+                query = GenericQuery(
+                    DB.session, view_name.data, schema_name.data,
+                    geometry_field=geometry_field.data, filters=[]
+                )
+                query.return_query()
+
+                if geometry_field.data and geometry_srid.data is None:
+                    raise KeyError(
+                        "field Geometry srid is mandatory with Geometry field"
+                    )
+
+            except Exception as exp:
+                flash(exp, category='error')
+                return False
+
+        return super(ExportView, self).validate_form(form)
+
+
+# Add views
+flask_admin.add_view(ExportView(DB.session, category="Export"))
+flask_admin.add_view(ModelView(
+    CorExportsRoles,
+    DB.session,
+    name="Associer roles aux exports",
+    category="Export"
+))
+flask_admin.add_view(ModelView(Licences, DB.session, category="Export"))
+
 
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)
@@ -84,24 +145,47 @@ def swagger_ui(id_export=None):
         id_export=id_export
     )
 
+
 @blueprint.route('/swagger-ressources/', methods=['GET'])
 @blueprint.route('/swagger-ressources/<int:id_export>', methods=['GET'])
 def swagger_ressources(id_export=None):
     """
         Génération des spécifications swagger
     """
+
+    # return jsonify(swagger_example)
     if not id_export:
-        swagger_spec = render_template('/swagger/main.yml')
-    else:
-        # TODO générer la configuration de l'export automatiquement
-        pass
+        swagger_spec = render_template('/swagger/main_swagger_doc.json')
+        return Response(swagger_spec)
+
+    # Si l'id export existe et que les droits sont définis
+    try:
+        export = Export.query.filter(Export.id == id_export).one()
+    except (NoResultFound, EmptyDataSetError):
+        return jsonify({"message": "no export with this id"}), 404
+
+    # Si un fichier de surcouche est défini
+    file_name = 'api_specification_' + str(id_export) + '.json'
+    path = Path(blueprint.template_folder, 'swagger', file_name)
+
+    if path.is_file():
+        swagger_spec = render_template('/swagger/' + file_name)
+        return Response(swagger_spec)
+
+    # Génération automatique des spécification
+    export_parameters = generate_swagger_spec(id_export)
+
+    swagger_spec = render_template(
+        '/swagger/generic_swagger_doc.json',
+        export_nom=export.label,
+        export_description=export.desc,
+        export_path="{}/api/{}".format(API_URL, id_export),
+        export_parameters=export_parameters,
+        licence_nom=export.licence.name_licence,
+        licence_description=export.licence.url_licence
+    )
+
     return Response(swagger_spec)
-
-
-def export_filename(export):
-    return '{}_{}'.format(
-        removeDisallowedFilenameChars(export.get('label')),
-        datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S'))
 
 
 """
@@ -121,7 +205,10 @@ def export_filename(export):
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
     )
-def getOneExport(id_export, export_format, info_role):
+def getOneExportThread(id_export, export_format, info_role):
+    """
+        Run export with thread
+    """
     if (
         id_export < 1
         or
@@ -136,74 +223,60 @@ def getOneExport(id_export, export_format, info_role):
     filters = {f: request.args.get(f) for f in request.args}
 
     try:
-        export, columns, data = repo.get_by_id(
-            info_role, id_export, with_data=True, export_format=export_format,
-            filters=filters, limit=10000, offset=0
+        @copy_current_request_context
+        def get_data(id_export, export_format, info_role, filters, user):
+            thread_export_data(
+                id_export, export_format, info_role, filters, user
+            )
+
+        # Test if export is allowed
+        try:
+            repo.get_export_is_allowed(id_export, info_role)
+        except Exception:
+            return to_json_resp(
+                {'message': "Not Allowed"},
+                status=403
+            )
+
+        # Test if user have an email
+        try:
+            user = (
+                DB.session.query(User)
+                .filter(User.id_role == info_role.id_role)
+                .one()
+            )
+            if not user.email:
+                return to_json_resp(
+                    {'message': "Error : user doesn't have email"},
+                    status=500
+                )
+        except NoResultFound:
+            return to_json_resp(
+                {'message': "Error : user doesn't exist"},
+                status=500
+            )
+
+        # Run export
+        a = threading.Thread(
+            name="export_data",
+            target=get_data,
+            kwargs={
+                "id_export": id_export,
+                "export_format": export_format,
+                "info_role": info_role,
+                "filters": filters,
+                "user": user
+            }
+        )
+        a.start()
+
+        return to_json_resp(
+            {'message': 'En cours de traitement vous allez recevoir un couriel'},  # noqua
+            status=200
         )
 
-        if export:
-            fname = export_filename(export)
-            has_geometry = export.get('geometry_field', None)
-
-            if export_format == 'json':
-                return to_json_resp(
-                    data.get('items'),
-                    as_file=True,
-                    filename=fname,
-                    indent=4)
-
-            if export_format == 'csv':
-                return to_csv_resp(
-                    fname,
-                    data.get('items'),
-                    [c.name for c in columns],
-                    separator=',')
-
-            if (export_format == 'shp' and has_geometry):
-                from geoalchemy2.shape import from_shape
-                from shapely.geometry import asShape
-                from geonature.utils.utilsgeometry import FionaShapeService as ShapeService  # noqa: E501
-
-                delete_recursively(
-                    SHAPEFILES_DIR, excluded_files=['.gitkeep'])
-
-                ShapeService.create_shapes_struct(
-                    db_cols=columns, srid=export.get('geometry_srid'),
-                    dir_path=SHAPEFILES_DIR, file_name=''.join(['export_', fname]))  # noqa: E501
-
-                items = data.get('items')
-
-                for feature in items['features']:
-                    geom, props = (feature.get(field)
-                                   for field in ('geometry', 'properties'))
-
-                    ShapeService.create_feature(
-                            props, from_shape(
-                                asShape(geom), export.get('geometry_srid')))
-
-                ShapeService.save_and_zip_shapefiles()
-
-                return send_from_directory(
-                    SHAPEFILES_DIR, ''.join(['export_', fname, '.zip']),
-                    as_attachment=True)
-
-            else:
-                return to_json_resp(
-                    {'api_error': 'NonTransformableError'}, status=404)
-
-    except NoResultFound as e:
-        return to_json_resp(
-            {'api_error': 'NoResultFound',
-             'message': str(e)}, status=404)
-    except InsufficientRightsError:
-        return to_json_resp(
-            {'api_error': 'InsufficientRightsError'}, status=403)
-    except EmptyDataSetError as e:
-        return to_json_resp(
-            {'api_error': 'EmptyDataSetError',
-             'message': str(e)}, status=404)
     except Exception as e:
-        logger.critical('%s', e)
+        LOGGER.critical('%s', e)
         if current_app.config['DEBUG']:
             raise
         return to_json_resp({'api_error': 'LoggedError'}, status=400)
@@ -222,69 +295,15 @@ def getExports(info_role):
         accessible pour un role donné
     """
     try:
-        exports = repo.getAllowedExports(info_role)
+        exports = repo.get_allowed_exports(info_role)
     except NoResultFound:
         return {'api_error': 'NoResultFound',
                 'message': 'Configure one or more export'}, 404
     except Exception as e:
-        logger.critical('%s', str(e))
+        LOGGER.critical('%s', str(e))
         return {'api_error': 'LoggedError'}, 400
     else:
-        return [export.as_dict() for export in exports]
-
-
-@blueprint.route('/etalab', methods=['GET'])
-def etalab_export():
-    if not blueprint.config.get('etalab_export'):
-        return to_json_resp(
-            {'api_error': 'EtalabDisabled',
-             'message': 'Etalab export is disabled'}, status=501)
-
-    from datetime import time
-    from geonature.utils.env import DB
-    from geonature.utils.utilssqlalchemy import GenericQuery
-    from .rdf import OccurrenceStore
-
-    conf = current_app.config.get('EXPORTS')
-    export_etalab = conf.get('etalab_export')
-    seeded = False
-    if os.path.isfile(export_etalab):
-        seeded = True
-        midnight = datetime.combine(datetime.today(), time.min)
-        mtime = datetime.fromtimestamp(os.path.getmtime(export_etalab))
-        ts_delta = mtime - midnight
-
-    if not seeded or ts_delta.total_seconds() < 100000:
-        store = OccurrenceStore()
-        query = GenericQuery(
-            DB.session, 'v_exports_synthese_sinp_rdf', 'gn_exports',
-            geometry_field=None, filters=[]
-        )
-        data = query.return_query()
-        for record in data.get('items'):
-            event = store.build_event(record)
-            obs = store.build_human_observation(event, record)
-            store.build_location(obs, record)
-            occurrence = store.build_occurrence(event, record)
-            organism = store.build_organism(occurrence, record)
-            identification = store.build_identification(organism, record)
-            store.build_taxon(identification, record)
-        try:
-            with open(export_etalab, 'w+b') as xp:
-                store.save(store_uri=xp)
-        except FileNotFoundError as e:
-            response = Response(
-                response="FileNotFoundError : {}".format(
-                    export_etalab
-                ),
-                status=500,
-                mimetype='application/json'
-            )
-            return response
-
-    return send_from_directory(
-        os.path.dirname(export_etalab), os.path.basename(export_etalab)
-    )
+        return [export.as_dict(recursif=True) for export in exports]
 
 
 @blueprint.route('/api/<int:id_export>', methods=['GET'])
@@ -349,6 +368,15 @@ def get_one_export_api(id_export, info_role):
 
             order by : @TODO
     """
+    # Test if export is allowed
+    try:
+        repo.get_export_is_allowed(id_export, info_role)
+    except Exception:
+        return (
+            {'message': "Not Allowed"},
+            403
+        )
+
     limit = request.args.get('limit', default=1000, type=int)
     offset = request.args.get('offset', default=0, type=int)
 
@@ -367,4 +395,62 @@ def get_one_export_api(id_export, info_role):
         info_role, id_export, with_data=True, export_format='json',
         filters=filters, limit=limit, offset=offset
     )
+
     return data
+
+
+# TODO : Route desactivée car à évaluer
+@blueprint.route('/etalab', methods=['GET'])
+def etalab_export():
+    """
+        TODO : METHODE NON FONCTIONNELLE A EVALUEE
+    """
+    if not blueprint.config.get('etalab_export'):
+        return to_json_resp(
+            {'api_error': 'EtalabDisabled',
+             'message': 'Etalab export is disabled'}, status=501)
+
+    from datetime import time
+    from geonature.utils.env import DB
+    from .rdf import OccurrenceStore
+
+    conf = current_app.config.get('EXPORTS')
+    export_etalab = conf.get('etalab_export')
+    seeded = False
+    if os.path.isfile(export_etalab):
+        seeded = True
+        midnight = datetime.combine(datetime.today(), time.min)
+        mtime = datetime.fromtimestamp(os.path.getmtime(export_etalab))
+        ts_delta = mtime - midnight
+
+    if not seeded or ts_delta.total_seconds() < 100000:
+        store = OccurrenceStore()
+        query = GenericQuery(
+            DB.session, 'v_exports_synthese_sinp_rdf', 'gn_exports',
+            geometry_field=None, filters=[]
+        )
+        data = query.return_query()
+        for record in data.get('items'):
+            event = store.build_event(record)
+            obs = store.build_human_observation(event, record)
+            store.build_location(obs, record)
+            occurrence = store.build_occurrence(event, record)
+            organism = store.build_organism(occurrence, record)
+            identification = store.build_identification(organism, record)
+            store.build_taxon(identification, record)
+        try:
+            with open(export_etalab, 'w+b') as xp:
+                store.save(store_uri=xp)
+        except FileNotFoundError:
+            response = Response(
+                response="FileNotFoundError : {}".format(
+                    export_etalab
+                ),
+                status=500,
+                mimetype='application/json'
+            )
+            return response
+
+    return send_from_directory(
+        os.path.dirname(export_etalab), os.path.basename(export_etalab)
+)

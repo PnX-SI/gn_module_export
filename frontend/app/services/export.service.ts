@@ -1,16 +1,9 @@
 import { Injectable } from "@angular/core";
 import {
   HttpClient,
-  HttpEvent,
-  HttpHeaders,
-  HttpRequest,
-  HttpEventType,
   HttpErrorResponse
 } from "@angular/common/http";
-import { Observable } from "rxjs/Observable";
 import { BehaviorSubject } from "rxjs/BehaviorSubject";
-import { filter } from "rxjs/operator/filter";
-import { map } from "rxjs/operator/map";
 import { ToastrService } from "ngx-toastr";
 
 import { AppConfig } from "@geonature_config/app.config";
@@ -37,7 +30,6 @@ export interface ApiErrorResponse extends HttpErrorResponse {
 export class ExportService {
   exports: BehaviorSubject<Export[]>;
   downloadProgress: BehaviorSubject<number>;
-  private _blob: Blob;
 
   constructor(private _api: HttpClient, private toastr: ToastrService) {
     this.exports = <BehaviorSubject<Export[]>>new BehaviorSubject([]);
@@ -65,51 +57,12 @@ export class ExportService {
   }
 
   downloadExport(x: Export, format: string) {
-    let downloadExportURL = `${AppConfig.API_ENDPOINT}/${
-      ModuleConfig.MODULE_URL
-    }/${x.id}/${format}`;
-    let fileName = undefined;
-
-    let source = this._api.get(downloadExportURL, {
-      headers: new HttpHeaders().set(
-        "Content-Type",
-        `${ModuleConfig.export_format_map[format].mime}`
-      ),
-      observe: "events",
-      responseType: "blob",
-      reportProgress: true
-    });
-    let subscription = source.subscribe(
-      event => {
-        switch (event.type) {
-          case HttpEventType.DownloadProgress:
-            if (event.hasOwnProperty("total")) {
-              const percentage = Math.round((100 / event.total) * event.loaded);
-              this.downloadProgress.next(percentage);
-            } else {
-              const kb = (event.loaded / 1024).toFixed(2);
-              this.downloadProgress.next(parseFloat(kb));
-            }
-            break;
-
-          case HttpEventType.ResponseHeader:
-            if (event.ok) {
-              const disposition = event.headers.get("Content-Disposition");
-              const match = disposition
-                ? /filename="?([^"]*)"?;?/g.exec(disposition)
-                : undefined;
-              fileName = match && match.length > 1 ? match[1] : undefined;
-            }
-            break;
-
-          case HttpEventType.Response:
-            if (event.ok) {
-              this._blob = new Blob([event.body], {
-                type: event.headers.get("Content-Type")
-              });
-            }
-            break;
-        }
+    this._api.get(`${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}/${x.id}/${format}`)
+    .subscribe(
+      response => {
+        this.toastr.success(
+          response && response.message ? response.message : ''
+        )
       },
       (response: ApiErrorResponse) => {
         this.toastr.error(
@@ -117,25 +70,8 @@ export class ExportService {
           response.error.api_error ? response.error.api_error : response.name,
           { timeOut: 0 }
         );
-        console.error("api error:", response);
-      },
-      () => {
-        this.saveBlob(this._blob, fileName);
-        subscription.unsubscribe();
       }
-    );
+    )
   }
 
-  saveBlob(blob, filename) {
-    let link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute("visibility", "hidden");
-    link.download = filename;
-    link.onload = function() {
-      URL.revokeObjectURL(link.href);
-    };
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
 }
