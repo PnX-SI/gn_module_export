@@ -27,6 +27,10 @@ La configuration des mails utilise les paramètres définis pas Flask_mail. Pour
     MAIL_DEFAULT_SENDER = "user@monserver.mail"
 ```
 
+### Export RDF au format Darwin-SW
+Le paramétrage du dossier dans lequel l'export RDF est généré, ce fait à l'aide de la clé "etalab_export" du fichier de configuration.
+
+
 ## Commande d'installation
 ```
 source backend/venv/bin/activate
@@ -62,6 +66,10 @@ Par défaut une documentation swagger est générée automatiquement mais il est
 
 1. Créer un fichier au format open api dévrivant votre export
 2. Sauvegarder le fichier `geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json`
+
+
+# Export RDF au format Darwin-SW
+Le module peut génèrer un export RDF au format Darwin-SW des données "Occtax" ( se baser sur "Synthèse" [TODO] ).
 
 
 # Autres
