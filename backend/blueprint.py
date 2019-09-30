@@ -354,7 +354,7 @@ def getOneExportThread(id_export, export_format, info_role):
         a.start()
 
         return to_json_resp(
-            {'message': 'En cours de traitement vous allez recevoir un couriel'},  # noqua
+            {'api_success': 'InProgress', 'message': 'The Process is in progress ! You will receive an email shortly'},  # noqua
             status=200
         )
 
