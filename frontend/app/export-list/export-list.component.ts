@@ -60,10 +60,9 @@ export class ExportListComponent implements OnInit {
         (errorMsg: ApiErrorResponse) => {
           this.toastr.error(
             errorMsg.error.message ? errorMsg.error.message : errorMsg.message,
-            errorMsg.error.api_error ? errorMsg.error.api_error : errorMsg.name,
+            '',
             { timeOut: 0 }
           );
-          console.error("api error:", errorMsg);
           this.loadingIndicator = false;
         },
       );
@@ -127,7 +126,7 @@ export class ExportListComponent implements OnInit {
           },
           (response: ApiErrorResponse) => {
             this.toastr.error(
-              response.error.message ? response.error.message : response.message, {
+              response.error.message ? response.error.message : response.message, '' ,{
                 timeOut: 0
               }
             );
