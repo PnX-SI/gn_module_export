@@ -291,7 +291,7 @@ def getOneExportThread(id_export, export_format, info_role):
         or
         export_format not in blueprint.config.get('export_format_map')
     ):
-        return to_json_resp({'api_error': 'InvalidExport', 'message': 'Invalid export or export not found'}, status=404)
+        return to_json_resp({'api_error': 'invalid_export', 'message': 'Invalid export or export not found'}, status=404)
 
     current_app.config.update(
         export_format_map=blueprint.config['export_format_map']
@@ -330,12 +330,12 @@ def getOneExportThread(id_export, export_format, info_role):
             )
             if not user.email and not tmp_user.email:
                 return to_json_resp(
-                    {'api_error': 'NoEmail','message': "User doesn't have email"},
+                    {'api_error': 'no_email','message': "User doesn't have email"},
                     status=500
                 )
         except NoResultFound:
             return to_json_resp(
-                {'api_error': 'NoUser', 'message': "User doesn't exist"},
+                {'api_error': 'no_user', 'message': "User doesn't exist"},
                 status=404
             )
 
@@ -354,7 +354,7 @@ def getOneExportThread(id_export, export_format, info_role):
         a.start()
 
         return to_json_resp(
-            {'api_success': 'InProgress', 'message': 'The Process is in progress ! You will receive an email shortly'},  # noqua
+            {'api_success': 'in_progress', 'message': 'The Process is in progress ! You will receive an email shortly'},  # noqua
             status=200
         )
 
@@ -362,7 +362,7 @@ def getOneExportThread(id_export, export_format, info_role):
         LOGGER.critical('%s', e)
         if current_app.config['DEBUG']:
             raise
-        return to_json_resp({'api_error': 'LoggedError'}, status=400)
+        return to_json_resp({'api_error': 'logged_error'}, status=400)
 
 
 @blueprint.route('/', methods=['GET'])
@@ -380,11 +380,11 @@ def getExports(info_role):
     try:
         exports = repo.get_allowed_exports(info_role)
     except NoResultFound:
-        return {'api_error': 'NoResultFound',
+        return {'api_error': 'no_result_found',
                 'message': 'Configure one or more export'}, 404
     except Exception as e:
         LOGGER.critical('%s', str(e))
-        return {'api_error': 'LoggedError'}, 400
+        return {'api_error': 'logged_error'}, 400
     else:
         return [export.as_dict(recursif=True) for export in exports]
 
@@ -490,7 +490,7 @@ def etalab_export():
     """
     if not blueprint.config.get('etalab_export'):
         return to_json_resp(
-            {'api_error': 'EtalabDisabled',
+            {'api_error': 'etalab_disabled',
              'message': 'Etalab export is disabled'}, status=501)
 
     from datetime import time
