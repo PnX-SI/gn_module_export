@@ -7,7 +7,6 @@
     "license": {
       "name": "{{licence_nom}}",
       "url": "{{licence_description}}",
-      "description": "Licence associé au jeux de données"
     },
     "contact": {
       "name": "API Support",
@@ -20,11 +19,8 @@
     "url": "http://geonature.fr"
   },
   "host": "{{host}}",
-  "basePath": null,
-  "schemes": [
-    "https",
-    "http"
-  ],
+  "basePath": "{{base_path}}",
+  "schemes": {{schemes}},
   "produces": [
     "application/json"
   ],

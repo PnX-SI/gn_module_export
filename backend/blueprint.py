@@ -8,6 +8,7 @@ import threading
 
 from pathlib import Path
 from datetime import datetime
+from urllib.parse import urlparse
 
 from sqlalchemy.orm.exc import NoResultFound
 from flask import (
@@ -51,21 +52,80 @@ blueprint.template_folder = os.path.join(blueprint.root_path, 'templates')
 blueprint.static_folder = os.path.join(blueprint.root_path, 'static')
 repo = ExportRepository()
 
-
 """
 #################################################################
     Configuration de l'admin
 #################################################################
 """
+class LicenceView(ModelView):
+    """
+        Surcharge de l'administration des licences
+    """
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(LicenceView, self).__init__(Licences,  session, **kwargs)
 
+    # exclusion du champ exports
+    form_excluded_columns = ('exports')
+    # Nom de colonne user friendly
+    column_labels = dict(
+        name_licence='Nom de la licence',
+        url_licence='Description de la licence'
+        )
+    # Description des colonnes
+    column_descriptions = dict(
+        name_licence='Nom de la licence',
+        url_licence='Url de la documentation de la licence',
+    )
+
+class ExportRoleView(ModelView):
+    """
+        Surcharge de l'administration de l'association role/export
+    """
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(ExportRoleView, self).__init__(CorExportsRoles,  session, **kwargs)
+
+    # Nom de colonne user friendly
+    column_labels = dict(
+        export='Nom de l\'export',
+        role='Nom du role'
+        )
+    # Description des colonnes
+    column_descriptions = dict(
+        role='Role associé à l\'export'
+    )
 
 class ExportView(ModelView):
     """
-        Création d'une class pour gérer le formulaire d'administration Export
+         Surcharge du formulaire d'administration Export
     """
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
         super(ExportView, self).__init__(Export,  session, **kwargs)
+
+    # Ordonne les colonnes pour avoir la licence à la fin de la liste
+    column_list = ['id', 'label', 'schema_name', 'view_name', 'desc', 'geometry_field', 'geometry_srid', 'public', 'licence']
+    # Nom de colonne user friendly
+    column_labels = dict(
+        id='Identifiant',
+        label='Nom de l\'export',
+        schema_name='Nom du schema PostgreSQL',
+        view_name='Nom de la vue SQL',
+        desc='Description',
+        geometry_field='Nom de champ géométrique',
+        geometry_srid='SRID du champ géométrique'
+        )
+    # Description des colonnes
+    column_descriptions = dict(
+        label='Nom libre de l\'export',
+        desc='Décrit la nature de l\'export',
+        schema_name='Nom exact du schéma postgreSQL contenant la vue SQL.',
+        view_name='Nom exact de la vue SQL permettant l\'export de vos données.',
+        public='L\'export est accessible à tous'
+    )
+    # Ordonne des champs pour avoir la licence à la fin du formulaire
+    form_columns = ('label', 'schema_name', 'view_name', 'desc', 'geometry_field', 'geometry_srid', 'public', 'licence')
 
     def validate_form(self, form):
         """
@@ -98,28 +158,27 @@ class ExportView(ModelView):
 
 
 # Add views
-flask_admin.add_view(ExportView(DB.session, category="Export"))
-flask_admin.add_view(ModelView(
-    CorExportsRoles,
+flask_admin.add_view(ExportView(
     DB.session,
-    name="Associer roles aux exports",
+    name="Exports",
     category="Export"
 ))
-flask_admin.add_view(ModelView(Licences, DB.session, category="Export"))
+flask_admin.add_view(ExportRoleView(
+    DB.session,
+    name="Associer un rôle à un export",
+    category="Export"
+))
+flask_admin.add_view(LicenceView(
+    DB.session,
+    name="Licences",
+    category="Export"
+))
 
-
+# Nécessaire ?
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
 os.makedirs(EXPORTS_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
-
-# HACK when install the module, the config of the module is not yet available
-# we cannot use current_app.config['EXPORT']
-try:
-    MOD_CONF = current_app.config['EXPORTS']
-    API_URL = MOD_CONF['MODULE_URL']
-except KeyError:
-    API_URL = ''
 
 ASSETS = os.path.join(blueprint.root_path, 'assets')
 
@@ -141,7 +200,10 @@ def swagger_ui(id_export=None):
 
     return render_template(
         'index.html',
-        API_ENDPOINT=API_URL,
+        API_ENDPOINT=(
+            current_app.config['API_ENDPOINT'] +
+            current_app.config['EXPORTS']['MODULE_URL']
+        ),
         id_export=id_export
     )
 
@@ -175,14 +237,28 @@ def swagger_ressources(id_export=None):
     # Génération automatique des spécification
     export_parameters = generate_swagger_spec(id_export)
 
+    # Récupération des paramètres url du backend
+    backend_url = urlparse(current_app.config['API_ENDPOINT'])
+
+    if backend_url.scheme:
+        scheme = [backend_url.scheme]
+    else:
+        scheme = ["https", "http"]
+
     swagger_spec = render_template(
         '/swagger/generic_swagger_doc.json',
         export_nom=export.label,
         export_description=export.desc,
-        export_path="{}/api/{}".format(API_URL, id_export),
+        export_path="{}/api/{}".format(
+            current_app.config['EXPORTS']['MODULE_URL'],
+            id_export
+        ),
         export_parameters=export_parameters,
         licence_nom=export.licence.name_licence,
-        licence_description=export.licence.url_licence
+        licence_description=export.licence.url_licence,
+        host=backend_url.netloc,
+        base_path=backend_url.path,
+        schemes=scheme
     )
 
     return Response(swagger_spec)
@@ -195,7 +271,7 @@ def swagger_ressources(id_export=None):
 """
 
 
-@blueprint.route('/<int:id_export>/<export_format>', methods=['GET'])
+@blueprint.route('/<int:id_export>/<export_format>', methods=['POST'])
 @cross_origin(
     supports_credentials=True,
     allow_headers=['content-type', 'content-disposition'],
@@ -209,18 +285,25 @@ def getOneExportThread(id_export, export_format, info_role):
     """
         Run export with thread
     """
+    # test if export exists
     if (
         id_export < 1
         or
         export_format not in blueprint.config.get('export_format_map')
     ):
-        return to_json_resp({'api_error': 'InvalidExport'}, status=404)
+        return to_json_resp({'api_error': 'invalid_export', 'message': 'Invalid export or export not found'}, status=404)
 
     current_app.config.update(
         export_format_map=blueprint.config['export_format_map']
     )
 
     filters = {f: request.args.get(f) for f in request.args}
+    data = dict(request.get_json())
+
+    # alternative email in payload
+    tmp_user = User()
+    if 'email' in data:
+        tmp_user.email = data['email']
 
     try:
         @copy_current_request_context
@@ -245,15 +328,15 @@ def getOneExportThread(id_export, export_format, info_role):
                 .filter(User.id_role == info_role.id_role)
                 .one()
             )
-            if not user.email:
+            if not user.email and not tmp_user.email:
                 return to_json_resp(
-                    {'message': "Error : user doesn't have email"},
+                    {'api_error': 'no_email','message': "User doesn't have email"},
                     status=500
                 )
         except NoResultFound:
             return to_json_resp(
-                {'message': "Error : user doesn't exist"},
-                status=500
+                {'api_error': 'no_user', 'message': "User doesn't exist"},
+                status=404
             )
 
         # Run export
@@ -265,13 +348,13 @@ def getOneExportThread(id_export, export_format, info_role):
                 "export_format": export_format,
                 "info_role": info_role,
                 "filters": filters,
-                "user": user
+                "user": tmp_user if (tmp_user.email) else user
             }
         )
         a.start()
 
         return to_json_resp(
-            {'message': 'En cours de traitement vous allez recevoir un couriel'},  # noqua
+            {'api_success': 'in_progress', 'message': 'The Process is in progress ! You will receive an email shortly'},  # noqua
             status=200
         )
 
@@ -279,7 +362,7 @@ def getOneExportThread(id_export, export_format, info_role):
         LOGGER.critical('%s', e)
         if current_app.config['DEBUG']:
             raise
-        return to_json_resp({'api_error': 'LoggedError'}, status=400)
+        return to_json_resp({'api_error': 'logged_error'}, status=400)
 
 
 @blueprint.route('/', methods=['GET'])
@@ -297,11 +380,11 @@ def getExports(info_role):
     try:
         exports = repo.get_allowed_exports(info_role)
     except NoResultFound:
-        return {'api_error': 'NoResultFound',
+        return {'api_error': 'no_result_found',
                 'message': 'Configure one or more export'}, 404
     except Exception as e:
         LOGGER.critical('%s', str(e))
-        return {'api_error': 'LoggedError'}, 400
+        return {'api_error': 'logged_error'}, 400
     else:
         return [export.as_dict(recursif=True) for export in exports]
 
@@ -407,7 +490,7 @@ def etalab_export():
     """
     if not blueprint.config.get('etalab_export'):
         return to_json_resp(
-            {'api_error': 'EtalabDisabled',
+            {'api_error': 'etalab_disabled',
              'message': 'Etalab export is disabled'}, status=501)
 
     from datetime import time

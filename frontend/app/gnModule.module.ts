@@ -9,12 +9,10 @@ import {
 import { GN2CommonModule } from '@geonature_common/GN2Common.module'
 import { TranslateHttpLoader } from '@ngx-translate/http-loader'
 
-import {
-  ExportListComponent,
-  ProgressComponent,
-} from './export-list/export-list.component'
-import { ExportService } from './services/export.service'
+import { ExportListComponent } from './export-list/export-list.component'
+import { NgbdModalEmailContent } from './export-list/export-getmail.component'
 
+import { ExportService } from './services/export.service'
 
 const routes: Routes = [
   { path: '', component: ExportListComponent }
@@ -32,13 +30,13 @@ const routes: Routes = [
   ],
   declarations: [
     ExportListComponent,
-    ProgressComponent,
-
+    NgbdModalEmailContent
   ],
   providers: [
-    ExportService,
+    ExportService
   ],
-  bootstrap: []
+  bootstrap: [],
+  entryComponents: [NgbdModalEmailContent],
 })
 
 export class GeonatureModule { }
