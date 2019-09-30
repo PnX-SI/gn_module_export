@@ -78,6 +78,18 @@
 
               </div>
             </div>
+            <br>
+            <hr>
+            <br>
+            <label for="emailInput">
+              <small>
+                  Entrez un email pour réceptionner le lien de téléchargement (optionel).
+              </small>
+            </label>
+            <input type="email" formControlName="emailInput" id="emailInput" class="form-control" />
+            <div *ngIf="modalForm.get('emailInput').hasError('pattern')" >
+                <small> <i style="color:red;" >Email non valide.</i> </small>
+            </div>
         </form>
 
         </div>
