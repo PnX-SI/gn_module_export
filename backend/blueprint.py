@@ -271,7 +271,7 @@ def swagger_ressources(id_export=None):
 """
 
 
-@blueprint.route('/<int:id_export>/<export_format>', methods=['GET'])
+@blueprint.route('/<int:id_export>/<export_format>', methods=['POST'])
 @cross_origin(
     supports_credentials=True,
     allow_headers=['content-type', 'content-disposition'],
@@ -285,18 +285,25 @@ def getOneExportThread(id_export, export_format, info_role):
     """
         Run export with thread
     """
+    # test if export exists
     if (
         id_export < 1
         or
         export_format not in blueprint.config.get('export_format_map')
     ):
-        return to_json_resp({'api_error': 'InvalidExport'}, status=404)
+        return to_json_resp({'api_error': 'InvalidExport', 'message': 'Invalid export or export not found'}, status=404)
 
     current_app.config.update(
         export_format_map=blueprint.config['export_format_map']
     )
 
     filters = {f: request.args.get(f) for f in request.args}
+    data = dict(request.get_json())
+
+    # alternative email in payload
+    tmp_user = User()
+    if 'email' in data:
+        tmp_user.email = data['email']
 
     try:
         @copy_current_request_context
@@ -321,15 +328,15 @@ def getOneExportThread(id_export, export_format, info_role):
                 .filter(User.id_role == info_role.id_role)
                 .one()
             )
-            if not user.email:
+            if not user.email and not tmp_user.email:
                 return to_json_resp(
-                    {'message': "Error : user doesn't have email"},
+                    {'api_error': 'NoEmail','message': "User doesn't have email"},
                     status=500
                 )
         except NoResultFound:
             return to_json_resp(
-                {'message': "Error : user doesn't exist"},
-                status=500
+                {'api_error': 'NoUser', 'message': "User doesn't exist"},
+                status=404
             )
 
         # Run export
@@ -341,7 +348,7 @@ def getOneExportThread(id_export, export_format, info_role):
                 "export_format": export_format,
                 "info_role": info_role,
                 "filters": filters,
-                "user": user
+                "user": tmp_user if (tmp_user.email) else user
             }
         )
         a.start()
