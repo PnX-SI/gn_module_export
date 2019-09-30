@@ -26,7 +26,7 @@ import {
 
        <div class="modal-body">
         <div>
-          <p>Vous devez fournir un email afin de recevoir un lien de téléchargement pour l'export demandé.</p>
+          <p>Entrez un email pour réceptionner le lien de téléchargement vers l'export demandé.</p>
         </div>
          <!-- Formulaire de récupération d'email pour la réception du lien de téléchargement -->
          <form [formGroup]="modalFormEmail">
