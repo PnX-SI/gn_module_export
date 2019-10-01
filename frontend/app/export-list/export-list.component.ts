@@ -7,7 +7,7 @@ import {
   FormBuilder,
   Validators
 } from "@angular/forms";
-import { NgbModal, NgbModalRef, NgbActiveModal} from "@ng-bootstrap/ng-bootstrap";
+import { NgbModal, NgbModalRef} from "@ng-bootstrap/ng-bootstrap";
 import { ToastrService } from "ngx-toastr";
 
 import { AppConfig } from "@geonature_config/app.config";
@@ -15,8 +15,6 @@ import { AppConfig } from "@geonature_config/app.config";
 import { ModuleConfig } from "../module.config";
 import { Export, ExportService, ApiErrorResponse } from "../services/export.service";
 
-
-import { NgbdModalEmailContent } from "./export-getmail.component";
 
 @Component({
   selector: "pnx-export-list",
@@ -34,7 +32,7 @@ export class ExportListComponent implements OnInit {
   public closeResult: string;
   private _export: Export;
   private _modalRef: NgbModalRef;
-  public emailTmp:string;
+  private _emailPattern = "^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$";
 
   constructor(
     private _exportService: ExportService,
@@ -46,7 +44,8 @@ export class ExportListComponent implements OnInit {
   ngOnInit() {
     this.modalForm = this._fb.group({
       formatSelection: ["", Validators.required],
-      exportLicence: ["", Validators.required]
+      exportLicence: ["", Validators.required],
+      emailInput: ["", Validators.pattern[this._emailPattern]]
     });
 
     this.loadingIndicator = true;
@@ -60,8 +59,9 @@ export class ExportListComponent implements OnInit {
         (errorMsg: ApiErrorResponse) => {
           this.toastr.error(
             errorMsg.error.message ? errorMsg.error.message : errorMsg.message,
-            '',
-            { timeOut: 0 }
+            '', {
+              timeOut: 0
+            }
           );
           this.loadingIndicator = false;
         },
@@ -75,18 +75,6 @@ export class ExportListComponent implements OnInit {
 
   open(modal_id) {
     this._modalRef = this.modalService.open(modal_id);
-  }
-
-  openModalEmail() {
-    return new Promise((resolve, reject) => {
-      this.modalService.open(NgbdModalEmailContent).result.then((inputEmail) => {
-        if (inputEmail.valid && inputEmail.value)
-          this.emailTmp = inputEmail.value;
-        resolve();
-      }, () => {
-        resolve();
-      });
-    });
   }
 
 
@@ -109,31 +97,32 @@ export class ExportListComponent implements OnInit {
 
       this._modalRef.close();
 
-      this.openModalEmail().then(() => {
-        let emailparams = this.emailTmp ? {
-          'email': this.emailTmp
-        } : {};
-        this._exportService.downloadExport(
+      let emailparams = this.modalForm.get('emailInput').value ? { 'email': this.modalForm.get('emailInput').value } : {};
+
+      this._exportService.downloadExport(
           this._export,
           this.formatSelection.value,
           emailparams
         ).subscribe(
           response => {
-            this.emailTmp = '';
             this.toastr.success(
               response && response.message ? response.message : ''
             )
           },
           (response: ApiErrorResponse) => {
             this.toastr.error(
-              response.error.message ? response.error.message : response.message, '' ,{
+              response.error.message ? response.error.message : response.message, '', {
                 timeOut: 0
               }
             );
           }
         );
-      })
-
     }
   }
+
+  ngOnDestroy() {
+    if(this._modalRef)
+      this._modalRef.close();
   }
+
+}
