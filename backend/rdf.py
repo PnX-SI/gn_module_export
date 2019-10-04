@@ -30,67 +30,42 @@ class OccurrenceStore:
     def save(self, store_uri, format_='turtle'):
         self.graph.serialize(store_uri, format_)
 
-    def build_event(self, record):
-        event = BNode()
-        self.graph.add((event, RDF.type, DCMITYPE.Event))
-        return event
+    def build_recordlevel(self, record):
+        recordlevel = BNode()
+        self.graph.add((recordlevel, RDF.type, DWC['Record-level']))
+        return recordlevel
 
-    def build_human_observation(self, event, record):
-        human_observation = BNode()
-        self.graph.add((human_observation, RDF.type, DWC['HumanObservation']))
-        self.graph.add((event, DSW['basisOfRecord'], human_observation))
+    def build_event(self, recordlevel, record):
+        event = BNode()
+        self.graph.add((event, RDF.type, DWC['Event']))
         self.graph.add(
-            (human_observation,
+            (event,
              DWC['eventDate'],
              Literal('/'.join([
                 dt.isoformat(
                     dt.strptime(record['dateDebut'], '%Y-%m-%d %H:%M:%S')),
                 dt.isoformat(
-                    dt.strptime(record['dateFin'], '%Y-%m-%d %H:%M:%S'))]))))  # noqa: E501
-        """ if record.get('heureDebut'):
-            _value = record.get('heureDebut')
-            if record.get('heureFin'):
-                _value = '/'.join([record['heureDebut'], record['heureFin']])
-            self.graph.add(
-                (human_observation,
-                 DWC['eventTime'],
-                 Literal(Literal(_value)))) """
+                    dt.strptime(record['dateFin'], '%Y-%m-%d %H:%M:%S'))]))))
         self.graph.add(
-            (human_observation, DWC['samplingProtocol'], Literal(record['obsMeth'])))  # noqa: E501
+            (event, DWC['samplingProtocol'], Literal(record['obsMeth'])))  # noqa: E501
         self.graph.add(
-            (human_observation, DWC['eventRemarks'], Literal(record['obsCtx'])))  # noqa: E501
-        """ self.graph.add(
-                (human_observation, DWC['accessRights'], Literal(record['dSPublique'])))  # noqa: E501 """
-        self.graph.add((human_observation, DWC['datasetName'], Literal(record['jddCode'])))  # noqa: E501
-        self.graph.add(
-            (human_observation, DWC['datasetId'], Literal(record['jddId'])))
-        """ self.graph.add(
-                (human_observation, DWC['ownerInstitutionCode'], Literal(record['orgGestDat'])))  # noqa: E501
-            if 'obsId' in record.keys() and 'obsNomOrg' in record.keys():
-            self.graph.add(
-                (human_observation,
-                 DWC['georeferencedBy'],
-                 Literal('|'.join([record['obsId'], record['obsNomOrg']]))))
-        elif 'obsId' in record.keys():
-            self.graph.add(
-                (human_observation, DWC['georeferencedBy'], Literal(record['obsId'])))  # noqa: E501
-        elif 'obsNomOrg' in record.keys():
-            self.graph.add(
-                (human_observation, DWC['georeferencedBy'], Literal(record['obsNomOrg'])))  # noqa: E501 """
-        return human_observation
+            (event, DWC['eventRemarks'], Literal(record['obsCtx'])))  # noqa: E501
+        self.graph.add((recordlevel, DSW['basisOfRecord'], event))
+        return event
 
-    def build_location(self, human_observation, record):
+    def build_location(self, event, record):
         location = BNode()
         self.graph.add((location, RDF.type, DWC['Location']))
         self.graph.add(
             (location, DWC['maximumElevationInMeters'], Literal(record['altMax'])))  # noqa: E501
         self.graph.add(
             (location, DWC['minimumElevationInMeters'], Literal(record['altMin'])))  # noqa: E501
-        self.graph.add((location, DWC['footprintWKT'], Literal(record['geom'])))
+        self.graph.add(
+            (location, DWC['footprintWKT'], Literal(record['geom'])))
         self.graph.add((location, DWC['geodeticDatum'], Literal('EPSG:4326')))
         self.graph.add(
            (location,
-           DWC['coordinateIncertaintyInMeters'],
+           DWC['coordinateUncertaintyInMeters'],
           Literal(record['difNivPrec'])))
         self.graph.add(
             (location,
@@ -100,8 +75,12 @@ class OccurrenceStore:
             (location,
                 DWC['decimalLongitude'],
                 Literal(record['y_centroid'], datatype=XSD.float)))
-
-        self.graph.add((human_observation, DSW['locatedAt'], location))
+        # Habitat = code HABREF
+        self.graph.add(
+            (location, DWC['habitat'], Literal(record['typInfGeo'])))
+        self.graph.add(
+            (location, DWC['countryCode'], Literal('FR')))
+        self.graph.add((event, DSW['locatedAt'], location))
         return location
 
     def build_occurrence(self, event, record):
@@ -115,18 +94,20 @@ class OccurrenceStore:
         self.graph.add(
             (occurrence, DWC['occurrenceStatus'], Literal(record['statObs'])))
         self.graph.add(
-            (occurrence, DWC['occurrenceRemarks'], Literal(record['obsCtx'])))
+            (occurrence, DWC['occurrenceRemarks'], Literal(record['obsDescr'])))
         self.graph.add(
-            (occurrence, DWC['occurrenceQuantityType'], Literal(record['objDenbr'])))  # noqa: E501
+            (occurrence, DWC['organismQuantityType'], Literal(record['objDenbr'])))  # noqa: E501
         self.graph.add(
             (occurrence, DWC['occurrenceQuantity'], Literal(record['denbrMin'])))  # noqa: E501
-        """ self.graph.add(
-            (occurrence, DWC['associatedReferences'], Literal(record['refBiblio'])))  # noqa: E501 """
         self.graph.add(
             (occurrence, DWC['establishmentMeans'], Literal(record['ocNat'])))
         self.graph.add(
            (occurrence, DWC['lifeStage'], Literal(record['ocStade'])))
-        self.graph.add((event, DSW['basisOfRecord'], occurrence))
+        self.graph.add(
+           (occurrence, DWC['recordedBy'], Literal(record['observer'])))
+        self.graph.add(
+           (occurrence, DWC['occurrenceRemarks'], Literal(record['obsDescr'])))
+        self.graph.add((occurrence, DSW['atEvent'], event))
         return occurrence
 
     def build_organism(self, occurrence, record):
@@ -139,30 +120,19 @@ class OccurrenceStore:
         identification = BNode()
         self.graph.add((identification, RDF.type, DWC['Identification']))
         self.graph.add(
-            (identification, DWC['identificationStatus'], Literal(record['preuveOui'])))  # noqa: E501
+            (identification, DWC['identificationVerificationStatus'], Literal(record['preuveOui'])))  # noqa: E501
         self.graph.add(
             (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
-        self.graph.add(
-            (identification, DWC['dateIdentified'], Literal(dt.isoformat(
-                dt.strptime(record['dateDebut'], '%Y-%m-%d %H:%M:%S')))))
-        """  if 'detId' in record.keys() and 'detNomOrg' in record.keys():
+        if 'detminer' in record.keys():
             self.graph.add(
-                (organism,
-                 DWC['identifiedBy'],
-                 Literal('|'.join([record['detId'], record['detNomOrg']]))))
-        elif 'detId' in record.keys():
-            self.graph.add(
-                (organism, DWC['identifiedBy'], Literal(record['detId'])))
-        elif 'detNomOrg' in record.keys():
-            self.graph.add(
-                (organism, DWC['identifiedBy'], Literal(record['detNomOrg']))) """
-
-        self.graph.add((organism, DWC['hasIdentification'], identification))
+                (identification, DWC['identifiedBy'], Literal(record['detminer'])))
         return identification
 
     def build_taxon(self, identification, record):
-        taxon = BNode()
+        taxon=BNode()
         self.graph.add((taxon, RDF.type, DWC['Taxon']))
+        self.graph.add((taxon, DWC['scientificName'],
+                       Literal(record['nom_complet'])))
         self.graph.add(
             (taxon, DWC['vernacularName'],
              Literal(record['nomCite'], lang='fr')))
@@ -172,68 +142,6 @@ class OccurrenceStore:
                 Literal(
                     'http://taxref.mnhn.fr/lod/taxon/{}/12.0'.format(
                         str(record['cdRef']))))))
-
+        self.graph.add( ( taxon, DWC['nameAccordingTo'], Literal(record['vTAXREF']) ) )
         self.graph.add((identification, DSW['toTaxon'], taxon))
         return taxon
-
-
-""" if __name__ == '__main__':
-    record = {
-        'permId': '311abde1-a45d-4daa-8475-b538637d37dd',
-        'statObs': 'Pr',
-        'nomCite': 'Ablette',
-        'dateDebut': '2017-01-08 00:00:00',
-        'dateFin': '2017-01-08 00:00:00',
-        'heureDebut': '20:00:00',
-        'heureFin': '23:00:00',
-        'altMax': 1600,
-        'altMin': 1600,
-        'cdNom': 67111,
-        'cdRef': 67111,
-        'versionTAXREF': 'Taxref V11.0',
-        'obsCtx': 'Troisieme test',
-        'dSPublique': 'NSP',
-        'jddMetadonneeDEEId': '4d331cae-65e4-4948-b0b2-a11bc5bb46c2',
-        'statSource': '',
-        'difNivPrec': 0,
-        'idOrigine': '311abde1-a45d-4daa-8475-b538637d37dd',
-        'jddCode': 'Contact aléatoire tous règnes confondus',
-        'jddId': '4d331cae-65e4-4948-b0b2-a11bc5bb46c2',
-        'refBiblio': '',
-        'obsMeth': 23,
-        'ocEtatBio': 1,
-        'ocNat': 1,
-        'ocSex': 2,
-        'ocStade': 3,
-        'ocBiogeo': 0,
-        'ocStatBio': 1,
-        'preuveOui': 0,
-        'ocMethDet': 'Autre méthode de détermination',
-        #'preuvNum': '',
-        #'preuvNoNum': 'Poils de plumes',
-        'obsCtx': 'Autre exemple test',
-        'permIdGrp': 'b93a03d3-5e24-4d28-b68e-e0f75593f085',
-        'methGrp': 'Relevé',
-        'typGrp': 'OBS',
-        'denbrMax': '1',
-        'denbrMin': '1',
-        'objDenbr': 'IND',
-        'typDenbr': 'Co',
-        'obsId': 'Administrateur test',
-        'obsNomOrg': 'Autre',
-        'detId': 'Donovan',
-        'detNomOrg': 'NSP',
-        'orgGestDat': 'NSP',
-        'geom_4326': '',
-        'geom': 'POINT(6.5 44.85)',
-        'natObjGeo': 'In'
-    }
-    store = OccurrenceStore()
-    event = store.build_event(record)
-    human_observation = store.build_human_observation(event, record)
-    location = store.build_location(human_observation, record)
-    occurrence = store.build_occurrence(event, record)
-    organism = store.build_organism(occurrence, record)
-    identification = store.build_identification(organism, record)
-    taxon = store.build_taxon(identification, record)
-    store.save(store_uri='file:///tmp/export_etalab.ttl') """

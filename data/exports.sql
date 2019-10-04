@@ -282,13 +282,6 @@ VALUES ('Synthese SINP', 'gn_exports', 'v_synthese_sinp', 'Export des données d
 ----------------------
 --DROP VIEW gn_exports.v_exports_synthese_sinp_rdf;
 
--- en commentaire, ci-dessous, champs non utilisés dans la correpondance rdf
--- champs dans le fichier rdf.py et manquants dans la view : detId, obsId, obsNomOrg, dSPublique, orgGestDat, refBiblio, heureDebut, heureFin
--- champs requis/recommandé manquants :
---  event : eventID
---  occurence : recordedBy, scientificName, nameAccordingTo, municipality, county, higherGeography, habitat, coordinateUncertaintyInMeters
------ locality, country, countryCode
-
 CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
     WITH deco AS (
          SELECT s_1.id_synthese,
@@ -334,7 +327,7 @@ CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
         )
  SELECT s.id_synthese AS "idSynthese",
     s.unique_id_sinp AS "permId",
-    --s.unique_id_sinp_grp AS "permIdGrp",
+    s.unique_id_sinp_grp AS "permIdGrp",
     s.count_min AS "denbrMin",
     s.count_max AS "denbrMax",
     s.meta_v_taxref AS "vTAXREF",
@@ -346,12 +339,12 @@ CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
     st_astext(s.the_geom_4326) AS "geom",
     s.date_min AS "dateDebut",
     s.date_max AS "dateFin",
-    --s.validator AS "validateur",
-    --s.observers AS "observer",
-    --s.id_digitiser,
-    --s.determiner AS "detminer",
+    s.validator AS "validateur",
+    s.observers AS "observer",
+    s.id_digitiser,
+    s.determiner AS "detminer",
     s.comment_context AS "obsCtx",
-    --s.comment_description AS "obsDescr",
+    s.comment_description AS "obsDescr",
     s.meta_create_date,
     s.meta_update_date,
     d.id_dataset AS "jddId",
@@ -360,26 +353,27 @@ CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
     t.cd_nom AS "cdNom",
     t.cd_ref AS "cdRef",
     s.nom_cite AS "nomCite",
+    t.nom_complet AS nom_complet,
     public.st_x(public.st_transform(s.the_geom_point, 4326)) AS "x_centroid",
     public.st_y(public.st_transform(s.the_geom_point, 4326)) AS "y_centroid",
     COALESCE(s.meta_update_date, s.meta_create_date) AS lastact,
-    --deco."ObjGeoTyp",
-    --deco."methGrp",
+    deco."ObjGeoTyp",
+    deco."methGrp",
     deco."obsMeth",
-    --deco."obsTech",
-    --deco."ocEtatBio",
+    deco."obsTech",
+    deco."ocEtatBio",
     deco."ocNat",
     deco."preuveOui",
     deco."difNivPrec",
     deco."ocStade",
-    --deco."ocSex",
+    deco."ocSex",
     deco."objDenbr",
-    --deco."denbrTyp",
-    --deco."sensiNiv",
+    deco."denbrTyp",
+    deco."sensiNiv",
     deco."statObs",
-    --deco."dEEFlou",
-    --deco."statSource",
-    --deco."typInfGeo"
+    deco."dEEFlou",
+    deco."statSource",
+    deco."typInfGeo"
    FROM gn_synthese.synthese s
      JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
      JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset

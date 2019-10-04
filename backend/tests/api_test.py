@@ -292,22 +292,22 @@ class TestApiModuleExports:
         assert response.status_code == 404
         assert response.json == {'api_error': 'NonTransformableError'}
 
-    def test_etalab(self):
+    def test_lod(self):
         import rdflib
         import rdflib.compare
 
         conf = current_app.config.get('exports')
 
-        if (current_app.config.get('etalab_export', False)
+        if (current_app.config.get('lod_export', False)
                 not in (None, False, 0, '')):
             try:
-                os.unlink(conf.get('etalab_export'))
+                os.unlink(conf.get('lod_export'))
             except FileNotFoundError:
                 pass
 
-        response = self.client.get(url_for('exports.etalab_export'))
+        response = self.client.get(url_for('exports.lod_export'))
 
-        if (current_app.config.get('etalab_export', False)
+        if (current_app.config.get('lod_export', False)
                 in (None, False, 0, '')):
             assert response.status_code == 501
             return

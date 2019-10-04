@@ -483,30 +483,30 @@ def get_one_export_api(id_export, info_role):
 
 
 # TODO : Route desactivée car à évaluer
-@blueprint.route('/etalab', methods=['GET'])
-def etalab_export():
+@blueprint.route('/lod', methods=['GET'])
+def lod_export():
     """
         TODO : METHODE NON FONCTIONNELLE A EVALUEE
     """
-    if not blueprint.config.get('etalab_export'):
+    if not blueprint.config.get('lod_export'):
         return to_json_resp(
-            {'api_error': 'etalab_disabled',
-             'message': 'Etalab export is disabled'}, status=501)
+            {'api_error': 'lod_disabled',
+             'message': 'linked open data export is disabled'}, status=501)
 
     from datetime import time
     from geonature.utils.env import DB
     from .rdf import OccurrenceStore
 
     conf = current_app.config.get('EXPORTS')
-    export_etalab = conf.get('etalab_export')
+    export_lod = conf.get('lod_export')
     seeded = False
-    if os.path.isfile(export_etalab):
+    if os.path.isfile(export_lod):
         seeded = True
         midnight = datetime.combine(datetime.today(), time.min)
-        mtime = datetime.fromtimestamp(os.path.getmtime(export_etalab))
+        mtime = datetime.fromtimestamp(os.path.getmtime(export_lod))
         ts_delta = mtime - midnight
 
-    if not seeded or ts_delta.total_seconds() < 100000:
+    if not seeded or ts_delta.total_seconds() < 0:
         store = OccurrenceStore()
         query = GenericQuery(
             DB.session, 'v_exports_synthese_sinp_rdf', 'gn_exports',
@@ -514,20 +514,20 @@ def etalab_export():
         )
         data = query.return_query()
         for record in data.get('items'):
-            event = store.build_event(record)
-            obs = store.build_human_observation(event, record)
-            store.build_location(obs, record)
+            recordLevel = store.build_recordlevel(record)
+            event = store.build_event(recordLevel, record)
+            store.build_location(event, record)
             occurrence = store.build_occurrence(event, record)
             organism = store.build_organism(occurrence, record)
             identification = store.build_identification(organism, record)
             store.build_taxon(identification, record)
         try:
-            with open(export_etalab, 'w+b') as xp:
+            with open(export_lod, 'w+b') as xp:
                 store.save(store_uri=xp)
         except FileNotFoundError:
             response = Response(
                 response="FileNotFoundError : {}".format(
-                    export_etalab
+                    export_lod
                 ),
                 status=500,
                 mimetype='application/json'
@@ -535,5 +535,5 @@ def etalab_export():
             return response
 
     return send_from_directory(
-        os.path.dirname(export_etalab), os.path.basename(export_etalab)
+        os.path.dirname(export_lod), os.path.basename(export_lod)
 )

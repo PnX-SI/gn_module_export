@@ -24,11 +24,11 @@ export_format_map = {
         'geofeature': True
         }
 }  # noqa: E133
-etalab_export = '/home/geonatureadmin/geonature/backend/static/exports/export_etalab.ttl'
+lod_export = '/home/geonatureadmin/geonature/backend/static/exports/export_lod.ttl'
 
 
 class GnModuleSchemaConf(Schema):
     export_format_map = fields.Dict(missing=export_format_map)
     default_schema = fields.String(missing=default_schema)
-    etalab_export = fields.String(missing=etalab_export)
+    lod_export = fields.String(missing=lod_export)
     nb_days_keep_file = fields.Int(missing=15)
