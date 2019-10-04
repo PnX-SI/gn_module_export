@@ -17,6 +17,7 @@ from rdflib.namespace import FOAF, DC, XSD
 DCMITYPE = Namespace('http://purl.org/dc/dcmitype/')
 DWC = Namespace('http://rs.tdwg.org/dwc/terms/')
 DSW = Namespace('http://purl.org/dsw/')
+DCMTERMS = Namespace('http://purl.org/dc/terms')
 
 
 class OccurrenceStore:
@@ -26,13 +27,23 @@ class OccurrenceStore:
         self.graph.bind('foaf', FOAF)
         self.graph.bind('dwc', DWC)
         self.graph.bind('dsw', DSW)
+        self.graph.bind('dcterms', DCMTERMS)
 
     def save(self, store_uri, format_='turtle'):
         self.graph.serialize(store_uri, format_)
 
+    def build_agent(self, who=None):
+        agent = BNode()
+        self.graph.add((agent, RDF.type, FOAF['Agent']))
+        if who is not None:
+            self.graph.add((agent, RDF.type, FOAF['Person']))
+            self.graph.add((agent, FOAF['nick'], Literal(who)))
+        return agent
+
     def build_recordlevel(self, record):
         recordlevel = BNode()
-        self.graph.add((recordlevel, RDF.type, DWC['Record-level']))
+        self.graph.add((recordlevel, RDF.type, DCMTERMS.Event))
+        self.graph.add((recordlevel, DCMTERMS['language'], Literal('fr')))
         return recordlevel
 
     def build_event(self, recordlevel, record):
@@ -55,7 +66,7 @@ class OccurrenceStore:
 
     def build_location(self, event, record):
         location = BNode()
-        self.graph.add((location, RDF.type, DWC['Location']))
+        self.graph.add((location, RDF.type, DCMTERMS['Location']))
         self.graph.add(
             (location, DWC['maximumElevationInMeters'], Literal(record['altMax'])))  # noqa: E501
         self.graph.add(
@@ -103,17 +114,20 @@ class OccurrenceStore:
             (occurrence, DWC['establishmentMeans'], Literal(record['ocNat'])))
         self.graph.add(
            (occurrence, DWC['lifeStage'], Literal(record['ocStade'])))
+        observer = self.build_agent(record['observer'])
         self.graph.add(
-           (occurrence, DWC['recordedBy'], Literal(record['observer'])))
+           (occurrence, DWC['recordedBy'], observer))
         self.graph.add(
            (occurrence, DWC['occurrenceRemarks'], Literal(record['obsDescr'])))
         self.graph.add((occurrence, DSW['atEvent'], event))
+        self.graph.add((event, DSW['eventOf'], occurrence))
         return occurrence
 
     def build_organism(self, occurrence, record):
         organism = BNode()
         self.graph.add((organism, RDF.type, DWC['Organism']))
         self.graph.add((occurrence, DSW['occurrenceOf'], organism))
+        self.graph.add((organism, DSW['hasOccurrence'], occurrence))
         return organism
 
     def build_identification(self, organism, record):
@@ -124,8 +138,11 @@ class OccurrenceStore:
         self.graph.add(
             (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
         if 'detminer' in record.keys():
+            detminer = build_agent(record['detminer'])
             self.graph.add(
-                (identification, DWC['identifiedBy'], Literal(record['detminer'])))
+                (identification, DWC['identifiedBy'], detminer)))
+        self.graph.add((identification, DSW['identifies'], organism))
+        self.graph.add((organism, DSW['hasIdentification'], identification))
         return identification
 
     def build_taxon(self, identification, record):
