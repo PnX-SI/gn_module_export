@@ -24,6 +24,7 @@ from .models import (Export, ExportLog, CorExportsRoles)
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
 
+path2str = lambda path: str(path)
 
 class Error(Exception):
     """

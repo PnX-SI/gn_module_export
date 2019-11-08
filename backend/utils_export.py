@@ -18,7 +18,8 @@ from geonature.utils.filemanager import (
     removeDisallowedFilenameChars
 )
 from .repositories import (
-    ExportRepository
+    ExportRepository,
+    path2str
 )
 from .send_mail import export_send_mail, export_send_mail_error
 
@@ -202,7 +203,8 @@ class GenerateExport():
         for gtype in ['POINT', 'POLYGON', 'POLYLINE']:
             file_path = Path(self.export_dir, gtype + '_' + self.file_name)
             if file_path.is_dir():
-                shutil.rmtree(file_path)
+                shutil.rmtree(path2str(file_path))
+
 
         return True
 
