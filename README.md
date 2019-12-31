@@ -104,12 +104,13 @@ Pour le volet Taxonomie, un travail expérimental a été réalisé : https://gi
   mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
   ```
 
-- Rappatriez les fichiers de configuration
+- Rappatriez le fichier de configuration
 
   ```
   cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
   ```
- - Refaire le lien symbolique vers les `node_modules`
+  
+- Refaire le lien symbolique vers les `node_modules`
   ```
   ln -s /home/`whoami`/geonature/frontend/node_modules /home/`whoami`/gn_module_export/frontend
   ```
