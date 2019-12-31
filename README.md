@@ -87,7 +87,7 @@ Ainsi que : https://fr.wikipedia.org/wiki/Syst%C3%A8me_d'information_taxonomique
 
 Pour le volet Taxonomie, un travail expérimental a été réalisé : https://github.com/PnX-SI/TaxHub/issues/150
 
-# Mise à jour du module
+# Mise à jour du module
 
 - Téléchargez la nouvelle version du module
 
