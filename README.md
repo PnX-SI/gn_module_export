@@ -87,7 +87,7 @@ Ainsi que : https://fr.wikipedia.org/wiki/Syst%C3%A8me_d'information_taxonomique
 
 Pour le volet Taxonomie, un travail expérimental a été réalisé : https://github.com/PnX-SI/TaxHub/issues/150
 
-# Mise à jour du module
+# Mise à jour du module
 
 - Téléchargez la nouvelle version du module
 
@@ -104,9 +104,20 @@ Pour le volet Taxonomie, un travail expérimental a été réalisé : https://gi
   mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
   ```
 
-- Rappatriez les fichiers de configuration
+- Rappatriez le fichier de configuration
 
-  ````
-  cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml /home/`whoami`/gn_module_export/config/conf_gn_module.toml
-  cp /home/`whoami`/gn_module_export_old/frontend/app/module.config.ts /home/`whoami`/gn_module_export/frontend/app/module.config.ts```
-  ````
+  ```
+  cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
+  ```
+  
+- Refaire le lien symbolique vers les `node_modules`
+  ```
+  ln -s /home/`whoami`/geonature/frontend/node_modules /home/`whoami`/gn_module_export/frontend
+  ```
+- Relancer la compilation en mettant à jour la configuration
+  ```
+  cd /home/`whoami`/geonature/backend
+  source venv/bin/activate
+  geonature update_module_configuration EXPORTS
+  ```
+
