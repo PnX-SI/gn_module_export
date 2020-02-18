@@ -536,7 +536,7 @@ def etalab_export():
     if not seeded or ts_delta.total_seconds() < 0:
         store = OccurrenceStore()
         query = GenericQuery(
-            DB.session, 'export_occtax_sinp', 'pr_occtax',
+            DB, 'export_occtax_sinp', 'pr_occtax',
             geometry_field=None, filters=[]
         )
         data = query.return_query()

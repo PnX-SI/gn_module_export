@@ -91,8 +91,8 @@ class ExportRepository():
         if not filters:
             filters = dict()
 
-        query = GenericQuery(
-            self.session,
+        query = GenericQueryGeo(
+            DB,
             export_.view_name, export_.schema_name, geom_column_header,
             filters,
             limit, offset
@@ -310,7 +310,7 @@ def generate_swagger_spec(id_export):
     except (NoResultFound, EmptyDataSetError) as e:
         raise e
 
-    export_table = GenericTable(
+    export_table = GenericTableGeo(
         tableName=export.view_name,
         schemaName=export.schema_name,
         geometry_field=export.geometry_field,
