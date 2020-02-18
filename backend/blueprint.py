@@ -29,10 +29,13 @@ from flask_admin.helpers import is_form_submitted
 from pypnusershub.db.models import User
 
 from geonature.core.admin.admin import flask_admin
-from geonature.utils.utilssqlalchemy import (
-    json_resp, to_json_resp,
-    GenericQuery
+from utils_flask_sqla.response import (
+    json_resp, to_json_resp
 )
+
+
+from utils_flask_sqla.generic import GenericQuery
+
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.utils.env import DB
 

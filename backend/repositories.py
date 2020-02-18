@@ -14,7 +14,10 @@ from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub.db.models import User
 
 from geonature.utils.env import DB
-from geonature.utils.utilssqlalchemy import GenericQuery, GenericTable
+
+from utils_flask_sqla.generic import GenericQuery, GenericTable
+from utils_flask_sqla_geo.generic import GenericQueryGeo, GenericTableGeo
+
 from geonature.core.users.models import CorRole
 
 
