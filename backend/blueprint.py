@@ -60,6 +60,8 @@ repo = ExportRepository()
     Configuration de l'admin
 #################################################################
 """
+
+
 class LicenceView(ModelView):
     """
         Surcharge de l'administration des licences
@@ -81,6 +83,7 @@ class LicenceView(ModelView):
         url_licence='Url de la documentation de la licence',
     )
 
+
 class ExportRoleView(ModelView):
     """
         Surcharge de l'administration de l'association role/export
@@ -99,6 +102,7 @@ class ExportRoleView(ModelView):
         role='Role associé à l\'export'
     )
 
+
 class ExportView(ModelView):
     """
          Surcharge du formulaire d'administration Export
@@ -108,7 +112,17 @@ class ExportView(ModelView):
         super(ExportView, self).__init__(Export,  session, **kwargs)
 
     # Ordonne les colonnes pour avoir la licence à la fin de la liste
-    column_list = ['id', 'label', 'schema_name', 'view_name', 'desc', 'geometry_field', 'geometry_srid', 'public', 'licence']
+    column_list = [
+        'id',
+        'label',
+        'schema_name',
+        'view_name',
+        'desc',
+        'geometry_field',
+        'geometry_srid',
+        'public',
+        'licence'
+    ]
     # Nom de colonne user friendly
     column_labels = dict(
         id='Identifiant',
@@ -118,17 +132,26 @@ class ExportView(ModelView):
         desc='Description',
         geometry_field='Nom de champ géométrique',
         geometry_srid='SRID du champ géométrique'
-        )
+    )
     # Description des colonnes
     column_descriptions = dict(
         label='Nom libre de l\'export',
-        desc='Décrit la nature de l\'export',
         schema_name='Nom exact du schéma postgreSQL contenant la vue SQL.',
         view_name='Nom exact de la vue SQL permettant l\'export de vos données.',
+        desc='Décrit la nature de l\'export',
         public='L\'export est accessible à tous'
     )
     # Ordonne des champs pour avoir la licence à la fin du formulaire
-    form_columns = ('label', 'schema_name', 'view_name', 'desc', 'geometry_field', 'geometry_srid', 'public', 'licence')
+    form_columns = (
+        'label',
+        'schema_name',
+        'view_name',
+        'desc',
+        'geometry_field',
+        'geometry_srid',
+        'public',
+        'licence'
+    )
 
     def validate_form(self, form):
         """

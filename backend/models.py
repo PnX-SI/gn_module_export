@@ -58,7 +58,8 @@ class Export(DB.Model):
             desc=adict['desc'],
             geometry_field=adict['geometry_field'],
             geometry_srid=adict['geometry_srid'],
-            public=adict['public'])
+            public=adict['public']
+        )
         return export
 
 
