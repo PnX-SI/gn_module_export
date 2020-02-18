@@ -15,7 +15,7 @@ from pypnusershub.db.models import User
 
 from geonature.utils.env import DB
 
-from utils_flask_sqla.generic import GenericQuery, GenericTable
+# from utils_flask_sqla.generic import GenericQuery, GenericTable
 from utils_flask_sqla_geo.generic import GenericQueryGeo, GenericTableGeo
 
 from geonature.core.users.models import CorRole
@@ -93,9 +93,10 @@ class ExportRepository():
 
         query = GenericQueryGeo(
             DB,
-            export_.view_name, export_.schema_name, geom_column_header,
+            export_.view_name, export_.schema_name,
             filters,
-            limit, offset
+            limit, offset,
+            geom_column_header
         )
         data = query.return_query()
 
@@ -199,6 +200,7 @@ class ExportRepository():
                 )
 
             status = 0
+
             result = (export_.as_dict(True), columns, data)
 
         except (

@@ -90,7 +90,7 @@ class ExportLog(DB.Model):
 
     @classmethod
     def from_dict(cls, adict):
-        export_log = ExportLog(
+        export_log = cls(
             id_role=adict['id_role'],
             id_export=adict['id_export'],
             export_format=adict['export_format'],
@@ -104,7 +104,16 @@ class ExportLog(DB.Model):
     @classmethod
     def record(cls, adict):
         try:
-            x = ExportLog.from_dict(adict)
+            # TODO comprendre pourquoi ça ne marchait pas
+            x = cls(
+                id_role=adict['id_role'],
+                id_export=adict['id_export'],
+                export_format=adict['export_format'],
+                start_time=adict['start_time'],
+                end_time=adict['end_time'],
+                status=adict['status'],
+                log=adict['log']
+            )
             DB.session.add(x)
             DB.session.commit()
         except Exception as e:
