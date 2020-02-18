@@ -35,6 +35,7 @@ from utils_flask_sqla.response import (
 
 
 from utils_flask_sqla.generic import GenericQuery
+from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.utils.env import DB
@@ -165,16 +166,16 @@ class ExportView(ModelView):
         geometry_srid = getattr(form, 'geometry_srid', None)
         if (is_form_submitted() and view_name and schema_name):
             try:
-                query = GenericQuery(
-                    DB.session, view_name.data, schema_name.data,
-                    geometry_field=geometry_field.data, filters=[]
-                )
-                query.return_query()
-
                 if geometry_field.data and geometry_srid.data is None:
                     raise KeyError(
                         "field Geometry srid is mandatory with Geometry field"
                     )
+
+                query = GenericQueryGeo(
+                    DB, view_name.data, schema_name.data,
+                    geometry_field=geometry_field.data, filters=[]
+                )
+                query.return_query()
 
             except Exception as exp:
                 flash(exp, category='error')
