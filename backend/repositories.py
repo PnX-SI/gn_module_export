@@ -232,11 +232,12 @@ class ExportRepository():
             ExportLog.record({
                 'id_role': info_role.id_role,
                 'id_export': export_.id,
-                'export_format': export_format,
+                'format': export_format,
                 'start_time': start_time,
                 'end_time': end_time,
                 'status': status,
-                'log': log})
+                'log': log
+            })
 
             if status != 0 or exc:
                 LOGGER.critical('export error: %s', exp_tb)
@@ -315,6 +316,7 @@ def generate_swagger_spec(id_export):
     export_table = GenericTableGeo(
         tableName=export.view_name,
         schemaName=export.schema_name,
+        engine=DB.engine,
         geometry_field=export.geometry_field,
         srid=export.geometry_srid
     )
