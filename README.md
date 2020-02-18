@@ -1,12 +1,12 @@
 # Module export
 
-Module permetant d'ajouter de fonctionnalités d'export à l'application GéoNature
+Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNature.
 
 ## Fonctionnalités principales
 
 - Interface administrateur de gestion des exports
 - Interface utilisateur permettant de réaliser des exports
-- API d'Interrogation des exports
+- API d'interrogation des exports
 - Export nocture des exports [TODO]
 - Export RDF au format Darwin-SW [TODO]
 
@@ -14,11 +14,11 @@ Module permetant d'ajouter de fonctionnalités d'export à l'application GéoNat
 
 ## Configuration
 
-### Mail
+### Email
 
-Le module d'export envoie des mails indiquant que l'export demandé est près. Pour cela il est nécessaire de configurer les paramètres mail dans la configuration générale de GéoNature (`config/geonature_config.toml`).
+Le module d'export envoie des emails indiquant que l'export demandé est prêt. Pour cela il est nécessaire de configurer les paramètres email dans la configuration générale de GeoNature (``config/geonature_config.toml``).
 
-La configuration des mails utilise les paramètres définis pas Flask_mail. Pour avoir accès à l'ensemble des paramètres se référer à la [documentation complète](https://flask-mail.readthedocs.io/en/latest/).
+La configuration des emails utilise les paramètres définis par Flask_mail. Pour avoir accès à l'ensemble des paramètres se référer à la [documentation complète](https://flask-mail.readthedocs.io/en/latest/).
 
 ```
 [MAIL_CONFIG]
@@ -31,7 +31,7 @@ La configuration des mails utilise les paramètres définis pas Flask_mail. Pour
 
 ## Commande d'installation
 
-- Faire un lien symbolique vers le répertoire `node_modules` de GeoNature
+- Faire un lien symbolique vers le répertoire ``node_modules`` de GeoNature
 
 ```
 ln -s /home/`whoami`/geonature/frontend/node_modules /home/`whoami`/gn_module_export/frontend
@@ -44,7 +44,7 @@ source backend/venv/bin/activate
 geonature install_gn_module /PATH_TO_MODULE/gn_module_export exports
 ```
 
-Pour avoir des exports disponibles il faut les renseigner au niveau de la base de données dans la table `gn_exports.t_exports`.
+Pour avoir des exports disponibles il faut les renseigner au niveau de la base de données dans la table ``gn_exports.t_exports``.
 
 # Administration du module
 
@@ -52,19 +52,19 @@ Pour avoir des exports disponibles il faut les renseigner au niveau de la base d
 
 Pour créer un nouvel export il faut au préalable créer une vue dans la base de données correspondante à l'export désiré.
 
-Pour des questions de lisibilité il est conseillé de créer la vue dans le schéma `gn_export`
+Pour des questions de lisibilité il est conseillé de créer la vue dans le schéma ``gn_export``.
 
 ## Enregistrer l'export créé dans l'admin
 
-L'interface d'administration est accessible dans Géonature via le menu `admin` puis `backoffice GeoNature`
+L'interface d'administration est accessible dans GeoNature via le module ``Admin`` puis ``backoffice GeoNature``.
 
-Dans la rubrique Exports selectionner le menu Export puis cliquer sur create et renseigner les valeurs
+Dans la rubrique Exports selectionner le menu ``Export`` puis cliquer sur ``Create`` et renseigner les valeurs.
 
 ## Associer les roles ayant la permission d'accéder à cet export
 
-Aller sur la page : Associer roles aux exports
+Aller sur la page ``Associer roles aux exports``.
 
-Puis créer des associations entre les rôles et l'export en question
+Puis créer des associations entre les rôles et l'export en question.
 
 ```
 Seul les roles ayant des emails peuvent être associé à un export exception faite des groupes
@@ -74,8 +74,8 @@ Seul les roles ayant des emails peuvent être associé à un export exception fa
 
 Par défaut une documentation swagger est générée automatiquement mais il est possible de la surcharger en respectant certaines conventions.
 
-1. Créer un fichier au format open api dévrivant votre export
-2. Sauvegarder le fichier `geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json`
+1. Créer un fichier au format OpenAPI décrivant votre export
+2. Sauvegarder le fichier ``geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json``
 
 # Autres
 
@@ -104,20 +104,22 @@ Pour le volet Taxonomie, un travail expérimental a été réalisé : https://gi
   mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
   ```
 
-- Rappatriez le fichier de configuration
+- Rapatriez le fichier de configuration
 
   ```
   cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
   ```
   
-- Refaire le lien symbolique vers les `node_modules`
+- Refaire le lien symbolique vers les ``node_modules``
+
   ```
   ln -s /home/`whoami`/geonature/frontend/node_modules /home/`whoami`/gn_module_export/frontend
   ```
+
 - Relancer la compilation en mettant à jour la configuration
+
   ```
   cd /home/`whoami`/geonature/backend
   source venv/bin/activate
   geonature update_module_configuration EXPORTS
   ```
-
