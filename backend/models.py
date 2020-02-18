@@ -49,19 +49,6 @@ class Export(DB.Model):
 
     __repr__ = __str__
 
-    @classmethod
-    def from_dict(cls, adict):
-        export = Export(
-            label=adict['label'],
-            schema_name=adict['schema_name'],
-            view_name=adict['view_name'],
-            desc=adict['desc'],
-            geometry_field=adict['geometry_field'],
-            geometry_srid=adict['geometry_srid'],
-            public=adict['public']
-        )
-        return export
-
 
 @serializable
 class ExportLog(DB.Model):
@@ -78,47 +65,17 @@ class ExportLog(DB.Model):
     status = DB.Column(DB.Integer, default=-2)
     log = DB.Column(DB.Text)
 
-    def __init__(self, id_role, id_export, export_format, start_time, end_time,
-                 status, log):
-        self.id_role = id_role
-        self.id_export = id_export
-        self.format = export_format
-        self.start_time = start_time
-        self.end_time = end_time
-        self.status = status
-        self.log = log
-
-    @classmethod
-    def from_dict(cls, adict):
-        export_log = cls(
-            id_role=adict['id_role'],
-            id_export=adict['id_export'],
-            export_format=adict['export_format'],
-            start_time=adict['start_time'],
-            end_time=adict['end_time'],
-            status=adict['status'],
-            log=adict['log']
-        )
-        return export_log
-
     @classmethod
     def record(cls, adict):
         try:
-            # TODO comprendre pourquoi ça ne marchait pas
-            x = cls(
-                id_role=adict['id_role'],
-                id_export=adict['id_export'],
-                export_format=adict['export_format'],
-                start_time=adict['start_time'],
-                end_time=adict['end_time'],
-                status=adict['status'],
-                log=adict['log']
-            )
-            DB.session.add(x)
+            exportLog = cls()
+            exportLog.from_dict(adict)
+            DB.session.add(exportLog)
             DB.session.commit()
         except Exception as e:
+            print(e)
             DB.session.rollback()
-            raise e('Echec de journalisation.')
+            raise Exception('Echec de journalisation.')
 
 
 class CorExportsRoles(DB.Model):
