@@ -11,9 +11,7 @@ from flask import current_app
 from geoalchemy2.shape import from_shape
 from shapely.geometry import asShape
 
-from geonature.utils.utilssqlalchemy import generate_csv_content
-# from geonature.utils.utilsgeometry import FionaShapeService
-
+from utils_flask_sqla.response import generate_csv_content
 from utils_flask_sqla_geo.serializers import FionaShapeService
 
 from geonature.utils.filemanager import (
@@ -158,7 +156,6 @@ class GenerateExport():
         """
             transformation des données au format csv
         """
-        # TODO use utils_flask_sqla
         return generate_csv_content(
             columns=[c.name for c in self.columns],
             data=self.data.get('items'),
