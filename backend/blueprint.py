@@ -173,9 +173,8 @@ class ExportView(ModelView):
                         "field Geometry srid is mandatory with Geometry field"
                     )
 
-                query = GenericQueryGeo(
-                    DB, view_name.data, schema_name.data,
-                    geometry_field=geometry_field.data, filters=[]
+                query = GenericQuery(
+                    DB, view_name.data, schema_name.data,filters=[]
                 )
                 query.return_query()
 
