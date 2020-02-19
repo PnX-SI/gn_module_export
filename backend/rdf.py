@@ -74,10 +74,11 @@ class OccurrenceStore:
         self.graph.add(
             (location, DWC['footprintWKT'], Literal(record['geom'])))
         self.graph.add((location, DWC['geodeticDatum'], Literal('EPSG:4326')))
-        self.graph.add(
-           (location,
-           DWC['coordinateUncertaintyInMeters'],
-          Literal(record['difNivPrec'])))
+        self.graph.add((
+            location,
+            DWC['coordinateUncertaintyInMeters'],
+            Literal(record['difNivPrec'])
+        ))
         self.graph.add(
             (location,
                 DWC['decimalLatitude'],
