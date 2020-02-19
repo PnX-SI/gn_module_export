@@ -12,7 +12,9 @@ from geoalchemy2.shape import from_shape
 from shapely.geometry import asShape
 
 from geonature.utils.utilssqlalchemy import generate_csv_content
-from geonature.utils.utilsgeometry import FionaShapeService
+# from geonature.utils.utilsgeometry import FionaShapeService
+
+from utils_flask_sqla_geo.serializers import FionaShapeService
 
 from geonature.utils.filemanager import (
     removeDisallowedFilenameChars
@@ -79,6 +81,7 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
             columns=columns,
             export=export
         ).generate_data_export()
+
     except Exception as exp:
         export_send_mail_error(
             user,
@@ -128,16 +131,16 @@ class GenerateExport():
         """
         out = None
 
-        if self.format not in ['json', 'csv', 'shp']:
+        if self.format not in ['json', 'csv', 'shp', 'geojson']:
             raise Exception('Unsuported format')
 
-        if (
-                self.format == 'shp' and
-                self.has_geometry
-        ):
+        if (self.format == 'shp' and self.has_geometry):
             self.generate_shp()
             return self.file_name + '.zip'
-        if self.format == 'json':
+        elif (self.format == 'json'):
+            out = self.generate_json()
+        elif (self.format == 'geojson'):
+            self.data = self.data['items']
             out = self.generate_json()
         elif self.format == 'csv':
             out = self.generate_csv()
@@ -166,6 +169,7 @@ class GenerateExport():
         """
             transformation des données au format json/geojson
         """
+        print(self.data)
         return json.dumps(
             self.data,
             ensure_ascii=False,
@@ -177,6 +181,7 @@ class GenerateExport():
             transformation des données au format shp
             et sauvegarde sous forme d'une archive
         """
+        print("generate_shp")
         FionaShapeService.create_shapes_struct(
             db_cols=self.columns,
             srid=self.export.get('geometry_srid'),
@@ -184,18 +189,22 @@ class GenerateExport():
             file_name=self.file_name
         )
 
+        print("items")
         items = self.data.get('items')
 
+        print("feature", items)
         for feature in items['features']:
             geom, props = (
                 feature.get(field) for field in ('geometry', 'properties')
             )
 
+            print("create_feature")
             FionaShapeService.create_feature(
                 props, from_shape(
                     asShape(geom), self.export.get('geometry_srid')
                 )
             )
+            print("end create_feature")
 
         FionaShapeService.save_and_zip_shapefiles()
 

@@ -62,6 +62,7 @@
                     (change)="downloading=false">
                     <option value="csv">CSV</option>
                     <option value="json">JSON</option>
+                    <option value="geojson" [disabled]="!_export.geometry_field">GEOJSON</option>
                     <option value="shp" [disabled]="!_export.geometry_field">SHP</option>
                     <!-- <option value="rdf" [disabled]="true">RDF</option> -->
             </select>

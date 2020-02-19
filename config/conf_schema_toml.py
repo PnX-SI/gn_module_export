@@ -1,7 +1,7 @@
 '''
    Spécification du schéma toml des paramètres de configurations
 '''
-import os
+
 from marshmallow import fields, Schema
 
 
@@ -12,6 +12,10 @@ export_format_map = {
         'geofeature': False
         },
     'json': {
+        'mime': 'application/json',
+        'geofeature': False
+        },
+    'geojson': {
         'mime': 'application/json',
         'geofeature': True
         },
