@@ -49,6 +49,9 @@ class OccurrenceStore:
     def build_event(self, recordlevel, record):
         event = BNode()
         self.graph.add((event, RDF.type, DWC['Event']))
+        if 'permIdGrp' in record.keys():
+            self.graph.add(
+                (event, DWC['eventID'], Literal(record['permIdGrp'])))
         self.graph.add(
             (event,
              DWC['eventDate'],
