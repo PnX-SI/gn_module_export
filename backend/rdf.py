@@ -113,10 +113,10 @@ class OccurrenceStore:
         self.graph.add(
            (occurrence, DWC['occurrenceStatus'], Literal(record['statObs'])))
 
-        #    TODO rajouter test if null
-        observer = self.build_agent(record['observer'])
-        self.graph.add(
-           (occurrence, DWC['recordedBy'], observer))
+        if 'observer' in record.keys():
+            observer = self.build_agent(record['observer'])
+            self.graph.add(
+            (occurrence, DWC['recordedBy'], observer))
 
         self.graph.add(
            (occurrence, DWC['occurrenceRemarks'], Literal(record['obsDescr'])))
@@ -139,7 +139,6 @@ class OccurrenceStore:
         self.graph.add(
             (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
 
-        #    TODO vérifier test if null
         if 'determiner' in record.keys():
             determiner = self.build_agent(record['determiner'])
             self.graph.add((identification, DWC['identifiedBy'], determiner))
