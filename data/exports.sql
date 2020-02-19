@@ -324,10 +324,19 @@ CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
              LEFT JOIN ref_nomenclatures.t_nomenclatures n17 ON s_1.id_nomenclature_source_status = n17.id_nomenclature
              LEFT JOIN ref_nomenclatures.t_nomenclatures n18 ON s_1.id_nomenclature_info_geo_type = n18.id_nomenclature
              LEFT JOIN ref_nomenclatures.t_nomenclatures n19 ON s_1.id_nomenclature_determination_method = n19.id_nomenclature
-        )
+),
+        info_dataset AS (
+        SELECT da.id_dataset, r.label_default, org.uuid_organisme, nom_organisme
+        FROM gn_meta.cor_dataset_actor da
+        JOIN ref_nomenclatures.t_nomenclatures r
+        ON da.id_nomenclature_actor_role = r.id_nomenclature
+        JOIN utilisateurs.bib_organismes org
+        ON da.id_organism = org.id_organisme
+        WHERE r.mnemonique = 'Producteur du jeu de données'
+)
  SELECT s.id_synthese AS "idSynthese",
     s.unique_id_sinp AS "permId",
-    s.unique_id_sinp_grp AS "permIdGrp",
+    COALESCE(s.unique_id_sinp_grp, s.unique_id_sinp) AS "permIdGrp",
     s.count_min AS "denbrMin",
     s.count_max AS "denbrMax",
     s.meta_v_taxref AS "vTAXREF",
@@ -347,7 +356,7 @@ CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
     s.comment_description AS "obsDescr",
     s.meta_create_date,
     s.meta_update_date,
-    d.id_dataset AS "jddId",
+    d.unique_dataset_id AS "jddId",
     d.dataset_name AS "jddCode",
     d.id_acquisition_framework,
     t.cd_nom AS "cdNom",
@@ -373,9 +382,12 @@ CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
     deco."statObs",
     deco."dEEFlou",
     deco."statSource",
-    deco."typInfGeo"
-   FROM gn_synthese.synthese s
-     JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
-     JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
-     JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
-JOIN deco ON deco.id_synthese = s.id_synthese;
+    deco."typInfGeo",
+    info_d.uuid_organisme as "ownerInstitutionID",
+    info_d.nom_organisme as "ownerInstitutionCode"
+FROM gn_synthese.synthese s
+JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
+JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
+JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
+JOIN deco ON deco.id_synthese = s.id_synthese
+LEFT OUTER JOIN info_dataset info_d ON info_d.id_dataset = d.id_dataset;
