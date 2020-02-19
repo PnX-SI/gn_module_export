@@ -173,8 +173,9 @@ class ExportView(ModelView):
                         "field Geometry srid is mandatory with Geometry field"
                     )
 
-                query = GenericQuery(
-                    DB, view_name.data, schema_name.data,filters=[]
+                query = GenericQueryGeo(
+                    DB, view_name.data, schema_name.data,
+                    geometry_field=geometry_field.data, filters=[]
                 )
                 query.return_query()
 
@@ -545,9 +546,8 @@ def lod_export():
 
     if not seeded or ts_delta.total_seconds() < 0:
         store = OccurrenceStore()
-        query = GenericQueryGeo(
-            DB, 'v_exports_synthese_sinp_rdf', 'gn_exports',
-            geometry_field=None, filters=[]
+        query = GenericQuery(
+            DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters=[]
         )
         data = query.return_query()
         for record in data.get('items'):
