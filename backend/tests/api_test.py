@@ -292,22 +292,22 @@ class TestApiModuleExports:
         assert response.status_code == 404
         assert response.json == {'api_error': 'NonTransformableError'}
 
-    def test_lod(self):
+    def test_semantic_dsw(self):
         import rdflib
         import rdflib.compare
 
         conf = current_app.config.get('exports')
 
-        if (current_app.config.get('lod_export', False)
+        if (current_app.config.get('export_semantic_dsw', False)
                 not in (None, False, 0, '')):
             try:
-                os.unlink(conf.get('lod_export'))
+                os.unlink(conf.get('export_semantic_dsw'))
             except FileNotFoundError:
                 pass
 
-        response = self.client.get(url_for('exports.lod_export'))
+        response = self.client.get(url_for('exports.export_semantic_dsw'))
 
-        if (current_app.config.get('lod_export', False)
+        if (current_app.config.get('export_semantic_dsw', False)
                 in (None, False, 0, '')):
             assert response.status_code == 501
             return

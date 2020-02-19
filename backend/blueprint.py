@@ -521,22 +521,22 @@ def get_one_export_api(id_export, info_role):
 
 
 # TODO : Route desactivée car à évaluer
-@blueprint.route('/lod', methods=['GET'])
-def lod_export():
+@blueprint.route('/semantic_dsw', methods=['GET'])
+def semantic_dsw():
     """
         TODO : METHODE NON FONCTIONNELLE A EVALUEE
     """
-    if not blueprint.config.get('lod_export'):
+    if not blueprint.config.get('export_semantic_dsw'):
         return to_json_resp(
             {'api_error': 'lod_disabled',
-             'message': 'linked open data export is disabled'}, status=501)
+             'message': 'Semantic Darwin-SW export is disabled'}, status=501)
 
     from datetime import time
     from geonature.utils.env import DB
     from .rdf import OccurrenceStore
 
     conf = current_app.config.get('EXPORTS')
-    export_lod = conf.get('lod_export')
+    export_semantic_dsw = conf.get('export_semantic_dsw')
 
     store = OccurrenceStore()
     query = GenericQuery(
@@ -552,12 +552,12 @@ def lod_export():
         identification = store.build_identification(organism, record)
         store.build_taxon(identification, record)
     try:
-        with open(export_lod, 'w+b') as xp:
+        with open(export_semantic_dsw, 'w+b') as xp:
             store.save(store_uri=xp)
     except FileNotFoundError:
         response = Response(
             response="FileNotFoundError : {}".format(
-                export_lod
+                export_semantic_dsw
             ),
             status=500,
             mimetype='application/json'
@@ -565,5 +565,5 @@ def lod_export():
         return response
 
     return send_from_directory(
-        os.path.dirname(export_lod), os.path.basename(export_lod)
+        os.path.dirname(export_semantic_dsw), os.path.basename(export_semantic_dsw)
 )
