@@ -5,6 +5,7 @@
 import os
 import logging
 import threading
+import json
 
 from pathlib import Path
 from datetime import datetime
@@ -42,7 +43,9 @@ from geonature.utils.env import DB
 
 
 from .repositories import (
-    ExportRepository, EmptyDataSetError, generate_swagger_spec,
+    ExportRepository, EmptyDataSetError,
+    generate_swagger_spec,
+    get_allowed_exports
 )
 from .models import Export, CorExportsRoles, Licences
 from .utils_export import thread_export_data
@@ -54,7 +57,7 @@ LOGGER.setLevel(logging.DEBUG)
 blueprint = Blueprint('exports', __name__)
 blueprint.template_folder = os.path.join(blueprint.root_path, 'templates')
 blueprint.static_folder = os.path.join(blueprint.root_path, 'static')
-repo = ExportRepository()
+
 
 """
 #################################################################
@@ -318,7 +321,7 @@ def getOneExportThread(id_export, export_format, info_role):
     if (
         id_export < 1
         or
-        export_format not in blueprint.config.get('export_format_map')
+        export_format not in current_app.config['EXPORTS']['export_format_map']
     ):
         return to_json_resp(
             {
@@ -327,10 +330,6 @@ def getOneExportThread(id_export, export_format, info_role):
             },
             status=404
         )
-
-    current_app.config.update(
-        export_format_map=blueprint.config['export_format_map']
-    )
 
     filters = {f: request.args.get(f) for f in request.args}
     data = dict(request.get_json())
@@ -346,11 +345,11 @@ def getOneExportThread(id_export, export_format, info_role):
             thread_export_data(
                 id_export, export_format, info_role, filters, user
             )
-
+        exp = ExportRepository(id_export)
         # Test if export is allowed
         try:
-            repo.get_export_is_allowed(id_export, info_role)
-        except Exception:
+            exp.get_export_is_allowed(info_role)
+        except Exception as e:
             return to_json_resp(
                 {'message': "Not Allowed"},
                 status=403
@@ -416,7 +415,7 @@ def getExports(info_role):
         accessible pour un role donné
     """
     try:
-        exports = repo.get_allowed_exports(info_role)
+        exports = get_allowed_exports(info_role)
     except NoResultFound:
         return {'api_error': 'no_result_found',
                 'message': 'Configure one or more export'}, 404
@@ -489,9 +488,11 @@ def get_one_export_api(id_export, info_role):
 
             order by : @TODO
     """
+    exprep = ExportRepository(id_export)
+
     # Test if export is allowed
     try:
-        repo.get_export_is_allowed(id_export, info_role)
+        exprep.get_export_is_allowed(info_role)
     except Exception:
         return (
             {'message': "Not Allowed"},
@@ -508,15 +509,13 @@ def get_one_export_api(id_export, info_role):
         args.pop("offset")
     filters = {f: args.get(f) for f in args}
 
-    current_app.config.update(
-        export_format_map=blueprint.config['export_format_map']
+    (export, columns, data) = exprep.get_export_with_logging(
+        info_role,
+        with_data=True,
+        filters=filters,
+        limit=limit,
+        offset=offset
     )
-
-    export, columns, data = repo.get_by_id(
-        info_role, id_export, with_data=True, export_format='json',
-        filters=filters, limit=limit, offset=offset
-    )
-
     return data
 
 

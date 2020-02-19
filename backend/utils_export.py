@@ -52,14 +52,17 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
         .. void
     """
 
-    repo = ExportRepository()
+    exprep = ExportRepository(id_export)
 
     # export data
     try:
-        export, columns, data = repo.get_by_id(
-            info_role, id_export, with_data=True,
+        export, columns, data = exprep.get_export_with_logging(
+            info_role,
+            with_data=True,
             export_format=export_format,
-            filters=filters, limit=-1, offset=0
+            filters=filters,
+            limit=-1,
+            offset=0
         )
     except Exception as exp:
         export_send_mail_error(
@@ -101,6 +104,51 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
             export,
             "Error when sending mail : {}".format(repr(exp))
         )
+
+
+def export_data_file(id_export, export_format, filters):
+    """
+        Fonction qui permet de générer un export fichier
+
+        .. :quickref:  Fonction qui permet de générer un export fichier
+
+        :query int id_export: Identifiant de l'export
+        :query str export_format: format de l'export (csv, json, shp)
+        :query {} filters: Filtre à appliquer sur l'export
+
+
+        **Returns:**
+        .. str : nom du fichier
+    """
+
+    exprep = ExportRepository(id_export)
+
+    # export data
+    try:
+        columns, data = exprep._get_data(
+            filters=filters,
+            limit=-1,
+            offset=0,
+            format=export_format
+        )
+    except Exception as exp:
+        raise(exp)
+
+    # Generate and store export file
+    export_def = exprep.export.as_dict()
+    try:
+        file_name = "complet_cron_file_" + export_filename(export_def)
+        full_file_name = GenerateExport(
+            file_name=file_name,
+            format=export_format,
+            data=data,
+            columns=columns,
+            export=export_def
+        ).generate_data_export()
+
+    except Exception as exp:
+        raise(exp)
+    return full_file_name
 
 
 class GenerateExport():

@@ -23,20 +23,11 @@ from geonature.core.users.models import CorRole
 
 from .models import (Export, ExportLog, CorExportsRoles)
 
-
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
 
 
-class Error(Exception):
-    """
-        Erreur Générale qui ne lance rien
-        TODO un peu dangereux à mon sens
-    """
-    pass
-
-
-class EmptyDataSetError(Error):
+class EmptyDataSetError(Exception):
     """
         Erreur : Pas de données pour le jeu de données en question
     """
@@ -45,22 +36,22 @@ class EmptyDataSetError(Error):
         self.message = message
 
 
+
+
+
+
 class ExportRepository():
     """
         Classe permetant de manipuler un export
     """
 
-    def __init__(self, session=DB.session):
+    def __init__(self, id_export, session=DB.session):
         self.session = session
+        # Récupération de l'export
+        self.id_export = id_export
+        self.export = Export.query.filter_by(id=id_export).one()
 
-    def _get_data(
-            self,
-            export_,
-            geom_column_header=None,
-            filters=None,
-            limit=10000, offset=0,
-            format="csv"
-    ):
+    def _get_data(self, filters=None, limit=1000, offset=0, format="csv"):
         """
             Fonction qui retourne les données de l'export passé en paramètre
             en applicant des filtres s'il y a lieu
@@ -96,37 +87,41 @@ class ExportRepository():
 
         query = GenericQueryGeo(
             DB,
-            export_.view_name, export_.schema_name,
+            self.export.view_name, self.export.schema_name,
             filters,
             limit, offset,
-            geom_column_header
+            self.export.geometry_field
         )
+
         # Export différent selon le format demandé
         #   shp ou geojson => geo_feature
         #   json =>
-        if (geom_column_header):
+
+        EXPORT_FORMAT = current_app.config['EXPORTS']['export_format_map']
+        if (
+            self.export.geometry_field
+            and
+            EXPORT_FORMAT[format]['geofeature']
+        ):
             data = query.as_geofeature()
         else:
             data = query.return_query()
-
         # Ajout licence
-        if export_:
-            export_license = (export_.as_dict(True)).get('licence', None)
+        if self.export:
+            export_license = (self.export.as_dict(True)).get('licence', None)
             data['license'] = dict()
             data['license']['name'] = export_license.get('name_licence', None)
             data['license']['href'] = export_license.get('url_licence', None)
 
         return (query.view.db_cols, data)
 
-    def get_by_id(
-            self,
-            info_role,
-            id_export,
-            with_data=False,
-            filters=None,
-            limit=1000,
-            offset=0,
-            export_format=None
+    def get_export_with_logging(self,
+        info_role,
+        with_data=False,
+        filters=None,
+        limit=1000,
+        offset=0,
+        export_format="json"
     ):
         """
             Fonction qui retourne les données pour un export données
@@ -135,7 +130,6 @@ class ExportRepository():
 
 
         :query {} info_role: Role ayant demandé l'export
-        :query int id_export: Identifiant de l'export
         :query boolean with_data: Indique si oui ou non la fonction
                 retourne les données associées à l'export.
                 Si non retourne la définition de l'export
@@ -165,37 +159,23 @@ class ExportRepository():
         exc = None
         status = -2
         start_time = datetime.utcnow()
+
         if not filters:
             filters = dict()
 
         try:
             # Test si l'export est autorisé
             try:
-                self.get_export_is_allowed(id_export, info_role)
+                self.get_export_is_allowed(info_role)
             except (NoResultFound) as exp:
                 LOGGER.warn('repository.get_by_id(): %s', str(exp))
                 exc = exp
                 raise
 
-            # Récupération de l'export
-            export_ = Export.query.filter_by(id=id_export).one()
-
             if not with_data or not export_format:
-                return export_.as_dict(True)
-
-            geometry = (
-                export_.geometry_field
-                if (
-                    hasattr(export_, 'geometry_field')
-                    and
-                    current_app.config['export_format_map'][export_format]['geofeature']  # noqa E501
-                )
-                else None
-            )
+                return self.export.as_dict(True)
 
             columns, data = self._get_data(
-                export_,
-                geom_column_header=geometry,
                 filters=filters,
                 limit=limit,
                 offset=offset,
@@ -205,100 +185,81 @@ class ExportRepository():
             if len(data.get('items')) == 0:
                 raise EmptyDataSetError(
                     'Empty dataset for export id {} with id_role {}.'.format(
-                        id_export, info_role.id_role
+                        self.id_export, info_role.id_role
                     )
                 )
 
             status = 0
 
-            result = (export_.as_dict(True), columns, data)
+            result = (self.export.as_dict(True), columns, data)
 
-        except (
-                InsufficientRightsError,
-                NoResultFound,
-                EmptyDataSetError
-        ) as e:
-            LOGGER.warn('repository.get_by_id(): %s', str(e))
-            exc = e
-            raise
-        except Exception as e:
-            exc = e
-            LOGGER.critical('exception: %s', e)
-            raise
-        finally:
             end_time = datetime.utcnow()
-            if exc:
-                exp_tb = sys.exc_info()
-                if (isinstance(exc, InsufficientRightsError)
-                        or isinstance(exc, EmptyDataSetError)):
-                    raise
-                elif isinstance(exc, NoResultFound):
-                    raise NoResultFound(
-                        'Unknown export id {}.'.format(id_export))
-                else:
-                    log = str(exp_tb)
-                    status = -1
 
             ExportLog.record({
                 'id_role': info_role.id_role,
-                'id_export': export_.id,
+                'id_export': self.export.id,
                 'format': export_format,
                 'start_time': start_time,
                 'end_time': end_time,
                 'status': status,
                 'log': log
             })
+            return result
+        except (
+                InsufficientRightsError,
+                NoResultFound,
+                EmptyDataSetError
+        ) as e:
+            LOGGER.warn('repository.get_by_id(): %s', str(e))
+            raise
+        except Exception as e:
+            LOGGER.critical('exception: %s', e)
+            raise
 
-            if status != 0 or exc:
-                LOGGER.critical('export error: %s', exp_tb)
-                raise
-            else:
-                return result
-
-    def getfilter_corexportsroles_clause(self, info_role):
-        """
-            Fonction qui construit une clause where qui permet de savoir
-            si un role à des droits sur les exports
-        """
-        return DB.or_(
-            CorExportsRoles.id_role == info_role.id_role,
-            CorExportsRoles.id_role == info_role.id_organisme,
-            CorExportsRoles.id_role.in_(
-                User.query.with_entities(User.id_role)
-                .join(CorRole, CorRole.id_role_groupe == User.id_role)
-                .filter(CorRole.id_role_utilisateur == info_role.id_role)
-            ),
-            Export.public == True
-        )
-
-    def get_allowed_exports(self, info_role):
-        """
-            Liste des exports autorisés pour un role
-        """
-        q = Export.query\
-                  .outerjoin(CorExportsRoles)\
-                  .filter(self.getfilter_corexportsroles_clause(info_role))\
-                  .order_by(Export.id.desc())
-
-        result = q.all()
-        if not result:
-            raise NoResultFound('No configured export')
-        return result
-
-    def get_export_is_allowed(self, id_export, info_role):
+    def get_export_is_allowed(self, info_role):
         """
             Test si un role à les droits sur un export
         """
         q = Export.query.outerjoin(
             CorExportsRoles
         ).filter(
-            Export.id == id_export
+            Export.id == self.id_export
         ).filter(
-            self.getfilter_corexportsroles_clause(info_role)
+            get_filter_corexportsroles_clause(info_role)
         )
-
         return q.one()
 
+
+def get_allowed_exports(info_role):
+    """
+        Liste des exports autorisés pour un role
+    """
+    q = Export.query\
+        .outerjoin(CorExportsRoles)\
+        .filter(get_filter_corexportsroles_clause(info_role))\
+        .order_by(Export.id.desc())
+
+    result = q.all()
+    if not result:
+        raise NoResultFound('No configured export')
+    return result
+
+
+def get_filter_corexportsroles_clause(info_role):
+    """
+        Fonction qui construit une clause where qui permet de savoir
+        si un role à des droits sur les exports
+    """
+    return DB.or_(
+        CorExportsRoles.id_role == info_role.id_role,
+        CorExportsRoles.id_role == info_role.id_organisme,
+        CorExportsRoles.id_role.in_(
+            User.query.with_entities(User.id_role)
+            .join(CorRole, CorRole.id_role_groupe == User.id_role)
+            .filter(CorRole.id_role_utilisateur == info_role.id_role)
+        ),
+        Export.public == True
+    )
 
 SWAGGER_TYPE_COR = {
     "INTEGER": {"type": "int", "format": "int32"},
