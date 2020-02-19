@@ -524,8 +524,27 @@ def get_one_export_api(id_export, info_role):
 @blueprint.route('/semantic_dsw', methods=['GET'])
 def semantic_dsw():
     """
-        TODO : METHODE NON FONCTIONNELLE A EVALUEE
+        Fonction qui expose un export RDF basé sur le vocabulaire Darwin-SW
+            sous forme d'api
+
+        Le requetage des données se base sur la classe GenericQuery qui permet
+            de filter les données de façon dynamique en respectant des
+            conventions de nommage
+
+        Parameters
+        ----------
+        limit : nombre limit de résultats à retourner
+        offset : numéro de page
+
+        FILTRES :
+            nom_col=val: Si nom_col fait partie des colonnes
+                de la vue alors filtre nom_col=val
+
+        Returns
+        -------
+        turle
     """
+
     if not blueprint.config.get('export_semantic_dsw'):
         return to_json_resp(
             {'api_error': 'lod_disabled',
@@ -539,8 +558,20 @@ def semantic_dsw():
     export_semantic_dsw = conf.get('export_semantic_dsw')
 
     store = OccurrenceStore()
+
+    limit = request.args.get('limit', default=1000, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+
+    args = request.args.to_dict()
+    if "limit" in args:
+        args.pop("limit")
+    if "offset" in args:
+        args.pop("offset")
+    filters = {f: args.get(f) for f in args}
+
     query = GenericQuery(
-        DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters=[]
+        DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters=filters,
+        limit=limit, offset=offset
     )
     data = query.return_query()
     for record in data.get('items'):
