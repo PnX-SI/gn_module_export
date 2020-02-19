@@ -65,11 +65,13 @@ class ExportRepository():
             Fonction qui retourne les données de l'export passé en paramètre
             en applicant des filtres s'il y a lieu
 
-            .. :quickref: lance une requete qui récupère les données pour un export donné
+            .. :quickref: lance une requete qui récupère les données
+                    pour un export donné
 
 
             :query Export export_: Définition de l'export
-            :query str geom_column_header: Nom de la colonne géometry si elle existe
+            :query str geom_column_header: Nom de la colonne géometry
+                        si elle existe
             :query {} filters: Filtres à appliquer sur les données
             :query int limit: Nombre maximum de données à retourner
             :query int offset: Numéro de page à retourner
@@ -186,7 +188,7 @@ class ExportRepository():
                 if (
                     hasattr(export_, 'geometry_field')
                     and
-                    current_app.config['export_format_map'][export_format]['geofeature']
+                    current_app.config['export_format_map'][export_format]['geofeature']  # noqa E501
                 )
                 else None
             )

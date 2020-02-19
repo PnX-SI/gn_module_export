@@ -91,7 +91,9 @@ class ExportRoleView(ModelView):
     """
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
-        super(ExportRoleView, self).__init__(CorExportsRoles,  session, **kwargs)
+        super(ExportRoleView, self).__init__(
+            CorExportsRoles,  session, **kwargs
+        )
 
     # Nom de colonne user friendly
     column_labels = dict(
@@ -138,7 +140,7 @@ class ExportView(ModelView):
     column_descriptions = dict(
         label='Nom libre de l\'export',
         schema_name='Nom exact du schéma postgreSQL contenant la vue SQL.',
-        view_name='Nom exact de la vue SQL permettant l\'export de vos données.',
+        view_name='Nom exact de la vue SQL permettant l\'export de vos données.',  # noqa E501
         desc='Décrit la nature de l\'export',
         public='L\'export est accessible à tous'
     )
@@ -318,7 +320,13 @@ def getOneExportThread(id_export, export_format, info_role):
         or
         export_format not in blueprint.config.get('export_format_map')
     ):
-        return to_json_resp({'api_error': 'invalid_export', 'message': 'Invalid export or export not found'}, status=404)
+        return to_json_resp(
+            {
+                'api_error': 'invalid_export',
+                'message': 'Invalid export or export not found'
+            },
+            status=404
+        )
 
     current_app.config.update(
         export_format_map=blueprint.config['export_format_map']
@@ -357,7 +365,7 @@ def getOneExportThread(id_export, export_format, info_role):
             )
             if not user.email and not tmp_user.email:
                 return to_json_resp(
-                    {'api_error': 'no_email','message': "User doesn't have email"},
+                    {'api_error': 'no_email', 'message': "User doesn't have email"},  # noqa 501
                     status=500
                 )
         except NoResultFound:
@@ -381,7 +389,10 @@ def getOneExportThread(id_export, export_format, info_role):
         a.start()
 
         return to_json_resp(
-            {'api_success': 'in_progress', 'message': 'The Process is in progress ! You will receive an email shortly'},  # noqua
+            {
+                'api_success': 'in_progress',
+                'message': 'The Process is in progress ! You will receive an email shortly'  # noqa 501
+            },
             status=200
         )
 

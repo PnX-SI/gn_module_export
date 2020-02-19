@@ -31,6 +31,7 @@ export_format_map = {
 lod_export = '/home/geonatureadmin/geonature/backend/static/exports/export_lod.ttl'
 
 
+
 class GnModuleSchemaConf(Schema):
     export_format_map = fields.Dict(missing=export_format_map)
     default_schema = fields.String(missing=default_schema)

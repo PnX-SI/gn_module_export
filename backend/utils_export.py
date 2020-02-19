@@ -135,13 +135,15 @@ class GenerateExport():
         if (self.format == 'shp' and self.has_geometry):
             self.generate_shp()
             return self.file_name + '.zip'
-        elif (self.format == 'json'):
-            out = self.generate_json()
-        elif (self.format == 'geojson'):
+        elif (self.format == 'geojson' and self.has_geometry):
             self.data = self.data['items']
+            out = self.generate_json()
+        elif (self.format == 'json'):
             out = self.generate_json()
         elif self.format == 'csv':
             out = self.generate_csv()
+        else:
+            raise Exception('Export generation is impossible with the specified format')  # noqa E501
 
         if out:
             with open(

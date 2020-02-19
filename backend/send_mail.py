@@ -22,7 +22,7 @@ def export_send_mail(role, export, file_name):
     msg = """
         Bonjour,
         <p>
-            Votre export <i>{}</i> est accessible via le lien suivant : 
+            Votre export <i>{}</i> est accessible via le lien suivant :
             <a href="{}">Téléchargement</a>.
         </p>
         <p>
