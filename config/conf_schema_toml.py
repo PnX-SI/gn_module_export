@@ -27,7 +27,7 @@ export_format_map = {
         'mime': 'application/rdf+xml',
         'geofeature': True
         }
-}  # noqa: E133
+}
 etalab_export = '/home/geonatureadmin/geonature/backend/static/exports/export_etalab.ttl'
 
 
