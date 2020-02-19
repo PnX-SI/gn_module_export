@@ -88,7 +88,7 @@ CREATE TABLE gn_exports.t_exports_logs
     id SERIAL NOT NULL PRIMARY KEY,
     id_role integer NOT NULL,
     id_export integer,
-    format character varying(4) COLLATE pg_catalog."default" NOT NULL,
+    format character varying(10) NOT NULL,
     start_time TIMESTAMP NOT NULL,
     end_time TIMESTAMP,
     status numeric DEFAULT '-2'::integer,

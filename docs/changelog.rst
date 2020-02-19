@@ -2,6 +2,22 @@
 CHANGELOG
 =========
 
+
+0.2.0 (2019-12-30)
+------------------
+
+**🚀 Nouveautés**
+
+* Possibilité de saisir l'adresse email ou l'export sera envoyé
+
+**🐛 Corrections**
+
+* Compatibilité GeoNature 2.3.0
+* Prise en compte de l'URL de GeoNature dans la doc de l'API (swagger)
+* Corrections mineures de l'administration des exports
+
+
+
 0.1.0
 -----
 
