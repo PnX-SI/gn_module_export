@@ -44,6 +44,9 @@ class OccurrenceStore:
         recordlevel = BNode()
         self.graph.add((recordlevel, RDF.type, DCMTERMS.Event))
         self.graph.add((recordlevel, DCMTERMS['language'], Literal('fr')))
+        self.graph.add((recordlevel, DWC['datasetID'], Literal(record['jddId'])))
+        self.graph.add((recordlevel, DWC['datasetName'], Literal(record['jddCode'])))
+        self.graph.add((recordlevel, DWC['ownerInstitutionCode'], Literal(record['ownerInstitutionCode'])))
         return recordlevel
 
     def build_event(self, recordlevel, record):
