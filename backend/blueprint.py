@@ -537,39 +537,32 @@ def lod_export():
 
     conf = current_app.config.get('EXPORTS')
     export_lod = conf.get('lod_export')
-    seeded = False
-    if os.path.isfile(export_lod):
-        seeded = True
-        midnight = datetime.combine(datetime.today(), time.min)
-        mtime = datetime.fromtimestamp(os.path.getmtime(export_lod))
-        ts_delta = mtime - midnight
 
-    if not seeded or ts_delta.total_seconds() < 0:
-        store = OccurrenceStore()
-        query = GenericQuery(
-            DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters=[]
+    store = OccurrenceStore()
+    query = GenericQuery(
+        DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters=[]
+    )
+    data = query.return_query()
+    for record in data.get('items'):
+        recordLevel = store.build_recordlevel(record)
+        event = store.build_event(recordLevel, record)
+        store.build_location(event, record)
+        occurrence = store.build_occurrence(event, record)
+        organism = store.build_organism(occurrence, record)
+        identification = store.build_identification(organism, record)
+        store.build_taxon(identification, record)
+    try:
+        with open(export_lod, 'w+b') as xp:
+            store.save(store_uri=xp)
+    except FileNotFoundError:
+        response = Response(
+            response="FileNotFoundError : {}".format(
+                export_lod
+            ),
+            status=500,
+            mimetype='application/json'
         )
-        data = query.return_query()
-        for record in data.get('items'):
-            recordLevel = store.build_recordlevel(record)
-            event = store.build_event(recordLevel, record)
-            store.build_location(event, record)
-            occurrence = store.build_occurrence(event, record)
-            organism = store.build_organism(occurrence, record)
-            identification = store.build_identification(organism, record)
-            store.build_taxon(identification, record)
-        try:
-            with open(export_lod, 'w+b') as xp:
-                store.save(store_uri=xp)
-        except FileNotFoundError:
-            response = Response(
-                response="FileNotFoundError : {}".format(
-                    export_lod
-                ),
-                status=500,
-                mimetype='application/json'
-            )
-            return response
+        return response
 
     return send_from_directory(
         os.path.dirname(export_lod), os.path.basename(export_lod)
