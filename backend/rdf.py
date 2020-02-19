@@ -138,9 +138,8 @@ class OccurrenceStore:
         self.graph.add(
             (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
         if 'detminer' in record.keys():
-            detminer = build_agent(record['detminer'])
-            self.graph.add(
-                (identification, DWC['identifiedBy'], detminer)))
+            detminer = self.build_agent(record['detminer'])
+            self.graph.add((identification, DWC['identifiedBy'], detminer))
         self.graph.add((identification, DSW['identifies'], organism))
         self.graph.add((organism, DSW['hasIdentification'], identification))
         return identification
