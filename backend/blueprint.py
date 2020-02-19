@@ -520,57 +520,80 @@ def get_one_export_api(id_export, info_role):
 
 
 # TODO : Route desactivée car à évaluer
-@blueprint.route('/lod', methods=['GET'])
-def lod_export():
+@blueprint.route('/semantic_dsw', methods=['GET'])
+def semantic_dsw():
     """
-        TODO : METHODE NON FONCTIONNELLE A EVALUEE
+        Fonction qui expose un export RDF basé sur le vocabulaire Darwin-SW
+            sous forme d'api
+
+        Le requetage des données se base sur la classe GenericQuery qui permet
+            de filter les données de façon dynamique en respectant des
+            conventions de nommage
+
+        Parameters
+        ----------
+        limit : nombre limit de résultats à retourner
+        offset : numéro de page
+
+        FILTRES :
+            nom_col=val: Si nom_col fait partie des colonnes
+                de la vue alors filtre nom_col=val
+
+        Returns
+        -------
+        turle
     """
-    if not blueprint.config.get('lod_export'):
+
+    if not blueprint.config.get('export_semantic_dsw'):
         return to_json_resp(
             {'api_error': 'lod_disabled',
-             'message': 'linked open data export is disabled'}, status=501)
+             'message': 'Semantic Darwin-SW export is disabled'}, status=501)
 
     from datetime import time
     from geonature.utils.env import DB
     from .rdf import OccurrenceStore
 
     conf = current_app.config.get('EXPORTS')
-    export_lod = conf.get('lod_export')
-    seeded = False
-    if os.path.isfile(export_lod):
-        seeded = True
-        midnight = datetime.combine(datetime.today(), time.min)
-        mtime = datetime.fromtimestamp(os.path.getmtime(export_lod))
-        ts_delta = mtime - midnight
+    export_semantic_dsw = conf.get('export_semantic_dsw')
 
-    if not seeded or ts_delta.total_seconds() < 0:
-        store = OccurrenceStore()
-        query = GenericQueryGeo(
-            DB, 'v_exports_synthese_sinp_rdf', 'gn_exports',
-            geometry_field=None, filters=[]
+    store = OccurrenceStore()
+
+    limit = request.args.get('limit', default=1000, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+
+    args = request.args.to_dict()
+    if "limit" in args:
+        args.pop("limit")
+    if "offset" in args:
+        args.pop("offset")
+    filters = {f: args.get(f) for f in args}
+
+    query = GenericQuery(
+        DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters=filters,
+        limit=limit, offset=offset
+    )
+    data = query.return_query()
+    for record in data.get('items'):
+        recordLevel = store.build_recordlevel(record)
+        event = store.build_event(recordLevel, record)
+        store.build_location(event, record)
+        occurrence = store.build_occurrence(event, record)
+        organism = store.build_organism(occurrence, record)
+        identification = store.build_identification(organism, record)
+        store.build_taxon(identification, record)
+    try:
+        with open(export_semantic_dsw, 'w+b') as xp:
+            store.save(store_uri=xp)
+    except FileNotFoundError:
+        response = Response(
+            response="FileNotFoundError : {}".format(
+                export_semantic_dsw
+            ),
+            status=500,
+            mimetype='application/json'
         )
-        data = query.return_query()
-        for record in data.get('items'):
-            recordLevel = store.build_recordlevel(record)
-            event = store.build_event(recordLevel, record)
-            store.build_location(event, record)
-            occurrence = store.build_occurrence(event, record)
-            organism = store.build_organism(occurrence, record)
-            identification = store.build_identification(organism, record)
-            store.build_taxon(identification, record)
-        try:
-            with open(export_lod, 'w+b') as xp:
-                store.save(store_uri=xp)
-        except FileNotFoundError:
-            response = Response(
-                response="FileNotFoundError : {}".format(
-                    export_lod
-                ),
-                status=500,
-                mimetype='application/json'
-            )
-            return response
+        return response
 
     return send_from_directory(
-        os.path.dirname(export_lod), os.path.basename(export_lod)
+        os.path.dirname(export_semantic_dsw), os.path.basename(export_semantic_dsw)
 )

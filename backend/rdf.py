@@ -44,11 +44,17 @@ class OccurrenceStore:
         recordlevel = BNode()
         self.graph.add((recordlevel, RDF.type, DCMTERMS.Event))
         self.graph.add((recordlevel, DCMTERMS['language'], Literal('fr')))
+        self.graph.add((recordlevel, DWC['datasetID'], Literal(record['jddId'])))
+        self.graph.add((recordlevel, DWC['datasetName'], Literal(record['jddCode'])))
+        self.graph.add((recordlevel, DWC['ownerInstitutionCode'], Literal(record['ownerInstitutionCode'])))
         return recordlevel
 
     def build_event(self, recordlevel, record):
         event = BNode()
         self.graph.add((event, RDF.type, DWC['Event']))
+        if 'permIdGrp' in record.keys():
+            self.graph.add(
+                (event, DWC['eventID'], Literal(record['permIdGrp'])))
         self.graph.add(
             (event,
              DWC['eventDate'],
@@ -113,10 +119,10 @@ class OccurrenceStore:
         self.graph.add(
            (occurrence, DWC['occurrenceStatus'], Literal(record['statObs'])))
 
-        #    TODO rajouter test if null
-        observer = self.build_agent(record['observer'])
-        self.graph.add(
-           (occurrence, DWC['recordedBy'], observer))
+        if 'observer' in record.keys():
+            observer = self.build_agent(record['observer'])
+            self.graph.add(
+            (occurrence, DWC['recordedBy'], observer))
 
         self.graph.add(
            (occurrence, DWC['occurrenceRemarks'], Literal(record['obsDescr'])))
@@ -139,7 +145,6 @@ class OccurrenceStore:
         self.graph.add(
             (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
 
-        #    TODO vérifier test if null
         if 'determiner' in record.keys():
             determiner = self.build_agent(record['determiner'])
             self.graph.add((identification, DWC['identifiedBy'], determiner))

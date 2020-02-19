@@ -28,11 +28,11 @@ export_format_map = {
         'geofeature': True
         }
 }  # noqa: E133
-lod_export = '/home/sahl/dev/GeoNature/backend/static/exports/export_lod.ttl'
+export_semantic_dsw = '/home/geonatureadmin/geonature/backend/static/exports/export_export_semantic_dsw.ttl'
 
 
 class GnModuleSchemaConf(Schema):
     export_format_map = fields.Dict(missing=export_format_map)
     default_schema = fields.String(missing=default_schema)
-    lod_export = fields.String(missing=lod_export)
+    export_semantic_dsw = fields.String(missing=export_semantic_dsw)
     nb_days_keep_file = fields.Int(missing=15)
