@@ -73,7 +73,6 @@ class ExportLog(DB.Model):
             DB.session.add(exportLog)
             DB.session.commit()
         except Exception as e:
-            print(e)
             DB.session.rollback()
             raise Exception('Echec de journalisation.')
 

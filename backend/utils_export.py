@@ -169,7 +169,6 @@ class GenerateExport():
         """
             transformation des données au format json/geojson
         """
-        print(self.data)
         return json.dumps(
             self.data,
             ensure_ascii=False,
@@ -181,7 +180,6 @@ class GenerateExport():
             transformation des données au format shp
             et sauvegarde sous forme d'une archive
         """
-        print("generate_shp")
         FionaShapeService.create_shapes_struct(
             db_cols=self.columns,
             srid=self.export.get('geometry_srid'),
@@ -189,22 +187,18 @@ class GenerateExport():
             file_name=self.file_name
         )
 
-        print("items")
         items = self.data.get('items')
 
-        print("feature", items)
         for feature in items['features']:
             geom, props = (
                 feature.get(field) for field in ('geometry', 'properties')
             )
 
-            print("create_feature")
             FionaShapeService.create_feature(
                 props, from_shape(
                     asShape(geom), self.export.get('geometry_srid')
                 )
             )
-            print("end create_feature")
 
         FionaShapeService.save_and_zip_shapefiles()
 
