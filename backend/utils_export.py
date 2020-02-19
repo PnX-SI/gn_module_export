@@ -11,8 +11,8 @@ from flask import current_app
 from geoalchemy2.shape import from_shape
 from shapely.geometry import asShape
 
-from geonature.utils.utilssqlalchemy import generate_csv_content
-from geonature.utils.utilsgeometry import FionaShapeService
+from utils_flask_sqla.response import generate_csv_content
+from utils_flask_sqla_geo.serializers import FionaShapeService
 
 from geonature.utils.filemanager import (
     removeDisallowedFilenameChars
@@ -79,6 +79,7 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
             columns=columns,
             export=export
         ).generate_data_export()
+
     except Exception as exp:
         export_send_mail_error(
             user,
@@ -128,16 +129,16 @@ class GenerateExport():
         """
         out = None
 
-        if self.format not in ['json', 'csv', 'shp']:
+        if self.format not in ['json', 'csv', 'shp', 'geojson']:
             raise Exception('Unsuported format')
 
-        if (
-                self.format == 'shp' and
-                self.has_geometry
-        ):
+        if (self.format == 'shp' and self.has_geometry):
             self.generate_shp()
             return self.file_name + '.zip'
-        if self.format == 'json':
+        elif (self.format == 'json'):
+            out = self.generate_json()
+        elif (self.format == 'geojson'):
+            self.data = self.data['items']
             out = self.generate_json()
         elif self.format == 'csv':
             out = self.generate_csv()
@@ -155,7 +156,6 @@ class GenerateExport():
         """
             transformation des données au format csv
         """
-        # TODO use utils_flask_sqla
         return generate_csv_content(
             columns=[c.name for c in self.columns],
             data=self.data.get('items'),

@@ -59,7 +59,7 @@ class ExportLog(DB.Model):
     role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
     export = DB.relationship('Export', lazy='joined')
-    format = DB.Column(DB.String(4), nullable=False)  # noqa: A003
+    format = DB.Column(DB.String(10), nullable=False)  # noqa: A003
     start_time = DB.Column(DB.DateTime, nullable=False)
     end_time = DB.Column(DB.DateTime)
     status = DB.Column(DB.Integer, default=-2)
@@ -73,7 +73,6 @@ class ExportLog(DB.Model):
             DB.session.add(exportLog)
             DB.session.commit()
         except Exception as e:
-            print(e)
             DB.session.rollback()
             raise Exception('Echec de journalisation.')
 

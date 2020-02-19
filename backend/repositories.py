@@ -58,7 +58,8 @@ class ExportRepository():
             export_,
             geom_column_header=None,
             filters=None,
-            limit=10000, offset=0
+            limit=10000, offset=0,
+            format="csv"
     ):
         """
             Fonction qui retourne les données de l'export passé en paramètre
@@ -98,7 +99,13 @@ class ExportRepository():
             limit, offset,
             geom_column_header
         )
-        data = query.return_query()
+        # Export différent selon le format demandé
+        #   shp ou geojson => geo_feature
+        #   json =>
+        if (geom_column_header):
+            data = query.as_geofeature()
+        else:
+            data = query.return_query()
 
         # Ajout licence
         if export_:
@@ -189,7 +196,8 @@ class ExportRepository():
                 geom_column_header=geometry,
                 filters=filters,
                 limit=limit,
-                offset=offset
+                offset=offset,
+                format=export_format
             )
 
             if len(data.get('items')) == 0:
