@@ -351,7 +351,7 @@ CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
     s.validator AS "validateur",
     s.observers AS "observer",
     s.id_digitiser,
-    s.determiner AS "detminer",
+    s.determiner AS "determiner",
     s.comment_context AS "obsCtx",
     s.comment_description AS "obsDescr",
     s.meta_create_date,

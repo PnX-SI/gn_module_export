@@ -86,11 +86,6 @@ class OccurrenceStore:
             (location,
                 DWC['decimalLongitude'],
                 Literal(record['y_centroid'], datatype=XSD.float)))
-        # Habitat = code HABREF
-        self.graph.add(
-            (location, DWC['habitat'], Literal(record['typInfGeo'])))
-        self.graph.add(
-            (location, DWC['countryCode'], Literal('FR')))
         self.graph.add((event, DSW['locatedAt'], location))
         return location
 
@@ -114,9 +109,14 @@ class OccurrenceStore:
             (occurrence, DWC['establishmentMeans'], Literal(record['ocNat'])))
         self.graph.add(
            (occurrence, DWC['lifeStage'], Literal(record['ocStade'])))
+        self.graph.add(
+           (occurrence, DWC['occurrenceStatus'], Literal(record['statObs'])))
+
+        #    TODO rajouter test if null
         observer = self.build_agent(record['observer'])
         self.graph.add(
            (occurrence, DWC['recordedBy'], observer))
+
         self.graph.add(
            (occurrence, DWC['occurrenceRemarks'], Literal(record['obsDescr'])))
         self.graph.add((occurrence, DSW['atEvent'], event))
@@ -137,9 +137,12 @@ class OccurrenceStore:
             (identification, DWC['identificationVerificationStatus'], Literal(record['preuveOui'])))  # noqa: E501
         self.graph.add(
             (identification, DWC['identificationRemarks'], Literal(record['preuvNoNum'])))  # noqa: E501
-        if 'detminer' in record.keys():
-            detminer = self.build_agent(record['detminer'])
-            self.graph.add((identification, DWC['identifiedBy'], detminer))
+
+        #    TODO vérifier test if null
+        if 'determiner' in record.keys():
+            determiner = self.build_agent(record['determiner'])
+            self.graph.add((identification, DWC['identifiedBy'], determiner))
+
         self.graph.add((identification, DSW['identifies'], organism))
         self.graph.add((organism, DSW['hasIdentification'], identification))
         return identification

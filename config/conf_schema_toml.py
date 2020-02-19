@@ -28,8 +28,7 @@ export_format_map = {
         'geofeature': True
         }
 }  # noqa: E133
-lod_export = '/home/geonatureadmin/geonature/backend/static/exports/export_lod.ttl'
-
+lod_export = '/home/sahl/dev/GeoNature/backend/static/exports/export_lod.ttl'
 
 
 class GnModuleSchemaConf(Schema):
