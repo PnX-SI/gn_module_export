@@ -24,24 +24,22 @@ export interface Export {
 export interface ApiErrorResponse extends HttpErrorResponse {
   error: any | null;
   message: string;
-  name: string;
 }
 
 @Injectable()
 export class ExportService {
-
   constructor(private _api: HttpClient) {}
 
   getExports() {
-    return this._api
-      .get(`${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}/`);
-
+    return this._api.get(
+      `${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}/`
+    );
   }
 
-  downloadExport(x: Export, format: string, data:any) {
-    return this._api
-      .post(`${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}/${x.id}/${format}`,
-      data)
+  downloadExport(x: Export, format: string, data: any) {
+    return this._api.post<any>(
+      `${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}/${x.id}/${format}`,
+      data
+    );
   }
-
 }

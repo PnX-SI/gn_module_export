@@ -14,7 +14,10 @@ from pypnusershub.db.tools import InsufficientRightsError
 from pypnusershub.db.models import User
 
 from geonature.utils.env import DB
-from geonature.utils.utilssqlalchemy import GenericQuery, GenericTable
+
+# from utils_flask_sqla.generic import GenericQuery, GenericTable
+from utils_flask_sqla_geo.generic import GenericQueryGeo, GenericTableGeo
+
 from geonature.core.users.models import CorRole
 
 
@@ -88,11 +91,12 @@ class ExportRepository():
         if not filters:
             filters = dict()
 
-        query = GenericQuery(
-            self.session,
-            export_.view_name, export_.schema_name, geom_column_header,
+        query = GenericQueryGeo(
+            DB,
+            export_.view_name, export_.schema_name,
             filters,
-            limit, offset
+            limit, offset,
+            geom_column_header
         )
         data = query.return_query()
 
@@ -196,6 +200,7 @@ class ExportRepository():
                 )
 
             status = 0
+
             result = (export_.as_dict(True), columns, data)
 
         except (
@@ -227,11 +232,12 @@ class ExportRepository():
             ExportLog.record({
                 'id_role': info_role.id_role,
                 'id_export': export_.id,
-                'export_format': export_format,
+                'format': export_format,
                 'start_time': start_time,
                 'end_time': end_time,
                 'status': status,
-                'log': log})
+                'log': log
+            })
 
             if status != 0 or exc:
                 LOGGER.critical('export error: %s', exp_tb)
@@ -307,9 +313,10 @@ def generate_swagger_spec(id_export):
     except (NoResultFound, EmptyDataSetError) as e:
         raise e
 
-    export_table = GenericTable(
+    export_table = GenericTableGeo(
         tableName=export.view_name,
         schemaName=export.schema_name,
+        engine=DB.engine,
         geometry_field=export.geometry_field,
         srid=export.geometry_srid
     )

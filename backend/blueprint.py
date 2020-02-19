@@ -29,10 +29,14 @@ from flask_admin.helpers import is_form_submitted
 from pypnusershub.db.models import User
 
 from geonature.core.admin.admin import flask_admin
-from geonature.utils.utilssqlalchemy import (
-    json_resp, to_json_resp,
-    GenericQuery
+from utils_flask_sqla.response import (
+    json_resp, to_json_resp
 )
+
+
+from utils_flask_sqla.generic import GenericQuery
+from utils_flask_sqla_geo.generic import GenericQueryGeo
+
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.utils.env import DB
 
@@ -57,6 +61,8 @@ repo = ExportRepository()
     Configuration de l'admin
 #################################################################
 """
+
+
 class LicenceView(ModelView):
     """
         Surcharge de l'administration des licences
@@ -78,6 +84,7 @@ class LicenceView(ModelView):
         url_licence='Url de la documentation de la licence',
     )
 
+
 class ExportRoleView(ModelView):
     """
         Surcharge de l'administration de l'association role/export
@@ -96,6 +103,7 @@ class ExportRoleView(ModelView):
         role='Role associé à l\'export'
     )
 
+
 class ExportView(ModelView):
     """
          Surcharge du formulaire d'administration Export
@@ -105,7 +113,17 @@ class ExportView(ModelView):
         super(ExportView, self).__init__(Export,  session, **kwargs)
 
     # Ordonne les colonnes pour avoir la licence à la fin de la liste
-    column_list = ['id', 'label', 'schema_name', 'view_name', 'desc', 'geometry_field', 'geometry_srid', 'public', 'licence']
+    column_list = [
+        'id',
+        'label',
+        'schema_name',
+        'view_name',
+        'desc',
+        'geometry_field',
+        'geometry_srid',
+        'public',
+        'licence'
+    ]
     # Nom de colonne user friendly
     column_labels = dict(
         id='Identifiant',
@@ -115,17 +133,26 @@ class ExportView(ModelView):
         desc='Description',
         geometry_field='Nom de champ géométrique',
         geometry_srid='SRID du champ géométrique'
-        )
+    )
     # Description des colonnes
     column_descriptions = dict(
         label='Nom libre de l\'export',
-        desc='Décrit la nature de l\'export',
         schema_name='Nom exact du schéma postgreSQL contenant la vue SQL.',
         view_name='Nom exact de la vue SQL permettant l\'export de vos données.',
+        desc='Décrit la nature de l\'export',
         public='L\'export est accessible à tous'
     )
     # Ordonne des champs pour avoir la licence à la fin du formulaire
-    form_columns = ('label', 'schema_name', 'view_name', 'desc', 'geometry_field', 'geometry_srid', 'public', 'licence')
+    form_columns = (
+        'label',
+        'schema_name',
+        'view_name',
+        'desc',
+        'geometry_field',
+        'geometry_srid',
+        'public',
+        'licence'
+    )
 
     def validate_form(self, form):
         """
@@ -139,16 +166,16 @@ class ExportView(ModelView):
         geometry_srid = getattr(form, 'geometry_srid', None)
         if (is_form_submitted() and view_name and schema_name):
             try:
-                query = GenericQuery(
-                    DB.session, view_name.data, schema_name.data,
-                    geometry_field=geometry_field.data, filters=[]
-                )
-                query.return_query()
-
                 if geometry_field.data and geometry_srid.data is None:
                     raise KeyError(
                         "field Geometry srid is mandatory with Geometry field"
                     )
+
+                query = GenericQueryGeo(
+                    DB, view_name.data, schema_name.data,
+                    geometry_field=geometry_field.data, filters=[]
+                )
+                query.return_query()
 
             except Exception as exp:
                 flash(exp, category='error')

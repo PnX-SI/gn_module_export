@@ -155,6 +155,7 @@ class GenerateExport():
         """
             transformation des données au format csv
         """
+        # TODO use utils_flask_sqla
         return generate_csv_content(
             columns=[c.name for c in self.columns],
             data=self.data.get('items'),
