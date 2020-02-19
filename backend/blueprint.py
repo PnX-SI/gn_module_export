@@ -535,8 +535,8 @@ def lod_export():
 
     if not seeded or ts_delta.total_seconds() < 0:
         store = OccurrenceStore()
-        query = GenericQuery(
-            DB.session, 'v_exports_synthese_sinp_rdf', 'gn_exports',
+        query = GenericQueryGeo(
+            DB, 'v_exports_synthese_sinp_rdf', 'gn_exports',
             geometry_field=None, filters=[]
         )
         data = query.return_query()
