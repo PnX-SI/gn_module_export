@@ -123,6 +123,24 @@ CREATE VIEW gn_exports.v_exports_logs AS
 COMMIT;
 
 
+---------------------
+--EXPORTS PLANIFIES--
+---------------------
+
+CREATE TABLE gn_exports.t_export_schedules (
+    id_export_schedule SERIAL NOT NULL,
+    id_export integer NOT NULL,
+    frequency integer NOT NULL,
+    format character varying(10) NOT NULL,
+    file_name character varying(250) NOT NULL
+);
+ALTER TABLE ONLY gn_exports.t_export_schedules
+    ADD CONSTRAINT t_export_schedules_pkey PRIMARY KEY (id_export_schedule);
+
+ALTER TABLE ONLY gn_exports.t_export_schedules
+    ADD CONSTRAINT fk_t_export_schedules_id_export FOREIGN KEY (id_export) REFERENCES gn_exports.t_exports(id);
+
+
 ---------
 --VIEWS--
 ---------

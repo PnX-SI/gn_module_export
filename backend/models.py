@@ -86,3 +86,21 @@ class CorExportsRoles(DB.Model):
     id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role),
                         primary_key=True, nullable=False)
     role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
+
+
+
+class ExportSchedules(DB.Model):
+    __tablename__ = 't_export_schedules'
+    __table_args__ = {'schema': 'gn_exports'}
+    id_export_schedule = DB.Column(DB.Integer, primary_key=True, nullable=False)
+    frequency = DB.Column(DB.Integer(), nullable=False)
+    format = DB.Column(DB.String(10), nullable=False)
+    file_name = DB.Column(DB.String(500), nullable=False)
+    id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
+
+
+    export = DB.relationship(
+        'Export',
+        primaryjoin='Export.id==ExportSchedules.id_export',
+        backref='exports'
+    )

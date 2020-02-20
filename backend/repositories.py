@@ -21,7 +21,7 @@ from utils_flask_sqla_geo.generic import GenericQueryGeo, GenericTableGeo
 from geonature.core.users.models import CorRole
 
 
-from .models import (Export, ExportLog, CorExportsRoles)
+from .models import (Export, ExportLog, CorExportsRoles, ExportSchedules)
 
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
@@ -49,7 +49,10 @@ class ExportRepository():
         self.session = session
         # Récupération de l'export
         self.id_export = id_export
-        self.export = Export.query.filter_by(id=id_export).one()
+        try:
+            self.export = Export.query.filter_by(id=id_export).one()
+        except NoResultFound:
+            raise
 
     def _get_data(self, filters=None, limit=1000, offset=0, format="csv"):
         """
@@ -317,3 +320,15 @@ def generate_swagger_spec(id_export):
         }
     ]
     return general_params + swagger_parameters
+
+
+def get_export_schedules():
+    """
+        Liste des exports automatiques
+    """
+    try:
+        q = ExportSchedules.query
+        result = q.all()
+    except Exception as exception:
+        raise
+    return result
