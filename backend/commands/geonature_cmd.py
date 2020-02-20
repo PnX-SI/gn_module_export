@@ -54,7 +54,7 @@ def gn_exports_run_cron_export():
                         isScheduler=True
                     )
                     gne_logger.info(
-                        "Export {} whith frequency {} is done".format(
+                        "Export {} whith frequency {} day is done".format(
                             schedule.export.label, schedule.frequency
                         )
                     )
@@ -98,5 +98,5 @@ def is_to_updated(schedule, schedule_filename):
         file_date = modification_date(schedule_filename)
         # Vérifie si la date du fichier
         #           est inférieure à la date courante + frequency
-        file_is_to_updated = file_date and file_date + timedelta(hours=schedule.frequency) < datetime.now()  # noqa E501
+        file_is_to_updated = file_date and file_date + timedelta(days=schedule.frequency) < datetime.now()  # noqa E501
     return file_is_to_updated

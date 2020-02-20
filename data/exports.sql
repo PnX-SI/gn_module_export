@@ -139,6 +139,8 @@ ALTER TABLE ONLY gn_exports.t_export_schedules
 ALTER TABLE ONLY gn_exports.t_export_schedules
     ADD CONSTRAINT fk_t_export_schedules_id_export FOREIGN KEY (id_export) REFERENCES gn_exports.t_exports(id);
 
+COMMENT ON COLUMN gn_exports.t_export_schedules."frequency" IS 'fréquence de remplacement du fichier en jour';
+
 
 ---------
 --VIEWS--
