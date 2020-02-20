@@ -156,7 +156,6 @@ class ExportRepository():
         result = None
         end_time = None
         log = None
-        exc = None
         status = -2
         start_time = datetime.utcnow()
 
@@ -169,7 +168,6 @@ class ExportRepository():
                 self.get_export_is_allowed(info_role)
             except (NoResultFound) as exp:
                 LOGGER.warn('repository.get_by_id(): %s', str(exp))
-                exc = exp
                 raise
 
             if not with_data or not export_format:
