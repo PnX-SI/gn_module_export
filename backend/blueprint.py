@@ -206,9 +206,11 @@ flask_admin.add_view(LicenceView(
     category="Export"
 ))
 
-# Nécessaire ?
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
+EXPORT_SCHEDULES_DIR = os.path.join(current_app.static_folder, 'exports/schedules')
+
 os.makedirs(EXPORTS_DIR, exist_ok=True)
+os.makedirs(EXPORT_SCHEDULES_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
 

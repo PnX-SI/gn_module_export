@@ -27,9 +27,8 @@ def export_filename(export):
     """
         Génération du nom du fichier d'export
     """
-    return '{}_{}'.format(
-        removeDisallowedFilenameChars(export.get('label')),
-        datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')
+    return '{}'.format(
+        removeDisallowedFilenameChars(export.get('label'))
     )
 
 
@@ -106,7 +105,7 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
         )
 
 
-def export_data_file(id_export, export_format, filters):
+def export_data_file(id_export, export_format, filters, isScheduler=False):
     """
         Fonction qui permet de générer un export fichier
 
@@ -137,13 +136,14 @@ def export_data_file(id_export, export_format, filters):
     # Generate and store export file
     export_def = exprep.export.as_dict()
     try:
-        file_name = "complet_cron_file_" + export_filename(export_def)
+        file_name = export_filename(export_def)
         full_file_name = GenerateExport(
             file_name=file_name,
             format=export_format,
             data=data,
             columns=columns,
-            export=export_def
+            export=export_def,
+            isScheduler=isScheduler
         ).generate_data_export()
 
     except Exception as exp:
@@ -155,15 +155,17 @@ class GenerateExport():
     """
         Classe permettant de générer un fichier d'export dans le format spécfié
     """
-    def __init__(self, file_name, format, data, columns, export):
+    def __init__(self, file_name, format, data, columns, export, isScheduler):
         self.file_name = file_name
         self.format = format
         self.data = data
         self.columns = columns
         self.export = export
         self.has_geometry = export.get('geometry_field', None)
-        from .blueprint import EXPORTS_DIR
+        from .blueprint import EXPORTS_DIR, EXPORT_SCHEDULES_DIR
         self.export_dir = EXPORTS_DIR
+        if isScheduler:
+            self.export_dir = EXPORT_SCHEDULES_DIR
 
         # Nettoyage des anciens export clean_export_file()
         clean_export_file(
