@@ -5,6 +5,7 @@
 import os
 import logging
 import threading
+import json
 
 from pathlib import Path
 from datetime import datetime
@@ -42,7 +43,9 @@ from geonature.utils.env import DB
 
 
 from .repositories import (
-    ExportRepository, EmptyDataSetError, generate_swagger_spec,
+    ExportRepository, EmptyDataSetError,
+    generate_swagger_spec,
+    get_allowed_exports
 )
 from .models import Export, CorExportsRoles, Licences
 from .utils_export import thread_export_data
@@ -54,7 +57,7 @@ LOGGER.setLevel(logging.DEBUG)
 blueprint = Blueprint('exports', __name__)
 blueprint.template_folder = os.path.join(blueprint.root_path, 'templates')
 blueprint.static_folder = os.path.join(blueprint.root_path, 'static')
-repo = ExportRepository()
+
 
 """
 #################################################################
@@ -91,7 +94,9 @@ class ExportRoleView(ModelView):
     """
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
-        super(ExportRoleView, self).__init__(CorExportsRoles,  session, **kwargs)
+        super(ExportRoleView, self).__init__(
+            CorExportsRoles,  session, **kwargs
+        )
 
     # Nom de colonne user friendly
     column_labels = dict(
@@ -138,7 +143,7 @@ class ExportView(ModelView):
     column_descriptions = dict(
         label='Nom libre de l\'export',
         schema_name='Nom exact du schéma postgreSQL contenant la vue SQL.',
-        view_name='Nom exact de la vue SQL permettant l\'export de vos données.',
+        view_name='Nom exact de la vue SQL permettant l\'export de vos données.',  # noqa E501
         desc='Décrit la nature de l\'export',
         public='L\'export est accessible à tous'
     )
@@ -201,9 +206,11 @@ flask_admin.add_view(LicenceView(
     category="Export"
 ))
 
-# Nécessaire ?
 EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
+EXPORT_SCHEDULES_DIR = os.path.join(current_app.static_folder, 'exports/schedules')
+
 os.makedirs(EXPORTS_DIR, exist_ok=True)
+os.makedirs(EXPORT_SCHEDULES_DIR, exist_ok=True)
 SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
 MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
 
@@ -316,13 +323,15 @@ def getOneExportThread(id_export, export_format, info_role):
     if (
         id_export < 1
         or
-        export_format not in blueprint.config.get('export_format_map')
+        export_format not in current_app.config['EXPORTS']['export_format_map']
     ):
-        return to_json_resp({'api_error': 'invalid_export', 'message': 'Invalid export or export not found'}, status=404)
-
-    current_app.config.update(
-        export_format_map=blueprint.config['export_format_map']
-    )
+        return to_json_resp(
+            {
+                'api_error': 'invalid_export',
+                'message': 'Invalid export or export not found'
+            },
+            status=404
+        )
 
     filters = {f: request.args.get(f) for f in request.args}
     data = dict(request.get_json())
@@ -338,11 +347,11 @@ def getOneExportThread(id_export, export_format, info_role):
             thread_export_data(
                 id_export, export_format, info_role, filters, user
             )
-
+        exp = ExportRepository(id_export)
         # Test if export is allowed
         try:
-            repo.get_export_is_allowed(id_export, info_role)
-        except Exception:
+            exp.get_export_is_allowed(info_role)
+        except Exception as e:
             return to_json_resp(
                 {'message': "Not Allowed"},
                 status=403
@@ -357,7 +366,7 @@ def getOneExportThread(id_export, export_format, info_role):
             )
             if not user.email and not tmp_user.email:
                 return to_json_resp(
-                    {'api_error': 'no_email','message': "User doesn't have email"},
+                    {'api_error': 'no_email', 'message': "User doesn't have email"},  # noqa 501
                     status=500
                 )
         except NoResultFound:
@@ -381,7 +390,10 @@ def getOneExportThread(id_export, export_format, info_role):
         a.start()
 
         return to_json_resp(
-            {'api_success': 'in_progress', 'message': 'The Process is in progress ! You will receive an email shortly'},  # noqua
+            {
+                'api_success': 'in_progress',
+                'message': 'The Process is in progress ! You will receive an email shortly'  # noqa 501
+            },
             status=200
         )
 
@@ -405,7 +417,7 @@ def getExports(info_role):
         accessible pour un role donné
     """
     try:
-        exports = repo.get_allowed_exports(info_role)
+        exports = get_allowed_exports(info_role)
     except NoResultFound:
         return {'api_error': 'no_result_found',
                 'message': 'Configure one or more export'}, 404
@@ -478,9 +490,11 @@ def get_one_export_api(id_export, info_role):
 
             order by : @TODO
     """
+    exprep = ExportRepository(id_export)
+
     # Test if export is allowed
     try:
-        repo.get_export_is_allowed(id_export, info_role)
+        exprep.get_export_is_allowed(info_role)
     except Exception:
         return (
             {'message': "Not Allowed"},
@@ -497,70 +511,91 @@ def get_one_export_api(id_export, info_role):
         args.pop("offset")
     filters = {f: args.get(f) for f in args}
 
-    current_app.config.update(
-        export_format_map=blueprint.config['export_format_map']
+    (export, columns, data) = exprep.get_export_with_logging(
+        info_role,
+        with_data=True,
+        filters=filters,
+        limit=limit,
+        offset=offset
     )
-
-    export, columns, data = repo.get_by_id(
-        info_role, id_export, with_data=True, export_format='json',
-        filters=filters, limit=limit, offset=offset
-    )
-
     return data
 
 
 # TODO : Route desactivée car à évaluer
-# @blueprint.route('/etalab', methods=['GET'])
-def etalab_export():
+@blueprint.route('/semantic_dsw', methods=['GET'])
+def semantic_dsw():
     """
-        TODO : METHODE NON FONCTIONNELLE A EVALUEE
+        Fonction qui expose un export RDF basé sur le vocabulaire Darwin-SW
+            sous forme d'api
+
+        Le requetage des données se base sur la classe GenericQuery qui permet
+            de filter les données de façon dynamique en respectant des
+            conventions de nommage
+
+        Parameters
+        ----------
+        limit : nombre limit de résultats à retourner
+        offset : numéro de page
+
+        FILTRES :
+            nom_col=val: Si nom_col fait partie des colonnes
+                de la vue alors filtre nom_col=val
+
+        Returns
+        -------
+        turle
     """
-    if not blueprint.config.get('etalab_export'):
+
+    if not blueprint.config.get('export_semantic_dsw'):
         return to_json_resp(
-            {'api_error': 'etalab_disabled',
-             'message': 'Etalab export is disabled'}, status=501)
+            {'api_error': 'lod_disabled',
+             'message': 'Semantic Darwin-SW export is disabled'}, status=501)
 
     from datetime import time
     from geonature.utils.env import DB
     from .rdf import OccurrenceStore
 
     conf = current_app.config.get('EXPORTS')
-    export_etalab = conf.get('etalab_export')
-    seeded = False
-    if os.path.isfile(export_etalab):
-        seeded = True
-        midnight = datetime.combine(datetime.today(), time.min)
-        mtime = datetime.fromtimestamp(os.path.getmtime(export_etalab))
-        ts_delta = mtime - midnight
+    export_semantic_dsw = conf.get('export_semantic_dsw')
 
-    if not seeded or ts_delta.total_seconds() < 0:
-        store = OccurrenceStore()
-        query = GenericQuery(
-            DB, 'export_occtax_sinp', 'pr_occtax',
-            geometry_field=None, filters=[]
+    store = OccurrenceStore()
+
+    limit = request.args.get('limit', default=1000, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+
+    args = request.args.to_dict()
+    if "limit" in args:
+        args.pop("limit")
+    if "offset" in args:
+        args.pop("offset")
+    filters = {f: args.get(f) for f in args}
+
+    query = GenericQuery(
+        DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters=filters,
+        limit=limit, offset=offset
+    )
+    data = query.return_query()
+    for record in data.get('items'):
+        recordLevel = store.build_recordlevel(record)
+        event = store.build_event(recordLevel, record)
+        store.build_location(event, record)
+        occurrence = store.build_occurrence(event, record)
+        organism = store.build_organism(occurrence, record)
+        identification = store.build_identification(organism, record)
+        store.build_taxon(identification, record)
+    try:
+        with open(export_semantic_dsw, 'w+b') as xp:
+            store.save(store_uri=xp)
+    except FileNotFoundError:
+        response = Response(
+            response="FileNotFoundError : {}".format(
+                export_semantic_dsw
+            ),
+            status=500,
+            mimetype='application/json'
         )
-        data = query.return_query()
-        for record in data.get('items'):
-            event = store.build_event(record)
-            obs = store.build_human_observation(event, record)
-            store.build_location(obs, record)
-            occurrence = store.build_occurrence(event, record)
-            organism = store.build_organism(occurrence, record)
-            identification = store.build_identification(organism, record)
-            store.build_taxon(identification, record)
-        try:
-            with open(export_etalab, 'w+b') as xp:
-                store.save(store_uri=xp)
-        except FileNotFoundError:
-            response = Response(
-                response="FileNotFoundError : {}".format(
-                    export_etalab
-                ),
-                status=500,
-                mimetype='application/json'
-            )
-            return response
+        return response
 
     return send_from_directory(
-        os.path.dirname(export_etalab), os.path.basename(export_etalab)
-    )
+        os.path.dirname(export_semantic_dsw), os.path.basename(export_semantic_dsw)
+)

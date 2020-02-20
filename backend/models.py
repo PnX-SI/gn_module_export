@@ -49,19 +49,6 @@ class Export(DB.Model):
 
     __repr__ = __str__
 
-    @classmethod
-    def from_dict(cls, adict):
-        export = Export(
-            label=adict['label'],
-            schema_name=adict['schema_name'],
-            view_name=adict['view_name'],
-            desc=adict['desc'],
-            geometry_field=adict['geometry_field'],
-            geometry_srid=adict['geometry_srid'],
-            public=adict['public']
-        )
-        return export
-
 
 @serializable
 class ExportLog(DB.Model):
@@ -72,53 +59,22 @@ class ExportLog(DB.Model):
     role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
     export = DB.relationship('Export', lazy='joined')
-    format = DB.Column(DB.String(4), nullable=False)  # noqa: A003
+    format = DB.Column(DB.String(10), nullable=False)  # noqa: A003
     start_time = DB.Column(DB.DateTime, nullable=False)
     end_time = DB.Column(DB.DateTime)
     status = DB.Column(DB.Integer, default=-2)
     log = DB.Column(DB.Text)
 
-    def __init__(self, id_role, id_export, export_format, start_time, end_time,
-                 status, log):
-        self.id_role = id_role
-        self.id_export = id_export
-        self.format = export_format
-        self.start_time = start_time
-        self.end_time = end_time
-        self.status = status
-        self.log = log
-
-    @classmethod
-    def from_dict(cls, adict):
-        export_log = cls(
-            id_role=adict['id_role'],
-            id_export=adict['id_export'],
-            export_format=adict['export_format'],
-            start_time=adict['start_time'],
-            end_time=adict['end_time'],
-            status=adict['status'],
-            log=adict['log']
-        )
-        return export_log
-
     @classmethod
     def record(cls, adict):
         try:
-            # TODO comprendre pourquoi ça ne marchait pas
-            x = cls(
-                id_role=adict['id_role'],
-                id_export=adict['id_export'],
-                export_format=adict['export_format'],
-                start_time=adict['start_time'],
-                end_time=adict['end_time'],
-                status=adict['status'],
-                log=adict['log']
-            )
-            DB.session.add(x)
+            exportLog = cls()
+            exportLog.from_dict(adict)
+            DB.session.add(exportLog)
             DB.session.commit()
         except Exception as e:
             DB.session.rollback()
-            raise e('Echec de journalisation.')
+            # raise Exception('Echec de journalisation.')
 
 
 class CorExportsRoles(DB.Model):
@@ -130,3 +86,19 @@ class CorExportsRoles(DB.Model):
     id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role),
                         primary_key=True, nullable=False)
     role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
+
+
+
+class ExportSchedules(DB.Model):
+    __tablename__ = 't_export_schedules'
+    __table_args__ = {'schema': 'gn_exports'}
+    id_export_schedule = DB.Column(DB.Integer, primary_key=True, nullable=False)
+    frequency = DB.Column(DB.Integer(), nullable=False)
+    format = DB.Column(DB.String(10), nullable=False)
+    id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
+
+    export = DB.relationship(
+        'Export',
+        primaryjoin='Export.id==ExportSchedules.id_export',
+        backref='exports'
+    )

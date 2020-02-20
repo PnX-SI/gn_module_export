@@ -1,7 +1,7 @@
 '''
    Spécification du schéma toml des paramètres de configurations
 '''
-import os
+
 from marshmallow import fields, Schema
 
 
@@ -12,6 +12,10 @@ export_format_map = {
         'geofeature': False
         },
     'json': {
+        'mime': 'application/json',
+        'geofeature': False
+        },
+    'geojson': {
         'mime': 'application/json',
         'geofeature': True
         },
@@ -24,11 +28,10 @@ export_format_map = {
         'geofeature': True
         }
 }  # noqa: E133
-etalab_export = '/home/geonatureadmin/geonature/backend/static/exports/export_etalab.ttl'
-
+export_semantic_dsw = '/home/geonatureadmin/geonature/backend/static/exports/export_semantic_dsw.ttl'
 
 class GnModuleSchemaConf(Schema):
     export_format_map = fields.Dict(missing=export_format_map)
     default_schema = fields.String(missing=default_schema)
-    etalab_export = fields.String(missing=etalab_export)
+    export_semantic_dsw = fields.String(missing=export_semantic_dsw)
     nb_days_keep_file = fields.Int(missing=15)

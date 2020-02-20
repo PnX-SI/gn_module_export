@@ -11,8 +11,8 @@ from flask import current_app
 from geoalchemy2.shape import from_shape
 from shapely.geometry import asShape
 
-from geonature.utils.utilssqlalchemy import generate_csv_content
-from geonature.utils.utilsgeometry import FionaShapeService
+from utils_flask_sqla.response import generate_csv_content
+from utils_flask_sqla_geo.serializers import FionaShapeService
 
 from geonature.utils.filemanager import (
     removeDisallowedFilenameChars
@@ -27,9 +27,8 @@ def export_filename(export):
     """
         Génération du nom du fichier d'export
     """
-    return '{}_{}'.format(
-        removeDisallowedFilenameChars(export.get('label')),
-        datetime.now().strftime('%Y_%m_%d_%Hh%Mm%S')
+    return '{}'.format(
+        removeDisallowedFilenameChars(export.get('label'))
     )
 
 
@@ -52,14 +51,17 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
         .. void
     """
 
-    repo = ExportRepository()
+    exprep = ExportRepository(id_export)
 
     # export data
     try:
-        export, columns, data = repo.get_by_id(
-            info_role, id_export, with_data=True,
+        export, columns, data = exprep.get_export_with_logging(
+            info_role,
+            with_data=True,
             export_format=export_format,
-            filters=filters, limit=-1, offset=0
+            filters=filters,
+            limit=-1,
+            offset=0
         )
     except Exception as exp:
         export_send_mail_error(
@@ -79,6 +81,7 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
             columns=columns,
             export=export
         ).generate_data_export()
+
     except Exception as exp:
         export_send_mail_error(
             user,
@@ -102,19 +105,67 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
         )
 
 
+def export_data_file(id_export, export_format, filters, isScheduler=False):
+    """
+        Fonction qui permet de générer un export fichier
+
+        .. :quickref:  Fonction qui permet de générer un export fichier
+
+        :query int id_export: Identifiant de l'export
+        :query str export_format: format de l'export (csv, json, shp)
+        :query {} filters: Filtre à appliquer sur l'export
+
+
+        **Returns:**
+        .. str : nom du fichier
+    """
+
+    exprep = ExportRepository(id_export)
+
+    # export data
+    try:
+        columns, data = exprep._get_data(
+            filters=filters,
+            limit=-1,
+            offset=0,
+            format=export_format
+        )
+    except Exception as exp:
+        raise(exp)
+
+    # Generate and store export file
+    export_def = exprep.export.as_dict()
+    try:
+        file_name = export_filename(export_def)
+        full_file_name = GenerateExport(
+            file_name=file_name,
+            format=export_format,
+            data=data,
+            columns=columns,
+            export=export_def,
+            isScheduler=isScheduler
+        ).generate_data_export()
+
+    except Exception as exp:
+        raise(exp)
+    return full_file_name
+
+
 class GenerateExport():
     """
         Classe permettant de générer un fichier d'export dans le format spécfié
     """
-    def __init__(self, file_name, format, data, columns, export):
+    def __init__(self, file_name, format, data, columns, export, isScheduler=False):
         self.file_name = file_name
         self.format = format
         self.data = data
         self.columns = columns
         self.export = export
         self.has_geometry = export.get('geometry_field', None)
-        from .blueprint import EXPORTS_DIR
+        from .blueprint import EXPORTS_DIR, EXPORT_SCHEDULES_DIR
         self.export_dir = EXPORTS_DIR
+        if isScheduler:
+            self.export_dir = EXPORT_SCHEDULES_DIR
 
         # Nettoyage des anciens export clean_export_file()
         clean_export_file(
@@ -128,19 +179,21 @@ class GenerateExport():
         """
         out = None
 
-        if self.format not in ['json', 'csv', 'shp']:
+        if self.format not in ['json', 'csv', 'shp', 'geojson']:
             raise Exception('Unsuported format')
 
-        if (
-                self.format == 'shp' and
-                self.has_geometry
-        ):
+        if (self.format == 'shp' and self.has_geometry):
             self.generate_shp()
             return self.file_name + '.zip'
-        if self.format == 'json':
+        elif (self.format == 'geojson' and self.has_geometry):
+            self.data = self.data['items']
+            out = self.generate_json()
+        elif (self.format == 'json'):
             out = self.generate_json()
         elif self.format == 'csv':
             out = self.generate_csv()
+        else:
+            raise Exception('Export generation is impossible with the specified format')  # noqa E501
 
         if out:
             with open(
@@ -155,7 +208,6 @@ class GenerateExport():
         """
             transformation des données au format csv
         """
-        # TODO use utils_flask_sqla
         return generate_csv_content(
             columns=[c.name for c in self.columns],
             data=self.data.get('items'),

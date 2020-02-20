@@ -29,6 +29,10 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
     MAIL_DEFAULT_SENDER = "user@monserver.mail"
 ```
 
+### Export RDF au format Darwin-SW
+Le paramétrage du dossier dans lequel l'export RDF est généré, ce fait à l'aide de la clé "export_semantic_dsw" du fichier de configuration.
+
+
 ## Commande d'installation
 
 - Faire un lien symbolique vers le répertoire ``node_modules`` de GeoNature
@@ -77,6 +81,11 @@ Par défaut une documentation swagger est générée automatiquement mais il est
 1. Créer un fichier au format OpenAPI décrivant votre export
 2. Sauvegarder le fichier ``geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json``
 
+
+# Export RDF au format Darwin-SW
+Le module peut génèrer un export RDF au format Darwin-SW des données "Synthèse".
+
+
 # Autres
 
 CCTP de définition du projet - http://geonature.fr/documents/cctp/2017-10-CCTP-GeoNature-interoperabilite.pdf
@@ -109,9 +118,8 @@ Pour le volet Taxonomie, un travail expérimental a été réalisé : https://gi
   ```
   cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
   ```
-  
-- Refaire le lien symbolique vers les ``node_modules``
 
+- Refaire le lien symbolique vers les `node_modules`
   ```
   ln -s /home/`whoami`/geonature/frontend/node_modules /home/`whoami`/gn_module_export/frontend
   ```
