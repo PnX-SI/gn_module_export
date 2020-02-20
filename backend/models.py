@@ -95,9 +95,7 @@ class ExportSchedules(DB.Model):
     id_export_schedule = DB.Column(DB.Integer, primary_key=True, nullable=False)
     frequency = DB.Column(DB.Integer(), nullable=False)
     format = DB.Column(DB.String(10), nullable=False)
-    file_name = DB.Column(DB.String(500), nullable=False)
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
-
 
     export = DB.relationship(
         'Export',

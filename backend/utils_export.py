@@ -155,7 +155,7 @@ class GenerateExport():
     """
         Classe permettant de générer un fichier d'export dans le format spécfié
     """
-    def __init__(self, file_name, format, data, columns, export, isScheduler):
+    def __init__(self, file_name, format, data, columns, export, isScheduler=False):
         self.file_name = file_name
         self.format = format
         self.data = data
