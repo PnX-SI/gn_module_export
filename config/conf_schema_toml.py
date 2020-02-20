@@ -28,8 +28,7 @@ export_format_map = {
         'geofeature': True
         }
 }  # noqa: E133
-export_semantic_dsw = '/home/geonatureadmin/geonature/backend/static/exports/export_export_semantic_dsw.ttl'
-
+export_semantic_dsw = '/home/geonatureadmin/geonature/backend/static/exports/export_semantic_dsw.ttl'
 
 class GnModuleSchemaConf(Schema):
     export_format_map = fields.Dict(missing=export_format_map)
