@@ -36,7 +36,6 @@ Les autres paramètres concernent les dossiers d'export
 * export_dsw_dir : chemin absolu du dossier ou l'export sémantique au format Darwin-SW sera réalisé
 * export_dsw_filename : nom du fichier de l'export sémantique au format turtle (.ttl)
 
-
 ## Commande d'installation
 
 - Téléchargez le module dans ``/home/<myuser>/``, en remplacant ``X.Y.Z`` par la version souhaitée
