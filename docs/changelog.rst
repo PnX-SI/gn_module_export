@@ -19,6 +19,7 @@ Compatible avec GeoNature 2.3.2.
 
   - Création d'une vue spécifique ``gn_exports.v_exports_synthese_sinp_rdf`` pour l'export RDF
   - Mapping des champs de la synthèse avec le format Darwin-SW
+  - Création d'une fonction Python ``gn_exports_run_cron_export_dsw()`` permettant de générer les fichiers des exports planifiées, dans le répertoire ``static/exports/schedules``, accessible en http
 
 * Utilisation généralisée des nouvelles librairies externalisées de sérialisation (https://github.com/PnX-SI/Utils-Flask-SQLAlchemy et https://github.com/PnX-SI/Utils-Flask-SQLAlchemy-Geo)
 * Ajout du format GeoJSON pour les exports
