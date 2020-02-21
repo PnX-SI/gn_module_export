@@ -101,9 +101,6 @@ def gn_exports_run_cron_export_dsw(limit, offset):
 
         store = OccurrenceStore()
 
-        limit = 2
-        offset = 0
-
         # get data
         query = GenericQuery(
             DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters={},
