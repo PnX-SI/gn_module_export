@@ -538,7 +538,10 @@ def semantic_dsw():
     """
     conf = current_app.config.get('EXPORTS')
     export_dsw_dir = conf.get('export_dsw_dir')
-    export_dsw_fullpath = conf.get('export_dsw_dir') + conf.get('export_dsw_filename')
+    export_dsw_fullpath = str(Path(
+        conf.get('export_dsw_dir'),
+        conf.get('export_dsw_filename')
+    ))
     os.makedirs(export_dsw_dir, exist_ok=True)
 
     if not export_dsw_fullpath:
@@ -546,11 +549,7 @@ def semantic_dsw():
             {'api_error': 'dws_disabled',
              'message': 'Darwin-SW export is disabled'}, status=501)
 
-    from datetime import time
-    from geonature.utils.env import DB
-    from .rdf import OccurrenceStore
-
-    store = OccurrenceStore()
+    from .rdf import generate_store_dws
 
     limit = request.args.get('limit', default=1000, type=int)
     offset = request.args.get('offset', default=0, type=int)
@@ -562,19 +561,7 @@ def semantic_dsw():
         args.pop("offset")
     filters = {f: args.get(f) for f in args}
 
-    query = GenericQuery(
-        DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters=filters,
-        limit=limit, offset=offset
-    )
-    data = query.return_query()
-    for record in data.get('items'):
-        recordLevel = store.build_recordlevel(record)
-        event = store.build_event(recordLevel, record)
-        store.build_location(event, record)
-        occurrence = store.build_occurrence(event, record)
-        organism = store.build_organism(occurrence, record)
-        identification = store.build_identification(organism, record)
-        store.build_taxon(identification, record)
+    store = generate_store_dws(limit, offset, filters)
     try:
         with open(export_dsw_fullpath, 'w+b') as xp:
             store.save(store_uri=xp)
@@ -589,5 +576,6 @@ def semantic_dsw():
         return response
 
     return send_from_directory(
-        os.path.dirname(export_dsw_fullpath), os.path.basename(export_dsw_fullpath)
-)
+        os.path.dirname(export_dsw_fullpath),
+        os.path.basename(export_dsw_fullpath)
+    )
