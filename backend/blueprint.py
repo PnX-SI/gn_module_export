@@ -26,6 +26,7 @@ from flask import (
 from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
+from wtforms import validators, IntegerField
 
 from pypnusershub.db.models import User
 
@@ -47,7 +48,7 @@ from .repositories import (
     generate_swagger_spec,
     get_allowed_exports
 )
-from .models import Export, CorExportsRoles, Licences
+from .models import Export, CorExportsRoles, Licences, ExportSchedules
 from .utils_export import thread_export_data
 
 
@@ -70,6 +71,7 @@ class LicenceView(ModelView):
     """
         Surcharge de l'administration des licences
     """
+
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
         super(LicenceView, self).__init__(Licences,  session, **kwargs)
@@ -80,7 +82,7 @@ class LicenceView(ModelView):
     column_labels = dict(
         name_licence='Nom de la licence',
         url_licence='Description de la licence'
-        )
+    )
     # Description des colonnes
     column_descriptions = dict(
         name_licence='Nom de la licence',
@@ -92,6 +94,7 @@ class ExportRoleView(ModelView):
     """
         Surcharge de l'administration de l'association role/export
     """
+
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
         super(ExportRoleView, self).__init__(
@@ -102,7 +105,7 @@ class ExportRoleView(ModelView):
     column_labels = dict(
         export='Nom de l\'export',
         role='Nom du role'
-        )
+    )
     # Description des colonnes
     column_descriptions = dict(
         role='Role associé à l\'export'
@@ -113,6 +116,7 @@ class ExportView(ModelView):
     """
          Surcharge du formulaire d'administration Export
     """
+
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
         super(ExportView, self).__init__(Export,  session, **kwargs)
@@ -189,6 +193,44 @@ class ExportView(ModelView):
         return super(ExportView, self).validate_form(form)
 
 
+class ExportSchedulesView(ModelView):
+    """
+        Surcharge de l'administration de l'export Schedules
+    """
+
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(ExportSchedulesView, self).__init__(
+            ExportSchedules,  session, **kwargs
+        )
+
+    # Description des colonnes
+    column_descriptions = dict(
+        export='Nom de l\'export à planifier',
+        frequency='Fréquence de la génération de l\'export (en jours)',
+        format='Format de l\'export à générer'
+    )
+
+    form_args = {
+        'export': {
+            'validators': [validators.Required()]
+        },
+        'frequency':{
+            'validators': [validators.NumberRange(1,365)]
+        }
+    }
+
+    form_choices = {
+        'format': [
+            ('csv', 'csv'),
+            ('json', 'json'),
+            ('geojson', 'geojson'),
+            ('shp', 'shp')
+        ]
+    }
+
+
+
 # Add views
 flask_admin.add_view(ExportView(
     DB.session,
@@ -203,6 +245,11 @@ flask_admin.add_view(ExportRoleView(
 flask_admin.add_view(LicenceView(
     DB.session,
     name="Licences",
+    category="Export"
+))
+flask_admin.add_view(ExportSchedulesView(
+    DB.session,
+    name="Planification des exports",
     category="Export"
 ))
 
@@ -305,7 +352,7 @@ def swagger_ressources(id_export=None):
     'E', True, module_code='EXPORTS',
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
-    )
+)
 def getOneExportThread(id_export, export_format, info_role):
     """
         Run export with thread
@@ -400,7 +447,7 @@ def getOneExportThread(id_export, export_format, info_role):
     'R', True, module_code='EXPORTS',
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
-    )
+)
 @json_resp
 def getExports(info_role):
     """
@@ -538,7 +585,8 @@ def semantic_dsw():
     """
     conf = current_app.config.get('EXPORTS')
     export_dsw_dir = conf.get('export_dsw_dir')
-    export_dsw_fullpath = conf.get('export_dsw_dir') + conf.get('export_dsw_filename')
+    export_dsw_fullpath = conf.get(
+        'export_dsw_dir') + conf.get('export_dsw_filename')
     os.makedirs(export_dsw_dir, exist_ok=True)
 
     if not export_dsw_fullpath:
@@ -589,5 +637,6 @@ def semantic_dsw():
         return response
 
     return send_from_directory(
-        os.path.dirname(export_dsw_fullpath), os.path.basename(export_dsw_fullpath)
-)
+        os.path.dirname(export_dsw_fullpath), os.path.basename(
+            export_dsw_fullpath)
+    )
