@@ -60,11 +60,11 @@ def gn_exports_run_cron_export():
                         )
                     )
                 except Exception as exception:
-                    gne_logger.error("exception export_data_file: ", exception)
+                    gne_logger.error("exception export_data_file: {}".format(exception))
 
         gne_logger.info("END schedule export task")
     except Exception as exception:
-        gne_logger.error("exception export auto: ", exception)
+        gne_logger.error("exception export auto: {}".format(exception))
 
 
 @main.command()
@@ -141,12 +141,14 @@ def gn_exports_run_cron_export_dsw(limit, offset):
         )
         gne_logger.info("END schedule export task")
     except Exception as exception:
-        gne_logger.error("exception export auto: ", exception)
+        gne_logger.error("exception export scheduled: {}".format(exception))
 
 
 @with_appcontext
 def modification_date(filename):
-    from ..blueprint import EXPORT_SCHEDULES_DIR
+    from flask import current_app
+    conf = current_app.config.get('EXPORTS')
+    EXPORT_SCHEDULES_DIR = conf.get('export_schedules_dir')
     try:
         full_path = os.path.join(EXPORT_SCHEDULES_DIR, filename)
         t = os.path.getmtime(full_path)
@@ -154,18 +156,20 @@ def modification_date(filename):
 
         return modif_date
     except Exception as exception:
-        gne_logger.error("exception modification_date: ", exception)
+        gne_logger.error("exception modification_date: {} ".format(exception))
 
 
 @with_appcontext
 def check_file_exists(filename):
-    from ..blueprint import EXPORT_SCHEDULES_DIR
+    from flask import current_app
+    conf = current_app.config.get('EXPORTS')
+    EXPORT_SCHEDULES_DIR = conf.get('export_schedules_dir')
     try:
         full_path = os.path.join(EXPORT_SCHEDULES_DIR, filename)
         exists = os.path.exists(full_path)
         return exists
     except Exception as exception:
-        gne_logger.error("exception modification_date: ", exception)
+        gne_logger.error("exception modification_date: {} ".format(exception))
 
 
 def is_to_updated(schedule, schedule_filename):
