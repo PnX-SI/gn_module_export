@@ -43,7 +43,7 @@ def gn_exports_run_cron_export():
             schedule_filename = export_filename(schedule.export.as_dict())
 
             # test si le fichier doit être regénéré
-            file_is_to_updated = is_to_updated(schedule, schedule_filename)
+            file_is_to_updated = is_to_updated(schedule.frequency, schedule_filename)
 
             if file_is_to_updated:
                 # Fonction qui permet de générer un export fichier
@@ -64,6 +64,7 @@ def gn_exports_run_cron_export():
 
         gne_logger.info("END schedule export task")
     except Exception as exception:
+        raise (exception)
         gne_logger.error("exception export auto: {}".format(exception))
 
 
@@ -172,7 +173,8 @@ def check_file_exists(filename):
         gne_logger.error("exception modification_date: {} ".format(exception))
 
 
-def is_to_updated(schedule, schedule_filename):
+@with_appcontext
+def is_to_updated(frequency, schedule_filename):
 
     file_exists = check_file_exists(schedule_filename)
     file_is_to_updated = True
@@ -180,5 +182,5 @@ def is_to_updated(schedule, schedule_filename):
         file_date = modification_date(schedule_filename)
         # Vérifie si la date du fichier
         #           est inférieure à la date courante + frequency
-        file_is_to_updated = file_date and file_date + timedelta(days=schedule.frequency) < datetime.now()  # noqa E501
+        file_is_to_updated = file_date and file_date + timedelta(days=frequency) < datetime.now()  # noqa E501
     return file_is_to_updated

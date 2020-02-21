@@ -325,7 +325,7 @@ def get_export_schedules():
         Liste des exports automatiques
     """
     try:
-        q = ExportSchedules.query
+        q = DB.session.query(ExportSchedules)
         result = q.all()
     except Exception as exception:
         raise
