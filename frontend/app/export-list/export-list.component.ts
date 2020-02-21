@@ -93,12 +93,14 @@ export class ExportListComponent implements OnInit {
         .downloadExport(this._export, this.formatSelection.value, emailparams)
         .subscribe(
           response => {
+            this.modalForm.reset();
             this._commonService.regularToaster(
               "success",
               response && response.message ? response.message : ""
             );
           },
           (response: ApiErrorResponse) => {
+            this.modalForm.reset();
             this._commonService.regularToaster(
               "error",
               response.error.message ? response.error.message : response.message
