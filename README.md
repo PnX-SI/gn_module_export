@@ -91,6 +91,26 @@ Par défaut une documentation swagger est générée automatiquement mais il est
 1. Créer un fichier au format OpenAPI décrivant votre export
 2. Sauvegarder le fichier ``geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json``
 
+
+# Export planifié
+Lors de l'installation du module une commande cron est créée. Elle se lance tout les jours à minuit.
+
+```
+    0 0 * * * MODULE_EXPORT_HOME/gn_export_cron.sh GN2_HOME # gn_export cron job
+```
+
+Cette commande liste des exports planifié dans la table ``gn_exports.t_export_schedules`` et les exécute si besoin.
+La fonction considère qu'un export doit être réalisé à partir du moment ou le fichier généré précedemment est plus ancien (en jours) que la fréquence définie.
+
+Il est possible de lancer manuellement cette commande
+
+```
+    cd GN2_HOME
+    source backend/venv/bin/activate
+    geonature gn_exports_run_cron_export
+```
+
+
 # Export RDF au format Darwin-SW
 
 Le module peut génèrer un export RDF au format Darwin-SW des données de la Synthèse de GeoNature.
@@ -110,7 +130,7 @@ API :
         
 Commande:
 ```
-    cd $GEONATURE_HOME
+    cd GN2_HOME
     source backend/venv/bin/activate
     geonature gn_exports_run_cron_export_dsw --limit 10 --offset=0
 ```
