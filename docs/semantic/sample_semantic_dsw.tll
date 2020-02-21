@@ -1,0 +1,71 @@
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcterms: <http://purl.org/dc/terms> .
+@prefix dsw: <http://purl.org/dsw/> .
+@prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix ns1: <http://purl.org/dc/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+[] a ns1:termsEvent ;
+    ns1:termslanguage "fr" ;
+    dsw:basisOfRecord _:N7d15b796f0934ad48da3c90f836b244f ;
+    dwc:datasetID "4d331cae-65e4-4948-b0b2-a11bc5bb46c2" ;
+    dwc:datasetName "Contact aléatoire tous règnes confondus" ;
+    dwc:ownerInstitutionCode "Parc National des Cévennes" .
+
+_:N059f1d83f89c41dd8a285cc5e6867870 a foaf:Agent,
+        foaf:Person ;
+    foaf:nick "SAHL Amandine" .
+
+_:N4f289fd56eca4f57af1d8f1b4ebf7896 a foaf:Agent .
+
+_:N555ca63090e54079997f8b99223ef2f8 a ns1:termsLocation ;
+    dwc:coordinateUncertaintyInMeters "Standard" ;
+    dwc:decimalLatitude "3.41136753559113"^^xsd:float ;
+    dwc:decimalLongitude "44.3669911420084"^^xsd:float ;
+    dwc:footprintWKT "POINT(3.41136753559113 44.3669911420084)" ;
+    dwc:geodeticDatum "EPSG:4326" ;
+    dwc:maximumElevationInMeters 480 ;
+    dwc:minimumElevationInMeters 480 .
+
+_:N7135dce1ca264b5aba41a37550648160 a dwc:Taxon ;
+    dwc:nameAccordingTo "Taxref V11.0" ;
+    dwc:scientificName "Mimas tiliae (Linnaeus, 1758)" ;
+    dwc:taxonID <http://taxref.mnhn.fr/lod/taxon/54815/12.0>,
+        54815 ;
+    dwc:vernacularName "Sphinx du Tilleul (Le) =  <i> Mimas tiliae (Linnaeus, 1758)</i> - [ES - 54815]"@fr .
+
+_:Nccf752841df14e2da2130e4950e16a73 a dwc:Identification ;
+    dsw:identifies _:Necdc87d878d6465bbb13373c24cc8c13 ;
+    dsw:toTaxon _:N7135dce1ca264b5aba41a37550648160 ;
+    dwc:identificationRemarks "None" ;
+    dwc:identificationVerificationStatus "Inconnu" ;
+    dwc:identifiedBy _:N4f289fd56eca4f57af1d8f1b4ebf7896 .
+
+_:N7d15b796f0934ad48da3c90f836b244f a dwc:Event ;
+    dsw:eventOf _:Ne9f0944caff34bf88bb6f8242ff30857 ;
+    dsw:locatedAt _:N555ca63090e54079997f8b99223ef2f8 ;
+    dwc:eventDate "2019-10-03T00:00:00/2019-10-03T00:00:00" ;
+    dwc:eventID "92b9ec1a-7f76-4bc3-a532-3eb888788244" ;
+    dwc:eventRemarks "None" ;
+    dwc:samplingProtocol "Vu" .
+
+_:Ne9f0944caff34bf88bb6f8242ff30857 a dwc:Occurrence ;
+    dsw:atEvent _:N7d15b796f0934ad48da3c90f836b244f ;
+    dsw:occurrenceOf _:Necdc87d878d6465bbb13373c24cc8c13 ;
+    dwc:establishmentMeans "Sauvage" ;
+    dwc:lifeStage "Chenille" ;
+    dwc:occurrenceID "52114487-d3b7-4b7f-b082-c203d9d97b5d" ;
+    dwc:occurrenceQuantity 1 ;
+    dwc:occurrenceRemarks "None" ;
+    dwc:occurrenceStatus "Présent" ;
+    dwc:organismQuantityType "Individu" ;
+    dwc:recordedBy _:N059f1d83f89c41dd8a285cc5e6867870 .
+
+_:Necdc87d878d6465bbb13373c24cc8c13 a dwc:Organism ;
+    dsw:hasIdentification _:Nccf752841df14e2da2130e4950e16a73 ;
+    dsw:hasOccurrence _:Ne9f0944caff34bf88bb6f8242ff30857 .
+

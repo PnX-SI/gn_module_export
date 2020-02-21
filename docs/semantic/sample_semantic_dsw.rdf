@@ -1,0 +1,80 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:dsw="http://purl.org/dsw/"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:dwc="http://rs.tdwg.org/dwc/terms/"
+    xmlns:ns1="http://purl.org/dc/"
+    xmlns:dcterms="http://purl.org/dc/terms"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:foaf="http://xmlns.com/foaf/0.1/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#" >
+  <rdf:Description rdf:nodeID="A0">
+    <dwc:samplingProtocol>Vu</dwc:samplingProtocol>
+    <dwc:eventRemarks>None</dwc:eventRemarks>
+    <dwc:eventID>92b9ec1a-7f76-4bc3-a532-3eb888788244</dwc:eventID>
+    <dwc:eventDate>2019-10-03T00:00:00/2019-10-03T00:00:00</dwc:eventDate>
+    <dsw:locatedAt rdf:nodeID="A1"/>
+    <dsw:eventOf rdf:nodeID="A2"/>
+    <rdf:type rdf:resource="http://rs.tdwg.org/dwc/terms/Event"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A3">
+    <dwc:ownerInstitutionCode>Parc National des Cévennes</dwc:ownerInstitutionCode>
+    <dwc:datasetName>Contact aléatoire tous règnes confondus</dwc:datasetName>
+    <dwc:datasetID>4d331cae-65e4-4948-b0b2-a11bc5bb46c2</dwc:datasetID>
+    <dsw:basisOfRecord rdf:nodeID="A0"/>
+    <ns1:termslanguage>fr</ns1:termslanguage>
+    <rdf:type rdf:resource="http://purl.org/dc/termsEvent"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A4">
+    <dwc:vernacularName xml:lang="fr">Sphinx du Tilleul (Le) =  &lt;i&gt; Mimas tiliae (Linnaeus, 1758)&lt;/i&gt; - [ES - 54815]</dwc:vernacularName>
+    <dwc:taxonID rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">54815</dwc:taxonID>
+    <dwc:taxonID rdf:resource="http://taxref.mnhn.fr/lod/taxon/54815/12.0"/>
+    <dwc:scientificName>Mimas tiliae (Linnaeus, 1758)</dwc:scientificName>
+    <dwc:nameAccordingTo>Taxref V11.0</dwc:nameAccordingTo>
+    <rdf:type rdf:resource="http://rs.tdwg.org/dwc/terms/Taxon"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A5">
+    <dsw:hasOccurrence rdf:nodeID="A2"/>
+    <dsw:hasIdentification rdf:nodeID="A6"/>
+    <rdf:type rdf:resource="http://rs.tdwg.org/dwc/terms/Organism"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A7">
+    <rdf:type rdf:resource="http://xmlns.com/foaf/0.1/Agent"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A2">
+    <dwc:organismQuantityType>Individu</dwc:organismQuantityType>
+    <dwc:recordedBy rdf:nodeID="A8"/>
+    <dwc:occurrenceRemarks>None</dwc:occurrenceRemarks>
+    <dwc:establishmentMeans>Sauvage</dwc:establishmentMeans>
+    <dsw:occurrenceOf rdf:nodeID="A5"/>
+    <rdf:type rdf:resource="http://rs.tdwg.org/dwc/terms/Occurrence"/>
+    <dwc:lifeStage>Chenille</dwc:lifeStage>
+    <dsw:atEvent rdf:nodeID="A0"/>
+    <dwc:occurrenceStatus>Présent</dwc:occurrenceStatus>
+    <dwc:occurrenceID>52114487-d3b7-4b7f-b082-c203d9d97b5d</dwc:occurrenceID>
+    <dwc:occurrenceQuantity rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">1</dwc:occurrenceQuantity>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A1">
+    <dwc:minimumElevationInMeters rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">480</dwc:minimumElevationInMeters>
+    <dwc:maximumElevationInMeters rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">480</dwc:maximumElevationInMeters>
+    <dwc:geodeticDatum>EPSG:4326</dwc:geodeticDatum>
+    <dwc:footprintWKT>POINT(3.41136753559113 44.3669911420084)</dwc:footprintWKT>
+    <dwc:decimalLongitude rdf:datatype="http://www.w3.org/2001/XMLSchema#float">44.3669911420084</dwc:decimalLongitude>
+    <dwc:decimalLatitude rdf:datatype="http://www.w3.org/2001/XMLSchema#float">3.41136753559113</dwc:decimalLatitude>
+    <dwc:coordinateUncertaintyInMeters>Standard</dwc:coordinateUncertaintyInMeters>
+    <rdf:type rdf:resource="http://purl.org/dc/termsLocation"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A6">
+    <dwc:identifiedBy rdf:nodeID="A7"/>
+    <dwc:identificationVerificationStatus>Inconnu</dwc:identificationVerificationStatus>
+    <dwc:identificationRemarks>None</dwc:identificationRemarks>
+    <dsw:toTaxon rdf:nodeID="A4"/>
+    <dsw:identifies rdf:nodeID="A5"/>
+    <rdf:type rdf:resource="http://rs.tdwg.org/dwc/terms/Identification"/>
+  </rdf:Description>
+  <rdf:Description rdf:nodeID="A8">
+    <foaf:nick>SAHL Amandine</foaf:nick>
+    <rdf:type rdf:resource="http://xmlns.com/foaf/0.1/Person"/>
+    <rdf:type rdf:resource="http://xmlns.com/foaf/0.1/Agent"/>
+  </rdf:Description>
+</rdf:RDF>
