@@ -167,6 +167,8 @@ class GenerateExport():
         conf = current_app.config.get('EXPORTS')
         EXPORTS_DIR = conf.get('export_dir')
         EXPORT_SCHEDULES_DIR = conf.get('export_schedules_dir')
+
+        # Création des dossiers si nécessaire
         os.makedirs(EXPORTS_DIR, exist_ok=True)
         os.makedirs(EXPORT_SCHEDULES_DIR, exist_ok=True)
 
