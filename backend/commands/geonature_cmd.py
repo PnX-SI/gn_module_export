@@ -43,7 +43,7 @@ def gn_exports_run_cron_export():
             schedule_filename = export_filename(schedule.export.as_dict())
 
             # test si le fichier doit être regénéré
-            file_is_to_updated = is_to_updated(schedule, schedule_filename)
+            file_is_to_updated = is_to_updated(schedule.frequency, schedule_filename)
 
             if file_is_to_updated:
                 # Fonction qui permet de générer un export fichier
@@ -64,6 +64,7 @@ def gn_exports_run_cron_export():
 
         gne_logger.info("END schedule export task")
     except Exception as exception:
+        raise (exception)
         gne_logger.error("exception export auto: {}".format(exception))
 
 
@@ -85,39 +86,18 @@ def gn_exports_run_cron_export_dsw(limit, offset):
     gne_logger.info("START schedule Dawin-SW export task")
 
     from flask import current_app
-    from utils_flask_sqla.generic import GenericQuery
-
-    from geonature.utils.env import DB
-    from ..rdf import OccurrenceStore
+    from ..rdf import generate_store_dws
 
     try:
 
         conf = current_app.config.get('EXPORTS')
-        export_dsw_dir = conf.get('export_dsw_dir') + conf.get('export_dsw_filename')
+        export_dsw_dir = str(Path(
+            conf.get('export_dsw_dir'),
+            conf.get('export_dsw_filename')
+        ))
 
-        Path(conf.get('export_dsw_dir')).mkdir(
-            parents=True, exist_ok=True
-        )
-
-        store = OccurrenceStore()
-
-        # get data
-        query = GenericQuery(
-            DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters={},
-            limit=limit, offset=offset
-        )
-        data = query.return_query()
-
-        # generate sematic data structure
-        # TODO create function
-        for record in data.get('items'):
-            recordLevel = store.build_recordlevel(record)
-            event = store.build_event(recordLevel, record)
-            store.build_location(event, record)
-            occurrence = store.build_occurrence(event, record)
-            organism = store.build_organism(occurrence, record)
-            identification = store.build_identification(organism, record)
-            store.build_taxon(identification, record)
+        # get data and generate sematic data structure
+        store = generate_store_dws(limit=limit, offset=offset, filters={})
 
         # Store file
         try:
@@ -172,7 +152,8 @@ def check_file_exists(filename):
         gne_logger.error("exception modification_date: {} ".format(exception))
 
 
-def is_to_updated(schedule, schedule_filename):
+@with_appcontext
+def is_to_updated(frequency, schedule_filename):
 
     file_exists = check_file_exists(schedule_filename)
     file_is_to_updated = True
@@ -180,5 +161,5 @@ def is_to_updated(schedule, schedule_filename):
         file_date = modification_date(schedule_filename)
         # Vérifie si la date du fichier
         #           est inférieure à la date courante + frequency
-        file_is_to_updated = file_date and file_date + timedelta(days=schedule.frequency) < datetime.now()  # noqa E501
+        file_is_to_updated = file_date and file_date + timedelta(days=frequency) < datetime.now()  # noqa E501
     return file_is_to_updated

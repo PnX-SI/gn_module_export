@@ -88,7 +88,6 @@ class CorExportsRoles(DB.Model):
     role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
 
 
-
 class ExportSchedules(DB.Model):
     __tablename__ = 't_export_schedules'
     __table_args__ = {'schema': 'gn_exports'}
@@ -100,5 +99,6 @@ class ExportSchedules(DB.Model):
     export = DB.relationship(
         'Export',
         primaryjoin='Export.id==ExportSchedules.id_export',
-        backref='exports'
+        backref='exports',
+        lazy='subquery'
     )

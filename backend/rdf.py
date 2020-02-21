@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-
 from datetime import datetime as dt
-from shapely import wkt, geometry
 
 from rdflib import (
     BNode,
@@ -13,6 +10,9 @@ from rdflib import (
 )
 from rdflib.namespace import FOAF, DC, XSD
 
+from utils_flask_sqla.generic import GenericQuery
+
+from geonature.utils.env import DB
 
 DCMITYPE = Namespace('http://purl.org/dc/dcmitype/')
 DWC = Namespace('http://rs.tdwg.org/dwc/terms/')
@@ -154,7 +154,7 @@ class OccurrenceStore:
         return identification
 
     def build_taxon(self, identification, record):
-        taxon=BNode()
+        taxon = BNode()
         self.graph.add((taxon, RDF.type, DWC['Taxon']))
         self.graph.add((taxon, DWC['scientificName'],
                        Literal(record['nom_complet'])))
@@ -162,11 +162,56 @@ class OccurrenceStore:
             (taxon, DWC['vernacularName'],
              Literal(record['nomCite'], lang='fr')))
         self.graph.add((taxon, DWC['taxonID'], Literal(record['cdNom'])))
+        # TODO : pour le moment version de taxref fixée à 12
+        #  car la 13 n'est pas implémentée dans le lod
+        #   a suivre
         self.graph.add(
             (taxon, DWC['taxonID'], URIRef(
                 Literal(
                     'http://taxref.mnhn.fr/lod/taxon/{}/12.0'.format(
                         str(record['cdRef']))))))
-        self.graph.add( ( taxon, DWC['nameAccordingTo'], Literal(record['vTAXREF']) ) )
+        self.graph.add((taxon, DWC['nameAccordingTo'], Literal(record['vTAXREF'])))
         self.graph.add((identification, DSW['toTaxon'], taxon))
         return taxon
+
+
+def populate_occurence_store(data):
+    """
+        Fonction qui génère un store
+            à partir de données occurences
+
+        TODO : mettre des try/catch
+    """
+    store = OccurrenceStore()
+    for record in data:
+        recordLevel = store.build_recordlevel(record)
+        event = store.build_event(recordLevel, record)
+        store.build_location(event, record)
+        occurrence = store.build_occurrence(event, record)
+        organism = store.build_organism(occurrence, record)
+        identification = store.build_identification(organism, record)
+        store.build_taxon(identification, record)
+
+    return store
+
+
+def generate_store_dws(limit=10, offset=0, filters=None):
+    """
+        Fonction qui :
+            - récupère les données de la requete v_exports_synthese_sinp_rdf
+            - les formattent en vu de leur export en RDF
+
+        TODO : mettre des try/catch
+    """
+    filters = filters or {}
+    # get data
+    query = GenericQuery(
+        DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters=filters,
+        limit=limit, offset=offset
+    )
+    data = query.return_query()
+
+    # generate sematic data structure
+    store = populate_occurence_store(data.get('items'))
+
+    return store

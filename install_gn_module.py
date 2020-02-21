@@ -65,13 +65,12 @@ def write_in_cron_tab():
     cron = CronTab(user=True)
 
     # Test si le job exist alors suppression
-    for c in cron:
-        if c.comment == cron_cmt:
-            cron.remove(c)
+    cron.remove_all(comment=cron_cmt)
 
     # Création nouveau job
     job = cron.new(command=cron_cmd, comment=cron_cmt)
-    job.day.every(1)
+    # Configuration de la planification => @daily
+    job.every().dom()
 
     # Ecriture dans cron tab
     cron.write()
