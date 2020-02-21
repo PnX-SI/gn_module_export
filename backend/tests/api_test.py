@@ -296,18 +296,19 @@ class TestApiModuleExports:
         import rdflib
         import rdflib.compare
 
-        conf = current_app.config.get('exports')
+        conf = current_app.config.get('EXPORTS')
+        export_dsw_dir = conf.get('export_dsw_dir') + conf.get('export_dsw_filename')
 
-        if (current_app.config.get('export_semantic_dsw', False)
+        if (export_dsw_dir, False)
                 not in (None, False, 0, '')):
             try:
-                os.unlink(conf.get('export_semantic_dsw'))
+                os.unlink(conf.get('export_dsw_dir'))
             except FileNotFoundError:
                 pass
 
-        response = self.client.get(url_for('exports.export_semantic_dsw'))
+        response = self.client.get(url_for('exports.export_dsw_dir'))
 
-        if (current_app.config.get('export_semantic_dsw', False)
+        if (export_dsw_dir, False)
                 in (None, False, 0, '')):
             assert response.status_code == 501
             return

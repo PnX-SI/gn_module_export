@@ -43,6 +43,12 @@ def gnmodule_install_app(gn_db, gn_app):
         Path(BACKEND_DIR / "static/exports").mkdir(
             parents=True, exist_ok=True
         )
+        Path(BACKEND_DIR / "static/exports/dsw").mkdir(
+            parents=True, exist_ok=True
+        )
+        Path(BACKEND_DIR / "static/exports/schedules").mkdir(
+            parents=True, exist_ok=True
+        )
         Path(ROOT_DIR / "var/log/gn_export").mkdir(
             parents=True, exist_ok=True
         )

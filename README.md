@@ -30,7 +30,8 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
 ```
 
 ### Export RDF au format Darwin-SW
-Le paramétrage du dossier dans lequel l'export RDF est généré, ce fait à l'aide de la clé "export_semantic_dsw" du fichier de configuration.
+Le paramétrage du dossier dans lequel l'export RDF est généré, ce fait à l'aide de la clé "export_dsw_dir" du fichier de configuration.
+Le nom du fichier RDF peut aussi être configuré avce la clé "export_dsw_filename".
 
 
 ## Commande d'installation

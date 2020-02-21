@@ -29,7 +29,7 @@ export_format_map = {
         }
 }  # noqa: E133
 
-export_dir = str(ROOT_DIR) + 'backend/static/exports/'
+export_dir = str(ROOT_DIR) + '/backend/static/exports/'
 export_schedules_dir = export_dir + '/schedules/'
 export_dsw_dir = export_dir + '/dsw/'
 export_dsw_filename = 'export_dsw.ttl'

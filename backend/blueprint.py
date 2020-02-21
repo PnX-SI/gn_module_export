@@ -206,8 +206,8 @@ flask_admin.add_view(LicenceView(
     category="Export"
 ))
 
-EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
-EXPORT_SCHEDULES_DIR = os.path.join(current_app.static_folder, 'exports/schedules')
+EXPORTS_DIR = current_app.config['EXPORTS']['export_dir']
+EXPORT_SCHEDULES_DIR = current_app.config['EXPORTS']['export_schedules_dir']
 
 os.makedirs(EXPORTS_DIR, exist_ok=True)
 os.makedirs(EXPORT_SCHEDULES_DIR, exist_ok=True)
@@ -546,17 +546,17 @@ def semantic_dsw():
         turle
     """
 
-    if not blueprint.config.get('export_semantic_dsw'):
+    if not blueprint.config.get('export_dsw_dir') and not blueprint.config.get('export_dsw_filename'):
         return to_json_resp(
-            {'api_error': 'lod_disabled',
-             'message': 'Semantic Darwin-SW export is disabled'}, status=501)
+            {'api_error': 'dws_disabled',
+             'message': 'Darwin-SW export is disabled'}, status=501)
 
     from datetime import time
     from geonature.utils.env import DB
     from .rdf import OccurrenceStore
 
     conf = current_app.config.get('EXPORTS')
-    export_semantic_dsw = conf.get('export_semantic_dsw')
+    export_dsw_dir = conf.get('export_dsw_dir') + conf.get('export_dsw_filename')
 
     store = OccurrenceStore()
 
@@ -584,12 +584,12 @@ def semantic_dsw():
         identification = store.build_identification(organism, record)
         store.build_taxon(identification, record)
     try:
-        with open(export_semantic_dsw, 'w+b') as xp:
+        with open(export_dsw_dir, 'w+b') as xp:
             store.save(store_uri=xp)
     except FileNotFoundError:
         response = Response(
             response="FileNotFoundError : {}".format(
-                export_semantic_dsw
+                export_dsw_dir
             ),
             status=500,
             mimetype='application/json'
@@ -597,5 +597,5 @@ def semantic_dsw():
         return response
 
     return send_from_directory(
-        os.path.dirname(export_semantic_dsw), os.path.basename(export_semantic_dsw)
+        os.path.dirname(export_dsw_dir), os.path.basename(export_dsw_dir)
 )
