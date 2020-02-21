@@ -165,14 +165,13 @@ class GenerateExport():
         self.has_geometry = export.get('geometry_field', None)
 
         conf = current_app.config.get('EXPORTS')
-        EXPORTS_DIR = conf.get('export_dir')
-        EXPORT_SCHEDULES_DIR = conf.get('export_schedules_dir')
-        os.makedirs(EXPORTS_DIR, exist_ok=True)
-        os.makedirs(EXPORT_SCHEDULES_DIR, exist_ok=True)
 
-        self.export_dir = EXPORTS_DIR
         if isScheduler:
-            self.export_dir = EXPORT_SCHEDULES_DIR
+            self.export_dir = conf.get('export_schedules_dir')
+        else:
+            self.export_dir = os.path.join(current_app.static_folder, 'exports')  # noqa E501
+
+        os.makedirs(self.export_dir, exist_ok=True)
 
         # Nettoyage des anciens export clean_export_file()
         clean_export_file(

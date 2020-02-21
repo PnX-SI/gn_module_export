@@ -5,7 +5,6 @@
 from marshmallow import fields, Schema
 from geonature.utils.env import ROOT_DIR
 
-default_schema = 'gn_exports'
 export_format_map = {
     'csv': {
         'mime': 'text/csv',
@@ -34,10 +33,9 @@ export_schedules_dir = export_dir + 'schedules/'
 export_dsw_dir = export_dir + 'dsw/'
 export_dsw_filename = 'export_dsw.ttl'
 
+
 class GnModuleSchemaConf(Schema):
     export_format_map = fields.Dict(missing=export_format_map)
-    default_schema = fields.String(missing=default_schema)
-    export_dir = fields.String(missing=export_dir)
     export_schedules_dir = fields.String(missing=export_schedules_dir)
     export_dsw_dir = fields.String(missing=export_dsw_dir)
     export_dsw_filename = fields.String(missing=export_dsw_filename)
