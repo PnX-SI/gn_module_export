@@ -292,7 +292,7 @@ class TestApiModuleExports:
         assert response.status_code == 404
         assert response.json == {'api_error': 'NonTransformableError'}
 
-    def test_semantic_dsw(self):
+    def test_dws(self):
         import rdflib
         import rdflib.compare
 

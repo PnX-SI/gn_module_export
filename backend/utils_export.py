@@ -1,6 +1,7 @@
 """
     Fonctions permettant la génération des fichiers d'export
 """
+import os
 import json
 import shutil
 
@@ -162,7 +163,13 @@ class GenerateExport():
         self.columns = columns
         self.export = export
         self.has_geometry = export.get('geometry_field', None)
-        from .blueprint import EXPORTS_DIR, EXPORT_SCHEDULES_DIR
+
+        conf = current_app.config.get('EXPORTS')
+        EXPORTS_DIR = conf.get('export_dir')
+        EXPORT_SCHEDULES_DIR = conf.get('export_schedules_dir')
+        os.makedirs(EXPORTS_DIR, exist_ok=True)
+        os.makedirs(EXPORT_SCHEDULES_DIR, exist_ok=True)
+
         self.export_dir = EXPORTS_DIR
         if isScheduler:
             self.export_dir = EXPORT_SCHEDULES_DIR

@@ -206,15 +206,6 @@ flask_admin.add_view(LicenceView(
     category="Export"
 ))
 
-EXPORTS_DIR = current_app.config['EXPORTS']['export_dir']
-EXPORT_SCHEDULES_DIR = current_app.config['EXPORTS']['export_schedules_dir']
-
-os.makedirs(EXPORTS_DIR, exist_ok=True)
-os.makedirs(EXPORT_SCHEDULES_DIR, exist_ok=True)
-SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
-MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
-
-ASSETS = os.path.join(blueprint.root_path, 'assets')
 
 """
 #################################################################
@@ -545,8 +536,12 @@ def semantic_dsw():
         -------
         turle
     """
+    conf = current_app.config.get('EXPORTS')
+    export_dsw_dir = conf.get('export_dsw_dir')
+    export_dsw_fullpath = conf.get('export_dsw_dir') + conf.get('export_dsw_filename')
+    os.makedirs(export_dsw_dir, exist_ok=True)
 
-    if not blueprint.config.get('export_dsw_dir') and not blueprint.config.get('export_dsw_filename'):
+    if not export_dsw_fullpath:
         return to_json_resp(
             {'api_error': 'dws_disabled',
              'message': 'Darwin-SW export is disabled'}, status=501)
@@ -554,9 +549,6 @@ def semantic_dsw():
     from datetime import time
     from geonature.utils.env import DB
     from .rdf import OccurrenceStore
-
-    conf = current_app.config.get('EXPORTS')
-    export_dsw_dir = conf.get('export_dsw_dir') + conf.get('export_dsw_filename')
 
     store = OccurrenceStore()
 
@@ -584,12 +576,12 @@ def semantic_dsw():
         identification = store.build_identification(organism, record)
         store.build_taxon(identification, record)
     try:
-        with open(export_dsw_dir, 'w+b') as xp:
+        with open(export_dsw_fullpath, 'w+b') as xp:
             store.save(store_uri=xp)
     except FileNotFoundError:
         response = Response(
             response="FileNotFoundError : {}".format(
-                export_dsw_dir
+                export_dsw_fullpath
             ),
             status=500,
             mimetype='application/json'
@@ -597,5 +589,5 @@ def semantic_dsw():
         return response
 
     return send_from_directory(
-        os.path.dirname(export_dsw_dir), os.path.basename(export_dsw_dir)
+        os.path.dirname(export_dsw_fullpath), os.path.basename(export_dsw_fullpath)
 )
