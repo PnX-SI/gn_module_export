@@ -10,9 +10,6 @@
             Voici la liste des exports disponibles. Ces exports ont été programmés par l'administrateur de GeoNature.<br>
             Pour modifier cette liste ou disposer d'exports supplémentaires, veuillez contacter le service administrateur.
           </div>
-          <div class="alert alert-warning">
-            Votre compte utilisateur doit avoir un email valide afin de recevoir les liens de téléchargement vers les exports demandés.
-          </div>
           <!-- Liste des exports disponibles au téléchargement -->
           <div *ngIf="exports">
             <div class="card export-card mb-3" *ngFor="let export of exports">
@@ -56,7 +53,7 @@
         <div class="modal-body">
           <!-- Formulaire pour le choix des standards et des formats de téléchargement des fichiers -->
           <form [formGroup]="modalForm">
-            <label> Choissisez un format </label>
+            <label> Choisissez un format </label>
             <select class="form-control" id="formatSelection"
                     formControlName="formatSelection" required autocomplete="off"
                     (change)="downloading=false">

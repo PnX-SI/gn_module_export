@@ -13,6 +13,7 @@ COMMIT;
 SET search_path = gn_exports, pg_catalog;
 
 BEGIN;
+-- Table listant les exports
 CREATE TABLE gn_exports.t_exports
 (
     id SERIAL NOT NULL PRIMARY KEY,
@@ -35,14 +36,14 @@ COMMENT ON COLUMN gn_exports.t_exports.label IS 'Export name to display';
 COMMENT ON COLUMN gn_exports.t_exports."desc" IS 'Short or long text to explain the export and/or is content';
 COMMENT ON COLUMN gn_exports.t_exports.geometry_field IS 'Name of the geometry field if the export is spatial';
 COMMENT ON COLUMN gn_exports.t_exports.geometry_srid IS 'SRID of the geometry';
-COMMENT ON COLUMN gn_exports.t_exports.public IS 'data access';
+COMMENT ON COLUMN gn_exports.t_exports.public IS 'Data access';
 COMMENT ON COLUMN gn_exports.t_exports.id_licence IS 'Licence id';
 
 -----------
 --LICENCE--
 -----------
 
--- liste des licences
+-- Liste des licences
 CREATE TABLE gn_exports.t_licences (
     id_licence SERIAL NOT NULL,
     name_licence varchar(100) NOT NULL,
@@ -112,7 +113,7 @@ COMMENT ON COLUMN gn_exports.t_exports_logs.end_time IS 'When the export process
 COMMENT ON COLUMN gn_exports.t_exports_logs.status IS 'Status of the process : 1 ok: -2 error';
 COMMENT ON COLUMN gn_exports.t_exports_logs.log IS 'Holds export failure message';
 
--- Create a view to list Exports LOGS with users names and exports labels
+-- View to list Exports LOGS with users names and exports labels
 CREATE VIEW gn_exports.v_exports_logs AS
  SELECT r.nom_role ||' '||r.prenom_role AS utilisateur, e.label, l.format, l.start_time, l.end_time, l.status, l.log
  FROM gn_exports.t_exports_logs l
@@ -139,13 +140,14 @@ ALTER TABLE ONLY gn_exports.t_export_schedules
 ALTER TABLE ONLY gn_exports.t_export_schedules
     ADD CONSTRAINT fk_t_export_schedules_id_export FOREIGN KEY (id_export) REFERENCES gn_exports.t_exports(id);
 
-COMMENT ON COLUMN gn_exports.t_export_schedules."frequency" IS 'fréquence de remplacement du fichier en jour';
+COMMENT ON COLUMN gn_exports.t_export_schedules."frequency" IS 'Fréquence de remplacement du fichier en jour';
 
 
 ---------
 --VIEWS--
 ---------
 
+-- Vue par défaut d'export des données de la synthèse au format SINP
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
  WITH deco AS (
          SELECT s_1.id_synthese,
@@ -243,15 +245,15 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
      JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
      JOIN deco ON deco.id_synthese = s.id_synthese;
 
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."idSynthese" IS 'identifiant de la donnée dans la table synthese';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."permId" IS 'Identifiant permanant de l''occurence';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."permIdGrp" IS 'Identifiant permanent du regroupement attribué par la plateforme régionale ou thématique.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."idSynthese" IS 'Identifiant de la donnée dans la table synthese';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."permId" IS 'Identifiant permanent de l''occurrence';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."permIdGrp" IS 'Identifiant permanent du regroupement attribué par la plateforme régionale ou thématique';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."denbrMin" IS 'Nb minimal d''objet dénombré';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."denbrMax" IS 'Nb maximal d''objet dénombré';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."vTAXREF" IS 'Version du taxref utilisé';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."sampleNumb" IS '';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."preuvNum" IS 'Adresse web à laquelle on pourra trouver la preuve numérique ou l''archive contenant toutes les preuves numériques (image(s), sonogramme(s), film(s), séquence(s) génétique(s)...)';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."preuvNoNum" IS 'Indique si une preuve existe ou non. Par preuve on entend un objet physique ou numérique permettant de démontrer l''existence de l''occurrence et/ou d''en vérifier l''exactitude.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."preuvNoNum" IS 'Indique si une preuve existe ou non. Par preuve on entend un objet physique ou numérique permettant de démontrer l''existence de l''occurrence et/ou d''en vérifier l''exactitude';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."altMin" IS 'Altitude min';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."altMax" IS 'Altitude max';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."geom" IS 'Géometrie';
@@ -261,13 +263,13 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."validateur" IS 'Personne ayant pro
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."observer" IS 'Personne ayant procédé à l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_digitiser" IS 'Identifiant du numérisateur';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."detminer" IS 'Personne ayant procédé à la détermination';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."obsCtx" IS 'Description libre du contexte de l''observation, aussi succincte et précise que possible.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."obsCtx" IS 'Description libre du contexte de l''observation, aussi succincte et précise que possible';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."obsDescr" IS 'Description libre de l''observation, aussi succincte et précise que possible';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."jddId" IS '';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."jddCode" IS '';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_acquisition_framework" IS '';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."cdNom" IS 'Identifiant taxref du nom de l''objet observé';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."cdRef" IS 'Identifiant taxref du taxon correspondant àl''objet observé';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."cdRef" IS 'Identifiant taxref du taxon correspondant à l''objet observé';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."nomCite" IS 'Nom de l''objet utilisé dans la donnée source';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."x_centroid" IS '';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."y_centroid" IS '';
@@ -276,29 +278,30 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."ObjGeoTyp" IS 'Classe associée au
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."methGrp" IS 'Description de la méthode ayant présidé au regroupement, de façon aussi succincte que possible : champ libre';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."obsMeth" IS '';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."obsTech" IS 'Indique de quelle manière on a pu constater la présence d''un sujet d''observation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."ocEtatBio" IS 'Code de l''état biologique de l''organisme au moment de l''observation.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."ocEtatBio" IS 'Code de l''état biologique de l''organisme au moment de l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."ocNat" IS 'Naturalité de l''occurrence, conséquence de l''influence anthropique directe qui la caractérise';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."preuveOui" IS 'Indique si une preuve existe ou non';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."difNivPrec" IS 'Niveau maximal de précision de la diffusion souhaitée par le producteur vers le grand public.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."difNivPrec" IS 'Niveau maximal de précision de la diffusion souhaitée par le producteur vers le grand public';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."ocStade" IS 'Stade de développement du sujet de l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."ocSex" IS 'Sexe du sujet de l''observation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."objDenbr" IS 'Objet sur lequel porte le dénombrement.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."objDenbr" IS 'Objet sur lequel porte le dénombrement';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."denbrTyp" IS 'Méthode utilisée pour le dénombrement (INSPIRE)';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."sensiNiv" IS 'Indique si l''observation ou le regroupement est sensible d''après les principes du SINP et à quel degré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."statObs" IS 'Indique si le taxon a été observé directement/indirectement (indices de présence), ou bien non observé.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."statObs" IS 'Indique si le taxon a été observé directement/indirectement (indices de présence), ou bien non observé';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."dEEFlou" IS 'Indique si un floutage a été effectué avant (par le producteur) ou lors de la transformation en DEE';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."statSource" IS 'Indique si la DS de l’observation provient directement du terrain (via un document informatisé ou une base de données), d''une collection, de la littérature, ou n''est pas connu.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."statSource" IS 'Indique si la DS de l’observation provient directement du terrain (via un document informatisé ou une base de données), d''une collection, de la littérature, ou n''est pas connu';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."typInfGeo" IS 'Code HABREF de l''habitat où le taxon de l''observation a été identifié';
 
-
+-- Ajout d'un export par défaut basé sur la vue gn_exports.v_synthese_sinp
 INSERT INTO gn_exports.t_exports (label, schema_name, view_name, "desc", geometry_field, geometry_srid, public, id_licence)
 VALUES ('Synthese SINP', 'gn_exports', 'v_synthese_sinp', 'Export des données de la synthèse au standard SINP', 'geom', 4326, TRUE, 1);
-
 
 
 ----------------------
 -- Prepare Export RDF
 ----------------------
+
+-- Vue spécifique pour l'export SINP sémantique au format RDF
 --DROP VIEW gn_exports.v_exports_synthese_sinp_rdf;
 
 CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
