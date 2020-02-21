@@ -29,9 +29,12 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
     MAIL_DEFAULT_SENDER = "user@monserver.mail"
 ```
 
-### Export RDF au format Darwin-SW
-Le paramétrage du dossier dans lequel l'export RDF est généré, ce fait à l'aide de la clé "export_dsw_dir" du fichier de configuration.
-Le nom du fichier RDF peut aussi être configuré avce la clé "export_dsw_filename".
+### Autres paramètres:
+Les autres paramètres concernent les dossiers d'export
+* export_schedules_dir : chemin absolu du dossier ou les exports programmés seront déposés lors de la réalisation de la commande gn_exports_run_cron_export
+
+* export_dsw_dir : chemin absolu du dossier ou l'export sémantique au format Darwin-SW sera réalisé
+* export_dsw_filename : nom du fichier de l'export sémantique au format turtle (.ttl)
 
 
 ## Commande d'installation
@@ -93,7 +96,27 @@ Par défaut une documentation swagger est générée automatiquement mais il est
 
 Le module peut génèrer un export RDF au format Darwin-SW des données de la Synthèse de GeoNature.
 
-Adaptez éventuellement le chemin du paramètre ``export_semantic_dsw`` dans le fichier ``gn_module_export/config/conf_gn_module.toml``
+L'export est accéssible de deux façon : 
+ * API
+ * commande GeoNature
+ 
+API : 
+
+  `URL_GEONATURE_BACK/exports/semantic_dsw`
+
+    Paramètres : 
+        - limit
+        - offset
+        - champs présent dans la vue  v_exports_synthese_sinp_rdf
+        
+Commande:
+```
+    cd $GEONATURE_HOME
+    source backend/venv/bin/activate
+    geonature gn_exports_run_cron_export_dsw --limit 10 --offset=0
+```
+
+Les paramètres limit et offset sont optionnels. S'ils ne sont pas spécifiés l'export se fera sur l'ensemble des données
 
 # Autres
 
