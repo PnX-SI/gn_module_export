@@ -261,7 +261,7 @@ class GenerateExport():
         for gtype in ['POINT', 'POLYGON', 'POLYLINE']:
             file_path = Path(self.export_dir, gtype + '_' + self.file_name)
             if file_path.is_dir():
-                shutil.rmtree(file_path)
+                shutil.rmtree(str(file_path))
 
         return True
 
