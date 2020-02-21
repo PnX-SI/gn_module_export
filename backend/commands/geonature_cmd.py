@@ -1,11 +1,12 @@
 import os
-from datetime import datetime, timedelta
+import click
 import logging
 
+from pathlib import Path
+from datetime import datetime, timedelta
 from flask.cli import with_appcontext
 
 from geonature.core.command import main
-
 from geonature.utils.env import ROOT_DIR
 
 # Configuration logger
@@ -61,6 +62,83 @@ def gn_exports_run_cron_export():
                 except Exception as exception:
                     gne_logger.error("exception export_data_file: ", exception)
 
+        gne_logger.info("END schedule export task")
+    except Exception as exception:
+        gne_logger.error("exception export auto: ", exception)
+
+
+@main.command()
+@click.option("--limit", required=False, default=-1)
+@click.option("--offset", required=False, default=0)
+@with_appcontext
+def gn_exports_run_cron_export_dsw(limit, offset):
+    """
+        Export des données de la synthese au format Dawin-SW (ttl)
+
+        Exemples
+
+        - geonature gn_exports_run_cron_export_dsw
+
+        - geonature gn_exports_run_cron_export_dsw --limit=2 --offset=1
+    """
+
+    gne_logger.info("START schedule Dawin-SW export task")
+
+    from flask import current_app
+    from utils_flask_sqla.generic import GenericQuery
+
+    from geonature.utils.env import DB
+    from ..rdf import OccurrenceStore
+
+    try:
+
+        conf = current_app.config.get('EXPORTS')
+        export_dsw_dir = conf.get('export_dsw_dir') + conf.get('export_dsw_filename')
+
+        Path(conf.get('export_dsw_dir')).mkdir(
+            parents=True, exist_ok=True
+        )
+
+        store = OccurrenceStore()
+
+        # get data
+        query = GenericQuery(
+            DB, 'v_exports_synthese_sinp_rdf', 'gn_exports', filters={},
+            limit=limit, offset=offset
+        )
+        data = query.return_query()
+
+        # generate sematic data structure
+        # TODO create function
+        for record in data.get('items'):
+            recordLevel = store.build_recordlevel(record)
+            event = store.build_event(recordLevel, record)
+            store.build_location(event, record)
+            occurrence = store.build_occurrence(event, record)
+            organism = store.build_organism(occurrence, record)
+            identification = store.build_identification(organism, record)
+            store.build_taxon(identification, record)
+
+        # Store file
+        try:
+            Path(conf.get('export_dsw_dir')).mkdir(
+                parents=True, exist_ok=True
+            )
+            with open(export_dsw_dir, 'w+b') as xp:
+                store.save(store_uri=xp)
+        except FileNotFoundError as exception:
+            gne_logger.error(
+                "exception when saving file {}: ".format(
+                    export_dsw_dir
+                ),
+                exception
+                )
+
+        gne_logger.info(
+            "Export done with success data are available here: {}".format(
+                export_dsw_dir
+                )
+        )
         gne_logger.info("END schedule export task")
     except Exception as exception:
         gne_logger.error("exception export auto: ", exception)

@@ -4,11 +4,11 @@ Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNa
 
 ## Fonctionnalités principales
 
-- Interface administrateur de gestion des exports
+- Interface administrateur de gestion des exports créés dynamiquement à partir de vues
 - Interface utilisateur permettant de réaliser des exports
-- API d'interrogation des exports
-- Export nocture des exports [TODO]
-- Export RDF au format Darwin-SW [TODO]
+- API JSON d'interrogation des exports
+- Génération automatique planifiée des fichiers des exports
+- Export sémantique RDF au format Darwin-SW
 
 # Installation du module
 
@@ -36,10 +36,18 @@ Le nom du fichier RDF peut aussi être configuré avce la clé "export_dsw_filen
 
 ## Commande d'installation
 
-- Faire un lien symbolique vers le répertoire ``node_modules`` de GeoNature
+- Téléchargez le module dans ``/home/<myuser>/``, en remplacant ``X.Y.Z`` par la version souhaitée
 
 ```
-ln -s /home/`whoami`/geonature/frontend/node_modules /home/`whoami`/gn_module_export/frontend
+wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
+unzip X.Y.Z.zip
+rm X.Y.Z.zip
+```
+
+- Renommez le répertoire du module
+
+```
+mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 ```
 
 - Lancer l'installation du module
@@ -47,19 +55,20 @@ ln -s /home/`whoami`/geonature/frontend/node_modules /home/`whoami`/gn_module_ex
 ```
 source backend/venv/bin/activate
 geonature install_gn_module /PATH_TO_MODULE/gn_module_export exports
+deactivate
 ```
 
-Pour avoir des exports disponibles il faut les renseigner au niveau de la base de données dans la table ``gn_exports.t_exports``.
+Pour avoir des exports disponibles, il faut les renseigner dans la table ``gn_exports.t_exports``.
 
 # Administration du module
 
 ## Création d'une nouvelle vue en base
 
-Pour créer un nouvel export il faut au préalable créer une vue dans la base de données correspondante à l'export désiré.
+Pour créer un nouvel export, il faut au préalable créer une vue dans la base de données correspondante à l'export désiré.
 
-Pour des questions de lisibilité il est conseillé de créer la vue dans le schéma ``gn_export``.
+Pour des questions de lisibilité, il est conseillé de créer la vue dans le schéma ``gn_exports``.
 
-## Enregistrer l'export créé dans l'admin
+## Enregistrer l'export créé dans le module Admin
 
 L'interface d'administration est accessible dans GeoNature via le module ``Admin`` puis ``backoffice GeoNature``.
 
@@ -71,9 +80,7 @@ Aller sur la page ``Associer roles aux exports``.
 
 Puis créer des associations entre les rôles et l'export en question.
 
-```
-Seul les roles ayant des emails peuvent être associé à un export exception faite des groupes
-```
+Seul les roles ayant des emails peuvent être associé à un export, exception faite des groupes.
 
 # Documentation swagger d'un export
 
@@ -82,10 +89,11 @@ Par défaut une documentation swagger est générée automatiquement mais il est
 1. Créer un fichier au format OpenAPI décrivant votre export
 2. Sauvegarder le fichier ``geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json``
 
-
 # Export RDF au format Darwin-SW
-Le module peut génèrer un export RDF au format Darwin-SW des données "Synthèse".
 
+Le module peut génèrer un export RDF au format Darwin-SW des données de la Synthèse de GeoNature.
+
+Adaptez éventuellement le chemin du paramètre ``export_semantic_dsw`` dans le fichier ``gn_module_export/config/conf_gn_module.toml``
 
 # Autres
 
@@ -101,34 +109,29 @@ Pour le volet Taxonomie, un travail expérimental a été réalisé : https://gi
 
 - Téléchargez la nouvelle version du module
 
-  ```
-  wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
-  unzip X.Y.Z.zip
-  rm X.Y.Z.zip
-  ```
+```
+wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
+unzip X.Y.Z.zip
+rm X.Y.Z.zip
+```
 
 - Renommez l'ancien et le nouveau répertoire
 
-  ```
-  mv /home/`whoami`/gn_module_export /home/`whoami`/gn_module_export_old
-  mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
-  ```
+```
+mv /home/`whoami`/gn_module_export /home/`whoami`/gn_module_export_old
+mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
+```
 
 - Rapatriez le fichier de configuration
 
-  ```
-  cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
-  ```
-
-- Refaire le lien symbolique vers les `node_modules`
-  ```
-  ln -s /home/`whoami`/geonature/frontend/node_modules /home/`whoami`/gn_module_export/frontend
-  ```
+```
+cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
+```
 
 - Relancer la compilation en mettant à jour la configuration
 
-  ```
-  cd /home/`whoami`/geonature/backend
-  source venv/bin/activate
-  geonature update_module_configuration EXPORTS
-  ```
+```
+cd /home/`whoami`/geonature/backend
+source venv/bin/activate
+geonature update_module_configuration EXPORTS
+```
