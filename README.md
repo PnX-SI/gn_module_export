@@ -79,6 +79,8 @@ Dans la rubrique Exports selectionner le menu ``Export`` puis cliquer sur ``Crea
 
 ## Associer les roles ayant la permission d'accéder à cet export
 
+Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs pourront y accéder. Sinon il est possible de définir les rôles (utilisateurs ou groupes) qui peuvent accéder à un export.
+
 Aller sur la page ``Associer roles aux exports``.
 
 Puis créer des associations entre les rôles et l'export en question.
