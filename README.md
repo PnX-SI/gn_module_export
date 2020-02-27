@@ -1,4 +1,4 @@
-# Module export
+# Module Export
 
 Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNature.
 
@@ -86,6 +86,8 @@ Aller sur la page ``Associer roles aux exports``.
 Puis créer des associations entre les rôles et l'export en question.
 
 Seul les roles ayant des emails peuvent être associé à un export, exception faite des groupes.
+
+Par défaut, lors de l'installation du module, un export public contenant toutes les données de la synthèse est créé. Il est donc accessible à tous les utilisateurs pouvant accéder au module Export. Libre à vous de le modifier ou le supprimer.
 
 # Documentation swagger d'un export
 
