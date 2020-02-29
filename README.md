@@ -87,11 +87,17 @@ Puis créer des associations entre les rôles et l'export en question.
 
 Seul les roles ayant des emails peuvent être associé à un export, exception faite des groupes.
 
-Par défaut, lors de l'installation du module, un export public contenant toutes les données de la synthèse est créé. Il est donc accessible à tous les utilisateurs pouvant accéder au module Export. Libre à vous de le modifier ou le supprimer.
+Par défaut, lors de l'installation du module, un export publique contenant toutes les données de la synthèse est créé. Il est donc accessible à tous les utilisateurs pouvant accéder au module Export. Libre à vous de le modifier ou le supprimer.
 
-# Documentation Swagger d'un export
+Chaque fois qu'un export de fichier est réalisé depuis le module, celui-ci est tracé dans la table ``gn_exports.t_exports_logs``.
 
-Par défaut une documentation Swagger est générée automatiquement pour chaque export, mais il est possible de la surcharger en respectant certaines conventions.
+# API json et documentation Swagger d'un export
+
+Pour chaque export créé, une API json filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API json de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles. 
+
+Par défaut une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres. 
+
+Il est possible de surcharger la documentation Swagger de chaque API en respectant certaines conventions : 
 
 1. Créer un fichier au format OpenAPI décrivant votre export
 2. Sauvegarder le fichier ``geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json``
@@ -106,7 +112,7 @@ Lors de l'installation du module, une commande cron est créée. Elle se lance t
 
 Cette commande liste des exports planifiés dans la table ``gn_exports.t_export_schedules`` et les exécute si besoin.
 
-La fonction considère qu'un export doit être réalisé à partir du moment où le fichier généré précedemment est plus ancien (en jours) que la fréquence définie.
+La fonction considère qu'un export doit être réalisé à partir du moment où le fichier généré précedemment est plus ancien (en jours) que la fréquence définie (dans ``gn_exports.t_export_schedules.frequency``).
 
 Il est possible de lancer manuellement cette commande.
 
@@ -127,7 +133,7 @@ L'export est accessible de deux façons :
  
 API : 
 
-  `URL_GEONATURE_BACK/exports/semantic_dsw`
+  ``<URL_GEONATURE>/api/exports/semantic_dsw``
 
     Paramètres : 
         - limit
