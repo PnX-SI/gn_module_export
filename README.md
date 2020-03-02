@@ -1,4 +1,4 @@
-# Module export
+# Module Export
 
 Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNature.
 
@@ -33,7 +33,7 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
 
 Les autres paramètres concernent les dossiers d'export :
 
-* ``export_schedules_dir`` : chemin absolu du dossier ou les exports programmés seront déposés lors de la réalisation de la commande ``gn_exports_run_cron_export``
+* ``export_schedules_dir`` : chemin absolu du dossier où les exports programmés seront déposés lors de la réalisation de la commande ``gn_exports_run_cron_export``
 * ``export_dsw_dir`` : chemin absolu du dossier où l'export sémantique au format Darwin-SW sera réalisé
 * ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
 
@@ -79,15 +79,25 @@ Dans la rubrique Exports selectionner le menu ``Export`` puis cliquer sur ``Crea
 
 ## Associer les roles ayant la permission d'accéder à cet export
 
+Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs pourront y accéder. Sinon il est possible de définir les rôles (utilisateurs ou groupes) qui peuvent accéder à un export.
+
 Aller sur la page ``Associer roles aux exports``.
 
 Puis créer des associations entre les rôles et l'export en question.
 
 Seul les roles ayant des emails peuvent être associé à un export, exception faite des groupes.
 
-# Documentation swagger d'un export
+Par défaut, lors de l'installation du module, un export publique contenant toutes les données de la synthèse est créé. Il est donc accessible à tous les utilisateurs pouvant accéder au module Export. Libre à vous de le modifier ou le supprimer.
 
-Par défaut une documentation swagger est générée automatiquement mais il est possible de la surcharger en respectant certaines conventions.
+Chaque fois qu'un export de fichier est réalisé depuis le module, celui-ci est tracé dans la table ``gn_exports.t_exports_logs``.
+
+# API json et documentation Swagger d'un export
+
+Pour chaque export créé, une API json filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API json de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles. 
+
+Par défaut une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres. 
+
+Il est possible de surcharger la documentation Swagger de chaque API en respectant certaines conventions : 
 
 1. Créer un fichier au format OpenAPI décrivant votre export
 2. Sauvegarder le fichier ``geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json``
@@ -102,7 +112,7 @@ Lors de l'installation du module, une commande cron est créée. Elle se lance t
 
 Cette commande liste des exports planifiés dans la table ``gn_exports.t_export_schedules`` et les exécute si besoin.
 
-La fonction considère qu'un export doit être réalisé à partir du moment où le fichier généré précedemment est plus ancien (en jours) que la fréquence définie.
+La fonction considère qu'un export doit être réalisé à partir du moment où le fichier généré précedemment est plus ancien (en jours) que la fréquence définie (dans ``gn_exports.t_export_schedules.frequency``).
 
 Il est possible de lancer manuellement cette commande.
 
@@ -116,14 +126,14 @@ geonature gn_exports_run_cron_export
 
 Le module peut génèrer un export RDF au format Darwin-SW des données de la Synthèse de GeoNature.
 
-L'export est accessible de deux façon :
+L'export est accessible de deux façons :
 
 * API
 * Commande GeoNature
  
 API : 
 
-  `URL_GEONATURE_BACK/exports/semantic_dsw`
+  ``<URL_GEONATURE>/api/exports/semantic_dsw``
 
     Paramètres : 
         - limit
@@ -140,14 +150,13 @@ geonature gn_exports_run_cron_export_dsw --limit 10 --offset=0
 
 Les paramètres ``limit`` et ``offset`` sont optionnels. S'ils ne sont pas spécifiés l'export se fera sur l'ensemble des données.
 
-
 ### Standard Darwin-SW
 
 Le format Darwin-SW est un vocabulaire RDF conçu par le TDWG. Il repose sur le langage Web Ontology Language (OWL) qui est un langage de représentation des connaissances.
 
 "Darwin-SW (DSW) is an RDF vocabulary designed to complement the Biodiversity Information Standards (TDWG) Darwin Core Standard. DSW is based on a model derived from a community consensus about the relationships among the main Darwin Core classes. DSW creates two new classes to accommodate important aspects of its model that are not currently part of Darwin Core: a class of Individual Organisms and a class of Tokens, which are forms of evidence.  DSW uses Web Ontology Language (OWL) to make assertions about the classes in its model and to define object properties that are used to link instances of those classes. A goal in the creation of DSW was to facilitate consistent markup of biodiversity data so that RDF graphs created by different providers could be easily merged.  Accordingly, DSW provides a mechanism for testing whether its terms are being used in a manner consistent with its model. Two transitive object properties enable the creation of simple SPARQL queries that can be used to discover new information about linked resources whose metadata are generated by different providers. The Individual Organism class enables semantic linking of biodiversity resources to vocabularies outside of TDWG that deal with observations and ecological phenomena." (Source : http://www.semantic-web-journal.net/system/files/swj635.pdf)
 
-Exemple de graph représentant l'export d'une seule donnée de la synthèse selon le standard Darwin-SW avec un lien vers TAXREF-LD
+Exemple de graph représentant l'export d'une seule donnée de la synthèse selon le standard Darwin-SW avec un lien vers TAXREF-LD :
 
 ![Exemple de graph pour une donnée](docs/semantic/sample_semantic_dsw.png)
 
@@ -193,6 +202,8 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 ```
 cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
 ```
+
+Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports dans le dossier ``geonature/external_modules/exports/backend/templates/swagger/``.
 
 - Relancez la compilation en mettant à jour la configuration
 
