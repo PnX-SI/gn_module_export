@@ -61,8 +61,6 @@ geonature install_gn_module /PATH_TO_MODULE/gn_module_export exports
 deactivate
 ```
 
-Pour avoir des exports disponibles, il faut les renseigner dans la table ``gn_exports.t_exports``.
-
 # Administration du module
 
 ## Création d'une nouvelle vue en base
