@@ -31,7 +31,7 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
 
 ### Autres paramètres
 
-Les autres paramètres concernent les dossiers d'export :
+Les autres paramètres concernent les dossiers d'export et se configurent dans le fichier ``config/conf_gn_module.toml`` du module export:
 
 * ``export_schedules_dir`` : chemin absolu du dossier où les exports programmés seront déposés lors de la réalisation de la commande ``gn_exports_run_cron_export``
 * ``export_dsw_dir`` : chemin absolu du dossier où l'export sémantique au format Darwin-SW sera réalisé
