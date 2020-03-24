@@ -375,15 +375,15 @@ def getOneExportThread(id_export, export_format, info_role):
     data = dict(request.get_json())
 
     # alternative email in payload
-    tmp_user = User()
+    email_to = None
     if 'email' in data:
-        tmp_user.email = data['email']
+        email_to = data['email']
 
     try:
         @copy_current_request_context
-        def get_data(id_export, export_format, info_role, filters, user):
+        def get_data(id_export, export_format, info_role, filters, email_to):
             thread_export_data(
-                id_export, export_format, info_role, filters, user
+                id_export, export_format, info_role, filters, email_to
             )
         exp = ExportRepository(id_export)
         # Test if export is allowed
@@ -422,7 +422,7 @@ def getOneExportThread(id_export, export_format, info_role):
                 "export_format": export_format,
                 "info_role": info_role,
                 "filters": filters,
-                "user": tmp_user if (tmp_user.email) else user
+                "email_to": [email_to] if (email_to) else [user.email]
             }
         )
         a.start()

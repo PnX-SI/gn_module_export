@@ -33,7 +33,7 @@ def export_filename(export):
     )
 
 
-def thread_export_data(id_export, export_format, info_role, filters, user):
+def thread_export_data(id_export, export_format, info_role, filters, mail_to):
     """
         Lance un thread qui permet d'executer les fonctions d'export
             en arrière plan
@@ -45,7 +45,7 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
         :query str export_format: format de l'export (csv, json, shp)
         :query {} info_role: Information du role
         :query {} filters: Filtre à appliquer sur l'export
-        :query User user: Objet user
+        :query [str] mail_to: Mail de reception
 
 
         **Returns:**
@@ -66,7 +66,7 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
         )
     except Exception as exp:
         export_send_mail_error(
-            user,
+            mail_to,
             None,
             "Error when export data : {}".format(repr(exp))
         )
@@ -85,7 +85,7 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
 
     except Exception as exp:
         export_send_mail_error(
-            user,
+            mail_to,
             export,
             "Error when create export file : {}".format(repr(exp))
         )
@@ -94,13 +94,13 @@ def thread_export_data(id_export, export_format, info_role, filters, user):
     # Send mail
     try:
         export_send_mail(
-            role=user,
+            mail_to=mail_to,
             export=export,
             file_name=full_file_name
         )
     except Exception as exp:
         export_send_mail_error(
-            user,
+            mail_to,
             export,
             "Error when sending mail : {}".format(repr(exp))
         )
