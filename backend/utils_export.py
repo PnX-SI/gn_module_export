@@ -185,7 +185,12 @@ class GenerateExport():
         """
         out = None
 
-        if self.format not in ['json', 'csv', 'shp', 'geojson']:
+        format_list = [
+            k 
+            for k in current_app.config["export_format_map"].keys()
+        ]
+
+        if self.format not in format_list:
             raise Exception('Unsuported format')
 
         if (self.format == 'shp' and self.has_geometry):

@@ -56,12 +56,16 @@
             <label> Choisissez un format </label>
             <select class="form-control" id="formatSelection"
                     formControlName="formatSelection" required autocomplete="off"
-                    (change)="downloading=false">
-                    <option value="csv">CSV</option>
-                    <option value="json">JSON</option>
-                    <option value="geojson" [disabled]="!_export.geometry_field">GEOJSON</option>
-                    <option value="shp" [disabled]="!_export.geometry_field">SHP</option>
-                    <!-- <option value="rdf" [disabled]="true">RDF</option> -->
+                    (change)="downloading=false"
+            >
+                    <!-- TODO use export_format_map -->
+                    <option  
+                      *ngFor="let item of exportFormat | keyvalue;" 
+                      value="{{item.key}}"
+                      [disabled]="(!item.value['geofeature']) ? false : (!_export.geometry_field) ? true : false"
+                    >
+                        {{item.value["label"]}}
+                    </option>
             </select>
             <br>
             <div class="wrapper-licence" [ngClass]=" {'checkbox-invalid': !modalForm.controls['exportLicence'].valid}">

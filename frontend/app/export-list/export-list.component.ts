@@ -5,6 +5,7 @@ import { CommonService } from "@geonature_common/service/common.service";
 import { AppConfig } from "@geonature_config/app.config";
 
 import { ModuleConfig } from "../module.config";
+
 import {
   Export,
   ExportService,
@@ -28,12 +29,14 @@ export class ExportListComponent implements OnInit {
   private _export: Export;
   private _modalRef: NgbModalRef;
   private _emailPattern = "^[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$";
+  public exportFormat: {} = ModuleConfig["export_format_map"];
 
   constructor(
     private _exportService: ExportService,
     private _fb: FormBuilder,
     private modalService: NgbModal,
-    private _commonService: CommonService
+    private _commonService: CommonService,
+    
   ) {}
 
   ngOnInit() {
