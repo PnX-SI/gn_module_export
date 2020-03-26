@@ -65,7 +65,6 @@ def thread_export_data(id_export, export_format, info_role, filters, mail_to):
             offset=0
         )
     except Exception as exp:
-        raise exp
         export_send_mail_error(
             mail_to,
             None,

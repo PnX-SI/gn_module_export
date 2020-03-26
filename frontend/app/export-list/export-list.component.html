@@ -58,7 +58,6 @@
                     formControlName="formatSelection" required autocomplete="off"
                     (change)="downloading=false"
             >
-                    <!-- TODO use export_format_map -->
                     <option  
                       *ngFor="let item of exportFormat | keyvalue;" 
                       value="{{item.key}}"
