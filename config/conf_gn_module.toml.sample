@@ -1,3 +1,9 @@
-# Emplacement du fichier d'export RDF
-# Valeur par défaut
-# etalab_export = '/home/geonatureadmin/geonature/backend/static/exports/export_etalab.ttl'
+## Valeur par défaut
+
+# nb_days_keep_file = 15
+
+## Emplacement des exports
+##   {GN_HOME} est à remplacer par l'emplacement du dossier racine de GeoNature
+# export_schedules_dir = '{GN_HOME}/backend/static/exports/schedules/'
+# export_dsw_dir = '{GN_HOME}/backend/static/exports/dsw/'
+# export_dsw_filename = 'export_dsw.ttl'

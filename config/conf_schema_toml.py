@@ -1,34 +1,42 @@
 '''
    Spécification du schéma toml des paramètres de configurations
 '''
-import os
+
 from marshmallow import fields, Schema
+from geonature.utils.env import ROOT_DIR
 
-
-default_schema = 'gn_exports'
 export_format_map = {
     'csv': {
         'mime': 'text/csv',
-        'geofeature': False
+        'geofeature': False,
+        'label': 'CSV'
         },
     'json': {
         'mime': 'application/json',
-        'geofeature': True
+        'geofeature': False,
+        'label': 'Json'
+        },
+    'geojson': {
+        'mime': 'application/json',
+        'geofeature': True,
+        'label': 'GeoJson'
         },
     'shp': {
         'mime': 'application/zip',
-        'geofeature': True
-        },
-    'rdf': {
-        'mime': 'application/rdf+xml',
-        'geofeature': True
+        'geofeature': True,
+        'label': 'ShapeFile'
         }
 }  # noqa: E133
-etalab_export = '/home/geonatureadmin/geonature/backend/static/exports/export_etalab.ttl'
+
+base_export_dir = str(ROOT_DIR) + '/backend/static/exports/'
+export_schedules_dir = base_export_dir + 'schedules/'
+export_dsw_dir = base_export_dir + 'dsw/'
+export_dsw_filename = 'export_dsw.ttl'
 
 
 class GnModuleSchemaConf(Schema):
     export_format_map = fields.Dict(missing=export_format_map)
-    default_schema = fields.String(missing=default_schema)
-    etalab_export = fields.String(missing=etalab_export)
+    export_schedules_dir = fields.String(missing=export_schedules_dir)
+    export_dsw_dir = fields.String(missing=export_dsw_dir)
+    export_dsw_filename = fields.String(missing=export_dsw_filename)
     nb_days_keep_file = fields.Int(missing=15)

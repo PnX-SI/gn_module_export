@@ -5,6 +5,7 @@
 import os
 import logging
 import threading
+import json
 
 from pathlib import Path
 from datetime import datetime
@@ -25,22 +26,29 @@ from flask import (
 from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
+from wtforms import validators, IntegerField
 
 from pypnusershub.db.models import User
 
 from geonature.core.admin.admin import flask_admin
-from geonature.utils.utilssqlalchemy import (
-    json_resp, to_json_resp,
-    GenericQuery
+from utils_flask_sqla.response import (
+    json_resp, to_json_resp
 )
+
+
+from utils_flask_sqla.generic import GenericQuery
+from utils_flask_sqla_geo.generic import GenericQueryGeo
+
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.utils.env import DB
 
 
 from .repositories import (
-    ExportRepository, EmptyDataSetError, generate_swagger_spec,
+    ExportRepository, EmptyDataSetError,
+    generate_swagger_spec,
+    get_allowed_exports
 )
-from .models import Export, CorExportsRoles, Licences
+from .models import Export, CorExportsRoles, Licences, ExportSchedules
 from .utils_export import thread_export_data
 
 
@@ -50,7 +58,6 @@ LOGGER.setLevel(logging.DEBUG)
 blueprint = Blueprint('exports', __name__)
 blueprint.template_folder = os.path.join(blueprint.root_path, 'templates')
 blueprint.static_folder = os.path.join(blueprint.root_path, 'static')
-repo = ExportRepository()
 
 
 """
@@ -60,13 +67,101 @@ repo = ExportRepository()
 """
 
 
+class LicenceView(ModelView):
+    """
+        Surcharge de l'administration des licences
+    """
+
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(LicenceView, self).__init__(Licences,  session, **kwargs)
+
+    # exclusion du champ exports
+    form_excluded_columns = ('exports')
+    # Nom de colonne user friendly
+    column_labels = dict(
+        name_licence='Nom de la licence',
+        url_licence='Description de la licence'
+    )
+    # Description des colonnes
+    column_descriptions = dict(
+        name_licence='Nom de la licence',
+        url_licence='Url de la documentation de la licence',
+    )
+
+
+class ExportRoleView(ModelView):
+    """
+        Surcharge de l'administration de l'association role/export
+    """
+
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(ExportRoleView, self).__init__(
+            CorExportsRoles,  session, **kwargs
+        )
+
+    # Nom de colonne user friendly
+    column_labels = dict(
+        export='Nom de l\'export',
+        role='Nom du role'
+    )
+    # Description des colonnes
+    column_descriptions = dict(
+        role='Role associé à l\'export'
+    )
+
+
 class ExportView(ModelView):
     """
-        Création d'une class pour gérer le formulaire d'administration Export
+         Surcharge du formulaire d'administration Export
     """
+
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
         super(ExportView, self).__init__(Export,  session, **kwargs)
+
+    # Ordonne les colonnes pour avoir la licence à la fin de la liste
+    column_list = [
+        'id',
+        'label',
+        'schema_name',
+        'view_name',
+        'desc',
+        'geometry_field',
+        'geometry_srid',
+        'public',
+        'licence'
+    ]
+    # Nom de colonne user friendly
+    column_labels = dict(
+        id='Identifiant',
+        label='Nom de l\'export',
+        schema_name='Nom du schema PostgreSQL',
+        view_name='Nom de la vue SQL',
+        desc='Description',
+        geometry_field='Nom de champ géométrique',
+        geometry_srid='SRID du champ géométrique'
+    )
+    # Description des colonnes
+    column_descriptions = dict(
+        label='Nom libre de l\'export',
+        schema_name='Nom exact du schéma postgreSQL contenant la vue SQL.',
+        view_name='Nom exact de la vue SQL permettant l\'export de vos données.',  # noqa E501
+        desc='Décrit la nature de l\'export',
+        public='L\'export est accessible à tous'
+    )
+    # Ordonne des champs pour avoir la licence à la fin du formulaire
+    form_columns = (
+        'label',
+        'schema_name',
+        'view_name',
+        'desc',
+        'geometry_field',
+        'geometry_srid',
+        'public',
+        'licence'
+    )
 
     def validate_form(self, form):
         """
@@ -80,16 +175,16 @@ class ExportView(ModelView):
         geometry_srid = getattr(form, 'geometry_srid', None)
         if (is_form_submitted() and view_name and schema_name):
             try:
-                query = GenericQuery(
-                    DB.session, view_name.data, schema_name.data,
-                    geometry_field=geometry_field.data, filters=[]
-                )
-                query.return_query()
-
                 if geometry_field.data and geometry_srid.data is None:
                     raise KeyError(
                         "field Geometry srid is mandatory with Geometry field"
                     )
+
+                query = GenericQueryGeo(
+                    DB, view_name.data, schema_name.data,
+                    geometry_field=geometry_field.data, filters=[]
+                )
+                query.return_query()
 
             except Exception as exp:
                 flash(exp, category='error')
@@ -98,23 +193,62 @@ class ExportView(ModelView):
         return super(ExportView, self).validate_form(form)
 
 
+class ExportSchedulesView(ModelView):
+    """
+        Surcharge de l'administration de l'export Schedules
+    """
+
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(ExportSchedulesView, self).__init__(
+            ExportSchedules,  session, **kwargs
+        )
+
+    # Description des colonnes
+    column_descriptions = dict(
+        export='Nom de l\'export à planifier',
+        frequency='Fréquence de la génération de l\'export (en jours)',
+        format='Format de l\'export à générer'
+    )
+
+    form_args = {
+        'export': {
+            'validators': [validators.Required()]
+        },
+        'frequency':{
+            'validators': [validators.NumberRange(1,365)]
+        }
+    }
+
+    format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
+    form_choices = {
+        'format': format_list
+    }
+
+
+
 # Add views
-flask_admin.add_view(ExportView(DB.session, category="Export"))
-flask_admin.add_view(ModelView(
-    CorExportsRoles,
+flask_admin.add_view(ExportView(
     DB.session,
-    name="Associer roles aux exports",
+    name="Exports",
     category="Export"
 ))
-flask_admin.add_view(ModelView(Licences, DB.session, category="Export"))
+flask_admin.add_view(ExportRoleView(
+    DB.session,
+    name="Associer un rôle à un export",
+    category="Export"
+))
+flask_admin.add_view(LicenceView(
+    DB.session,
+    name="Licences",
+    category="Export"
+))
+flask_admin.add_view(ExportSchedulesView(
+    DB.session,
+    name="Planification des exports",
+    category="Export"
+))
 
-
-EXPORTS_DIR = os.path.join(current_app.static_folder, 'exports')
-os.makedirs(EXPORTS_DIR, exist_ok=True)
-SHAPEFILES_DIR = os.path.join(current_app.static_folder, 'shapefiles')
-MOD_CONF_PATH = os.path.join(blueprint.root_path, os.pardir, 'config')
-
-ASSETS = os.path.join(blueprint.root_path, 'assets')
 
 """
 #################################################################
@@ -205,7 +339,7 @@ def swagger_ressources(id_export=None):
 """
 
 
-@blueprint.route('/<int:id_export>/<export_format>', methods=['GET'])
+@blueprint.route('/<int:id_export>/<export_format>', methods=['POST'])
 @cross_origin(
     supports_credentials=True,
     allow_headers=['content-type', 'content-disposition'],
@@ -214,35 +348,44 @@ def swagger_ressources(id_export=None):
     'E', True, module_code='EXPORTS',
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
-    )
+)
 def getOneExportThread(id_export, export_format, info_role):
     """
         Run export with thread
     """
+    # test if export exists
     if (
         id_export < 1
         or
-        export_format not in blueprint.config.get('export_format_map')
+        export_format not in current_app.config['EXPORTS']['export_format_map']
     ):
-        return to_json_resp({'api_error': 'InvalidExport'}, status=404)
-
-    current_app.config.update(
-        export_format_map=blueprint.config['export_format_map']
-    )
+        return to_json_resp(
+            {
+                'api_error': 'invalid_export',
+                'message': 'Invalid export or export not found'
+            },
+            status=404
+        )
 
     filters = {f: request.args.get(f) for f in request.args}
+    data = dict(request.get_json())
+
+    # alternative email in payload
+    email_to = None
+    if 'email' in data:
+        email_to = data['email']
 
     try:
         @copy_current_request_context
-        def get_data(id_export, export_format, info_role, filters, user):
+        def get_data(id_export, export_format, info_role, filters, email_to):
             thread_export_data(
-                id_export, export_format, info_role, filters, user
+                id_export, export_format, info_role, filters, email_to
             )
-
+        exp = ExportRepository(id_export)
         # Test if export is allowed
         try:
-            repo.get_export_is_allowed(id_export, info_role)
-        except Exception:
+            exp.get_export_is_allowed(info_role)
+        except Exception as e:
             return to_json_resp(
                 {'message': "Not Allowed"},
                 status=403
@@ -255,15 +398,15 @@ def getOneExportThread(id_export, export_format, info_role):
                 .filter(User.id_role == info_role.id_role)
                 .one()
             )
-            if not user.email:
+            if not user.email and not tmp_user.email:
                 return to_json_resp(
-                    {'message': "Error : user doesn't have email"},
+                    {'api_error': 'no_email', 'message': "User doesn't have email"},  # noqa 501
                     status=500
                 )
         except NoResultFound:
             return to_json_resp(
-                {'message': "Error : user doesn't exist"},
-                status=500
+                {'api_error': 'no_user', 'message': "User doesn't exist"},
+                status=404
             )
 
         # Run export
@@ -275,13 +418,16 @@ def getOneExportThread(id_export, export_format, info_role):
                 "export_format": export_format,
                 "info_role": info_role,
                 "filters": filters,
-                "user": user
+                "email_to": [email_to] if (email_to) else [user.email]
             }
         )
         a.start()
 
         return to_json_resp(
-            {'message': 'En cours de traitement vous allez recevoir un couriel'},  # noqua
+            {
+                'api_success': 'in_progress',
+                'message': 'The Process is in progress ! You will receive an email shortly'  # noqa 501
+            },
             status=200
         )
 
@@ -289,7 +435,7 @@ def getOneExportThread(id_export, export_format, info_role):
         LOGGER.critical('%s', e)
         if current_app.config['DEBUG']:
             raise
-        return to_json_resp({'api_error': 'LoggedError'}, status=400)
+        return to_json_resp({'api_error': 'logged_error'}, status=400)
 
 
 @blueprint.route('/', methods=['GET'])
@@ -297,7 +443,7 @@ def getOneExportThread(id_export, export_format, info_role):
     'R', True, module_code='EXPORTS',
     redirect_on_expiration=current_app.config.get('URL_APPLICATION'),
     redirect_on_invalid_token=current_app.config.get('URL_APPLICATION')
-    )
+)
 @json_resp
 def getExports(info_role):
     """
@@ -305,13 +451,13 @@ def getExports(info_role):
         accessible pour un role donné
     """
     try:
-        exports = repo.get_allowed_exports(info_role)
+        exports = get_allowed_exports(info_role)
     except NoResultFound:
-        return {'api_error': 'NoResultFound',
+        return {'api_error': 'no_result_found',
                 'message': 'Configure one or more export'}, 404
     except Exception as e:
         LOGGER.critical('%s', str(e))
-        return {'api_error': 'LoggedError'}, 400
+        return {'api_error': 'logged_error'}, 400
     else:
         return [export.as_dict(recursif=True) for export in exports]
 
@@ -378,9 +524,11 @@ def get_one_export_api(id_export, info_role):
 
             order by : @TODO
     """
+    exprep = ExportRepository(id_export)
+
     # Test if export is allowed
     try:
-        repo.get_export_is_allowed(id_export, info_role)
+        exprep.get_export_is_allowed(info_role)
     except Exception:
         return (
             {'message': "Not Allowed"},
@@ -397,70 +545,80 @@ def get_one_export_api(id_export, info_role):
         args.pop("offset")
     filters = {f: args.get(f) for f in args}
 
-    current_app.config.update(
-        export_format_map=blueprint.config['export_format_map']
+    (export, columns, data) = exprep.get_export_with_logging(
+        info_role,
+        with_data=True,
+        filters=filters,
+        limit=limit,
+        offset=offset
     )
-
-    export, columns, data = repo.get_by_id(
-        info_role, id_export, with_data=True, export_format='json',
-        filters=filters, limit=limit, offset=offset
-    )
-
     return data
 
 
 # TODO : Route desactivée car à évaluer
-# @blueprint.route('/etalab', methods=['GET'])
-def etalab_export():
+@blueprint.route('/semantic_dsw', methods=['GET'])
+def semantic_dsw():
     """
-        TODO : METHODE NON FONCTIONNELLE A EVALUEE
+        Fonction qui expose un export RDF basé sur le vocabulaire Darwin-SW
+            sous forme d'api
+
+        Le requetage des données se base sur la classe GenericQuery qui permet
+            de filter les données de façon dynamique en respectant des
+            conventions de nommage
+
+        Parameters
+        ----------
+        limit : nombre limit de résultats à retourner
+        offset : numéro de page
+
+        FILTRES :
+            nom_col=val: Si nom_col fait partie des colonnes
+                de la vue alors filtre nom_col=val
+
+        Returns
+        -------
+        turle
     """
-    if not blueprint.config.get('etalab_export'):
-        return to_json_resp(
-            {'api_error': 'EtalabDisabled',
-             'message': 'Etalab export is disabled'}, status=501)
-
-    from datetime import time
-    from geonature.utils.env import DB
-    from .rdf import OccurrenceStore
-
     conf = current_app.config.get('EXPORTS')
-    export_etalab = conf.get('etalab_export')
-    seeded = False
-    if os.path.isfile(export_etalab):
-        seeded = True
-        midnight = datetime.combine(datetime.today(), time.min)
-        mtime = datetime.fromtimestamp(os.path.getmtime(export_etalab))
-        ts_delta = mtime - midnight
+    export_dsw_dir = conf.get('export_dsw_dir')
+    export_dsw_fullpath = str(Path(
+        conf.get('export_dsw_dir'),
+        conf.get('export_dsw_filename')
+    ))
+    os.makedirs(export_dsw_dir, exist_ok=True)
 
-    if not seeded or ts_delta.total_seconds() < 0:
-        store = OccurrenceStore()
-        query = GenericQuery(
-            DB.session, 'export_occtax_sinp', 'pr_occtax',
-            geometry_field=None, filters=[]
+    if not export_dsw_fullpath:
+        return to_json_resp(
+            {'api_error': 'dws_disabled',
+             'message': 'Darwin-SW export is disabled'}, status=501)
+
+    from .rdf import generate_store_dws
+
+    limit = request.args.get('limit', default=1000, type=int)
+    offset = request.args.get('offset', default=0, type=int)
+
+    args = request.args.to_dict()
+    if "limit" in args:
+        args.pop("limit")
+    if "offset" in args:
+        args.pop("offset")
+    filters = {f: args.get(f) for f in args}
+
+    store = generate_store_dws(limit, offset, filters)
+    try:
+        with open(export_dsw_fullpath, 'w+b') as xp:
+            store.save(store_uri=xp)
+    except FileNotFoundError:
+        response = Response(
+            response="FileNotFoundError : {}".format(
+                export_dsw_fullpath
+            ),
+            status=500,
+            mimetype='application/json'
         )
-        data = query.return_query()
-        for record in data.get('items'):
-            event = store.build_event(record)
-            obs = store.build_human_observation(event, record)
-            store.build_location(obs, record)
-            occurrence = store.build_occurrence(event, record)
-            organism = store.build_organism(occurrence, record)
-            identification = store.build_identification(organism, record)
-            store.build_taxon(identification, record)
-        try:
-            with open(export_etalab, 'w+b') as xp:
-                store.save(store_uri=xp)
-        except FileNotFoundError:
-            response = Response(
-                response="FileNotFoundError : {}".format(
-                    export_etalab
-                ),
-                status=500,
-                mimetype='application/json'
-            )
-            return response
+        return response
 
     return send_from_directory(
-        os.path.dirname(export_etalab), os.path.basename(export_etalab)
+        os.path.dirname(export_dsw_fullpath),
+        os.path.basename(export_dsw_fullpath)
     )
