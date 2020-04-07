@@ -4,6 +4,7 @@
 import os
 import json
 import shutil
+import time
 
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -28,7 +29,7 @@ def export_filename(export):
     """
         Génération du nom du fichier d'export
     """
-    return '{}'.format(
+    return '{}_{}'.format(time.strftime("%Y%m%d_%H-%M-%S"),
         removeDisallowedFilenameChars(export.get('label'))
     )
 
