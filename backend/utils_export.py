@@ -34,7 +34,7 @@ def export_filename(export):
     )
 
 
-def scheduled_export_filename(export):
+def schedule_export_filename(export):
     """
         Génération du nom du fichier d'export
     """
