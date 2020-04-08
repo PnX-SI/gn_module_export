@@ -34,6 +34,15 @@ def export_filename(export):
     )
 
 
+def scheduled_export_filename(export):
+    """
+        Génération du nom du fichier d'export
+    """
+    return '{}'.format(
+        removeDisallowedFilenameChars(export.get('label'))
+    )
+
+
 def thread_export_data(id_export, export_format, info_role, filters, mail_to):
     """
         Lance un thread qui permet d'executer les fonctions d'export
