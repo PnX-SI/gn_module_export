@@ -27,7 +27,7 @@ from .send_mail import export_send_mail, export_send_mail_error
 
 def export_filename(export):
     """
-        Génération du nom du fichier d'export
+        Génération du nom horodaté du fichier d'export
     """
     return '{}_{}'.format(time.strftime("%Y%m%d_%H-%M-%S"),
         removeDisallowedFilenameChars(export.get('label'))
@@ -36,7 +36,7 @@ def export_filename(export):
 
 def schedule_export_filename(export):
     """
-        Génération du nom du fichier d'export
+        Génération du nom statique du fichier d'export programmé
     """
     return '{}'.format(
         removeDisallowedFilenameChars(export.get('label'))
