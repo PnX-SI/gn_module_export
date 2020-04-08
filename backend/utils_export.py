@@ -29,7 +29,7 @@ def export_filename(export):
     """
         Génération du nom horodaté du fichier d'export
     """
-    return '{}_{}'.format(time.strftime("%Y%m%d_%H-%M-%S"),
+    return '{}_{}'.format(time.strftime("%Y-%m-%d_%H-%M-%S"),
         removeDisallowedFilenameChars(export.get('label'))
     )
 
