@@ -4,6 +4,7 @@
 import os
 import json
 import shutil
+import time
 
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -26,7 +27,16 @@ from .send_mail import export_send_mail, export_send_mail_error
 
 def export_filename(export):
     """
-        Génération du nom du fichier d'export
+        Génération du nom horodaté du fichier d'export
+    """
+    return '{}_{}'.format(time.strftime("%Y-%m-%d_%H-%M-%S"),
+        removeDisallowedFilenameChars(export.get('label'))
+    )
+
+
+def schedule_export_filename(export):
+    """
+        Génération du nom statique du fichier d'export programmé
     """
     return '{}'.format(
         removeDisallowedFilenameChars(export.get('label'))
@@ -176,7 +186,7 @@ class GenerateExport():
         # Nettoyage des anciens export clean_export_file()
         clean_export_file(
             dir_to_del=self.export_dir,
-            nb_days=current_app.config['EXPORTS']['nb_days_keep_file']
+            nb_days=current_app.config["EXPORTS"]['nb_days_keep_file']
         )
 
     def generate_data_export(self):
@@ -185,7 +195,12 @@ class GenerateExport():
         """
         out = None
 
-        if self.format not in ['json', 'csv', 'shp', 'geojson']:
+        format_list = [
+            k
+            for k in current_app.config["EXPORTS"]["export_format_map"].keys()
+        ]
+
+        if self.format not in format_list:
             raise Exception('Unsuported format')
 
         if (self.format == 'shp' and self.has_geometry):
@@ -205,7 +220,7 @@ class GenerateExport():
             with open(
                     "{}/{}.{}".format(
                         self.export_dir, self.file_name, self.format
-                    ), 'a'
+                    ), 'w'
             ) as file:
                 file.write(out)
         return self.file_name + '.' + self.format

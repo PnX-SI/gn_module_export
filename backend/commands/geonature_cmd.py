@@ -31,7 +31,7 @@ def gn_exports_run_cron_export():
         Export planifié d'un fichier
     """
     gne_logger.info("START schedule export task")
-    from ..utils_export import export_data_file, export_filename
+    from ..utils_export import export_data_file, schedule_export_filename
     from ..repositories import get_export_schedules
 
     # Liste des exports automatiques
@@ -40,7 +40,7 @@ def gn_exports_run_cron_export():
 
         for schedule in export_schedules:
             # generation nom du fichier export
-            schedule_filename = export_filename(schedule.export.as_dict())
+            schedule_filename = schedule_export_filename(schedule.export.as_dict())
 
             # test si le fichier doit être regénéré
             file_is_to_updated = is_to_updated(schedule.frequency, schedule_filename)

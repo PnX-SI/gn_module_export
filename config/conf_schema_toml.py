@@ -8,23 +8,23 @@ from geonature.utils.env import ROOT_DIR
 export_format_map = {
     'csv': {
         'mime': 'text/csv',
-        'geofeature': False
+        'geofeature': False,
+        'label': 'CSV'
         },
     'json': {
         'mime': 'application/json',
-        'geofeature': False
+        'geofeature': False,
+        'label': 'Json'
         },
     'geojson': {
         'mime': 'application/json',
-        'geofeature': True
+        'geofeature': True,
+        'label': 'GeoJson'
         },
     'shp': {
         'mime': 'application/zip',
-        'geofeature': True
-        },
-    'rdf': {
-        'mime': 'application/rdf+xml',
-        'geofeature': True
+        'geofeature': True,
+        'label': 'ShapeFile'
         }
 }  # noqa: E133
 
