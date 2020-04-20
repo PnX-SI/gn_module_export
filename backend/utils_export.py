@@ -196,7 +196,7 @@ class GenerateExport():
         out = None
 
         format_list = [
-            k 
+            k
             for k in current_app.config["EXPORTS"]["export_format_map"].keys()
         ]
 
@@ -220,7 +220,7 @@ class GenerateExport():
             with open(
                     "{}/{}.{}".format(
                         self.export_dir, self.file_name, self.format
-                    ), 'a'
+                    ), 'w'
             ) as file:
                 file.write(out)
         return self.file_name + '.' + self.format
