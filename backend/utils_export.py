@@ -14,7 +14,9 @@ from geoalchemy2.shape import from_shape
 from shapely.geometry import asShape
 
 from utils_flask_sqla.response import generate_csv_content
-from utils_flask_sqla_geo.serializers import FionaShapeService
+from utils_flask_sqla_geo.utilsgeometry import (
+    FionaShapeService, FionaGpkgService
+)
 
 from geonature.utils.filemanager import (
     removeDisallowedFilenameChars
@@ -204,8 +206,11 @@ class GenerateExport():
             raise Exception('Unsuported format')
 
         if (self.format == 'shp' and self.has_geometry):
-            self.generate_shp()
+            self.generate_shp('shp')
             return self.file_name + '.zip'
+        if (self.format == 'gpkg' and self.has_geometry):
+            self.generate_shp('gpkg')
+            return self.file_name + '.gpkg'
         elif (self.format == 'geojson' and self.has_geometry):
             self.data = self.data['items']
             out = self.generate_json()
@@ -245,12 +250,18 @@ class GenerateExport():
             indent=4
         )
 
-    def generate_shp(self):
+    def generate_shp(self, export_format):
         """
             transformation des données au format shp
             et sauvegarde sous forme d'une archive
         """
-        FionaShapeService.create_shapes_struct(
+
+        if export_format == 'shp':
+            fionaService = FionaShapeService
+        else:
+            fionaService = FionaGpkgService
+
+        fionaService.create_fiona_struct(
             db_cols=self.columns,
             srid=self.export.get('geometry_srid'),
             dir_path=self.export_dir,
@@ -264,13 +275,13 @@ class GenerateExport():
                 feature.get(field) for field in ('geometry', 'properties')
             )
 
-            FionaShapeService.create_feature(
+            fionaService.create_feature(
                 props, from_shape(
                     asShape(geom), self.export.get('geometry_srid')
                 )
             )
 
-        FionaShapeService.save_and_zip_shapefiles()
+        fionaService.save_files()
 
         # Suppression des fichiers générés et non compressé
         for gtype in ['POINT', 'POLYGON', 'POLYLINE']:
