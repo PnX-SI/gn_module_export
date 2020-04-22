@@ -2,6 +2,20 @@
 CHANGELOG
 =========
 
+1.0.1 (2020-04-20)
+------------------
+
+**🚀 Nouveautés**
+
+* Messages d'erreur envoyés à l'administrateur (``ERROR_MAIL_TO`` de la configuration globale de GeoNature) en plus de l'utilisateur, en cas de dysfonctionnement d'un export (#60)
+* Horodatage des exports à la demande (#61, par @DonovanMaillard)
+* Compléments de la documentation (README.md)
+
+**🐛 Corrections**
+
+* Correction des données dupliquées dans les exports
+* Factorisation et nettoyage du code et généralisation de l'utilisation du paramètre ``export_format_map`` (#53)
+
 1.0.0 (2020-02-21)
 ------------------
 
@@ -30,7 +44,7 @@ Compatible avec GeoNature 2.3.2.
 
 **🚀 Nouveautés**
 
-* Possibilité de saisir l'adresse email ou l'export sera envoyé
+* Possibilité de saisir l'adresse email où l'export sera envoyé
 
 **🐛 Corrections**
 

@@ -220,13 +220,9 @@ class ExportSchedulesView(ModelView):
         }
     }
 
+    format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
     form_choices = {
-        'format': [
-            ('csv', 'csv'),
-            ('json', 'json'),
-            ('geojson', 'geojson'),
-            ('shp', 'shp')
-        ]
+        'format': format_list
     }
 
 
