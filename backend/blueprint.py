@@ -397,7 +397,7 @@ def getOneExportThread(id_export, export_format, info_role):
                 .filter(User.id_role == info_role.id_role)
                 .one()
             )
-            if not user.email and not email_to: # TODO add more test
+            if not user.email and not email_to:  # TODO add more test
                 return to_json_resp(
                     {'api_error': 'no_email', 'message': "User doesn't have email"},  # noqa 501
                     status=500
