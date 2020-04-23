@@ -2,12 +2,12 @@
 CHANGELOG
 =========
 
-1.0.2 (unreleased)
+1.0.2 (2020-04-22)
 ------------------
 
 **🐛 Corrections**
 
-* 
+* Correction d'un bug quand l'utilisateur n'a pas d'email
 
 1.0.1 (2020-04-20)
 ------------------

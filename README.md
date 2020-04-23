@@ -61,6 +61,39 @@ geonature install_gn_module /PATH_TO_MODULE/gn_module_export exports
 deactivate
 ```
 
+## Mise à jour du module
+
+- Téléchargez la nouvelle version du module
+
+```
+wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
+unzip X.Y.Z.zip
+rm X.Y.Z.zip
+```
+
+- Renommez l'ancien et le nouveau répertoire
+
+```
+mv /home/`whoami`/gn_module_export /home/`whoami`/gn_module_export_old
+mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
+```
+
+- Rapatriez le fichier de configuration
+
+```
+cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
+```
+
+- Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports dans le dossier ``geonature/external_modules/exports/backend/templates/swagger/``.
+
+- Relancez la compilation en mettant à jour la configuration
+
+```
+cd /home/`whoami`/geonature/backend
+source venv/bin/activate
+geonature update_module_configuration EXPORTS
+```
+
 # Administration du module
 
 ## Création d'une nouvelle vue en base
@@ -177,36 +210,3 @@ A voir aussi :
 * https://fr.wikipedia.org/wiki/Syst%C3%A8me_d'information_taxonomique_int%C3%A9gr%C3%A9
 
 Pour le volet Taxonomie, un travail expérimental a été réalisé : https://github.com/PnX-SI/TaxHub/issues/150
-
-# Mise à jour du module
-
-- Téléchargez la nouvelle version du module
-
-```
-wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
-unzip X.Y.Z.zip
-rm X.Y.Z.zip
-```
-
-- Renommez l'ancien et le nouveau répertoire
-
-```
-mv /home/`whoami`/gn_module_export /home/`whoami`/gn_module_export_old
-mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
-```
-
-- Rapatriez le fichier de configuration
-
-```
-cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
-```
-
-Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports dans le dossier ``geonature/external_modules/exports/backend/templates/swagger/``.
-
-- Relancez la compilation en mettant à jour la configuration
-
-```
-cd /home/`whoami`/geonature/backend
-source venv/bin/activate
-geonature update_module_configuration EXPORTS
-```
