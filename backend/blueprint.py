@@ -48,7 +48,7 @@ from .repositories import (
     generate_swagger_spec,
     get_allowed_exports
 )
-from .models import Export, CorExportsRoles, Licences, ExportSchedules
+from .models import Export, CorExportsRoles, Licences, ExportSchedules, UserRepr
 from .utils_export import thread_export_data
 
 
@@ -110,6 +110,16 @@ class ExportRoleView(ModelView):
     column_descriptions = dict(
         role='Role associé à l\'export'
     )
+    # Surcharge du formulaure
+    form_args = {
+        'role': {
+            'query_factory': lambda: UserRepr.query.order_by(
+                UserRepr.groupe.desc(), UserRepr.nom_role
+            ).filter(
+                (UserRepr.groupe == True) | (UserRepr.identifiant.isnot(None))
+            )
+        }
+    }
 
 
 class ExportView(ModelView):
@@ -220,10 +230,11 @@ class ExportSchedulesView(ModelView):
         }
     }
 
-    format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
-    form_choices = {
-        'format': format_list
-    }
+    if "EXPORTS" in current_app.config:
+        format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
+        form_choices = {
+            'format': format_list
+        }
 
 
 
@@ -398,7 +409,7 @@ def getOneExportThread(id_export, export_format, info_role):
                 .filter(User.id_role == info_role.id_role)
                 .one()
             )
-            if not user.email and not email_to:
+            if not user.email and not email_to:  # TODO add more test
                 return to_json_resp(
                     {'api_error': 'no_email', 'message': "User doesn't have email"},  # noqa 501
                     status=500

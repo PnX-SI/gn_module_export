@@ -6,6 +6,21 @@ from utils_flask_sqla.serializers import serializable
 from pypnusershub.db.models import User
 
 
+class UserRepr(User):
+
+    def __str__(self):
+        if self.groupe:
+            val = "Groupe : {}".format(self.nom_role)
+        else:
+            val = "{nom} {prenom} - ({email})".format(
+                nom=self.nom_role,
+                prenom=self.prenom_role or '',
+                email=self.email or 'no email'
+            )
+        return  val
+
+
+
 @serializable
 class Licences(DB.Model):
     __tablename__ = 't_licences'
@@ -85,7 +100,7 @@ class CorExportsRoles(DB.Model):
     export = DB.relationship('Export', foreign_keys=[id_export], lazy='joined')
     id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role),
                         primary_key=True, nullable=False)
-    role = DB.relationship('User', foreign_keys=[id_role], lazy='joined')
+    role = DB.relationship('UserRepr', foreign_keys=[id_role], lazy='joined')
 
 
 class ExportSchedules(DB.Model):

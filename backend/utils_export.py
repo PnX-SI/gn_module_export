@@ -14,7 +14,9 @@ from geoalchemy2.shape import from_shape
 from shapely.geometry import asShape
 
 from utils_flask_sqla.response import generate_csv_content
-from utils_flask_sqla_geo.serializers import FionaShapeService
+from utils_flask_sqla_geo.utilsgeometry import (
+    FionaShapeService
+)
 
 from geonature.utils.filemanager import (
     removeDisallowedFilenameChars
@@ -29,7 +31,8 @@ def export_filename(export):
     """
         Génération du nom horodaté du fichier d'export
     """
-    return '{}_{}'.format(time.strftime("%Y-%m-%d_%H-%M-%S"),
+    return '{}_{}'.format(
+        time.strftime("%Y-%m-%d_%H-%M-%S"),
         removeDisallowedFilenameChars(export.get('label'))
     )
 
@@ -118,6 +121,7 @@ def thread_export_data(id_export, export_format, info_role, filters, mail_to):
 
 def export_data_file(id_export, export_format, filters, isScheduler=False):
     """
+        TODO : REMOVE => NOT USE
         Fonction qui permet de générer un export fichier
 
         .. :quickref:  Fonction qui permet de générer un export fichier
@@ -147,7 +151,11 @@ def export_data_file(id_export, export_format, filters, isScheduler=False):
     # Generate and store export file
     export_def = exprep.export.as_dict()
     try:
-        file_name = export_filename(export_def)
+        if isScheduler:
+            file_name = schedule_export_filename(export_def)
+        else:
+            file_name = export_filename(export_def)
+
         full_file_name = GenerateExport(
             file_name=file_name,
             format=export_format,
@@ -204,8 +212,11 @@ class GenerateExport():
             raise Exception('Unsuported format')
 
         if (self.format == 'shp' and self.has_geometry):
-            self.generate_shp()
+            self.generate_shp('shp')
             return self.file_name + '.zip'
+        if (self.format == 'gpkg' and self.has_geometry):
+            self.generate_shp('gpkg')
+            return self.file_name + '.gpkg'
         elif (self.format == 'geojson' and self.has_geometry):
             self.data = self.data['items']
             out = self.generate_json()
@@ -245,11 +256,12 @@ class GenerateExport():
             indent=4
         )
 
-    def generate_shp(self):
+    def generate_shp(self, export_format):
         """
             transformation des données au format shp
             et sauvegarde sous forme d'une archive
         """
+
         FionaShapeService.create_shapes_struct(
             db_cols=self.columns,
             srid=self.export.get('geometry_srid'),
