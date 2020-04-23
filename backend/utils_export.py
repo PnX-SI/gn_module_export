@@ -31,7 +31,8 @@ def export_filename(export):
     """
         Génération du nom horodaté du fichier d'export
     """
-    return '{}_{}'.format(time.strftime("%Y-%m-%d_%H-%M-%S"),
+    return '{}_{}'.format(
+        time.strftime("%Y-%m-%d_%H-%M-%S"),
         removeDisallowedFilenameChars(export.get('label'))
     )
 
@@ -120,6 +121,7 @@ def thread_export_data(id_export, export_format, info_role, filters, mail_to):
 
 def export_data_file(id_export, export_format, filters, isScheduler=False):
     """
+        TODO : REMOVE => NOT USE
         Fonction qui permet de générer un export fichier
 
         .. :quickref:  Fonction qui permet de générer un export fichier
@@ -149,7 +151,11 @@ def export_data_file(id_export, export_format, filters, isScheduler=False):
     # Generate and store export file
     export_def = exprep.export.as_dict()
     try:
-        file_name = export_filename(export_def)
+        if isScheduler:
+            file_name = schedule_export_filename(export_def)
+        else:
+            file_name = export_filename(export_def)
+
         full_file_name = GenerateExport(
             file_name=file_name,
             format=export_format,
