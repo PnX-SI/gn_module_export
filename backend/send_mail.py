@@ -78,11 +78,19 @@ def export_send_mail_error(mail_to, export, error):
         </p>
     """.format(label, error)
 
-    # Si configuration de mail_on_error 
+    # Si configuration de mail_on_error
     #   envoie d'un mail d'erreur à l'administrateur
     if "ERROR_MAIL_TO" in current_app.config:
-        if type(current_app.config["ERROR_MAIL_TO"]) is list: 
-            export_send_admin_mail_error(current_app.config["ERROR_MAIL_TO"], export, error)
+        if (
+            type(current_app.config["ERROR_MAIL_TO"]) is list
+            and
+            current_app.config["ERROR_MAIL_TO"]
+        ):
+            export_send_admin_mail_error(
+                current_app.config["ERROR_MAIL_TO"],
+                export,
+                error
+            )
 
     send_mail(
         recipients=mail_to,
