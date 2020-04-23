@@ -2,6 +2,17 @@
 CHANGELOG
 =========
 
+1.0.3 (2020-04-24)
+------------------
+
+**🐛 Corrections**
+
+* Exports planifiés non horodatés pour qu'ils aient un nom fixe et permanent (#61)
+* Affichage des noms des groupes dans la liste des rôles dans le formulaire d'association d'un export à un rôle dans l'Admin du module (#64)
+* Ajout d'un test sur le paramètre ``ERROR_MAIL_TO`` de GeoNature pour vérifier qu'il a bien une valeur
+* Correction d'un bug lors de l'installation du module (#65)
+* Documentation : Compléments mineurs sur la configuration des envois d'email, à paramétrer au niveau de GeoNature avant installation du module
+
 1.0.2 (2020-04-22)
 ------------------
 
