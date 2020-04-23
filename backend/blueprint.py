@@ -110,7 +110,7 @@ class ExportRoleView(ModelView):
     column_descriptions = dict(
         role='Role associé à l\'export'
     )
-
+    # Surcharge du formulaure
     form_args = {
         'role': {
             'query_factory': lambda: UserRepr.query.order_by(
@@ -120,6 +120,7 @@ class ExportRoleView(ModelView):
             )
         }
     }
+
 
 class ExportView(ModelView):
     """
@@ -229,10 +230,12 @@ class ExportSchedulesView(ModelView):
         }
     }
 
-    format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
-    form_choices = {
-        'format': format_list
-    }
+    if "EXPORTS" in current_app.config:
+        format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
+        form_choices = {
+            'format': format_list
+        }
+
 
 
 # Add views
