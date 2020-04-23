@@ -15,7 +15,7 @@ from shapely.geometry import asShape
 
 from utils_flask_sqla.response import generate_csv_content
 from utils_flask_sqla_geo.utilsgeometry import (
-    FionaShapeService, FionaGpkgService
+    FionaShapeService
 )
 
 from geonature.utils.filemanager import (
@@ -262,12 +262,7 @@ class GenerateExport():
             et sauvegarde sous forme d'une archive
         """
 
-        if export_format == 'shp':
-            fionaService = FionaShapeService
-        else:
-            fionaService = FionaGpkgService
-
-        fionaService.create_fiona_struct(
+        FionaShapeService.create_shapes_struct(
             db_cols=self.columns,
             srid=self.export.get('geometry_srid'),
             dir_path=self.export_dir,
@@ -281,13 +276,13 @@ class GenerateExport():
                 feature.get(field) for field in ('geometry', 'properties')
             )
 
-            fionaService.create_feature(
+            FionaShapeService.create_feature(
                 props, from_shape(
                     asShape(geom), self.export.get('geometry_srid')
                 )
             )
 
-        fionaService.save_files()
+        FionaShapeService.save_and_zip_shapefiles()
 
         # Suppression des fichiers générés et non compressé
         for gtype in ['POINT', 'POLYGON', 'POLYLINE']:
