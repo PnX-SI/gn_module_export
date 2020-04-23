@@ -48,7 +48,7 @@ from .repositories import (
     generate_swagger_spec,
     get_allowed_exports
 )
-from .models import Export, CorExportsRoles, Licences, ExportSchedules
+from .models import Export, CorExportsRoles, Licences, ExportSchedules, UserRepr
 from .utils_export import thread_export_data
 
 
@@ -111,6 +111,15 @@ class ExportRoleView(ModelView):
         role='Role associé à l\'export'
     )
 
+    form_args = {
+        'role': {
+            'query_factory': lambda: UserRepr.query.order_by(
+                UserRepr.groupe.desc(), UserRepr.nom_role
+            ).filter(
+                (UserRepr.groupe == True) | (UserRepr.identifiant.isnot(None))
+            )
+        }
+    }
 
 class ExportView(ModelView):
     """
