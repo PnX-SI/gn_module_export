@@ -25,6 +25,11 @@ export_format_map = {
         'mime': 'application/zip',
         'geofeature': True,
         'label': 'ShapeFile'
+        },
+    'gpkg': {
+        'mime': 'application/zip',
+        'geofeature': True,
+        'label': 'GeoPackage'
         }
 }  # noqa: E133
 
