@@ -157,6 +157,8 @@ geonature gn_exports_run_cron_export
 
 Le module peut génèrer un export RDF au format Darwin-SW des données de la Synthèse de GeoNature.
 
+Cet export est basé sur la vue ``gn_exports.v_exports_synthese_sinp_rdf`` dont il ne faut pas modifier la structure. Il est cependant possible d'en filtrer le contenu en y ajoutant des conditions dans un ``WHERE`` à la fin de la vue.
+
 L'export est accessible de deux façons :
 
 * API
