@@ -59,7 +59,8 @@ ALTER TABLE ONLY gn_exports.t_exports
 -- Licences par défaut
 INSERT INTO gn_exports.t_licences (name_licence, url_licence) VALUES
     ('Creative Commons Attribution 1.0 Generic', 'https://spdx.org/licenses/CC-BY-1.0.html'),
-    ('ODC Open Database License v1.0', 'https://spdx.org/licenses/ODbL-1.0.html#licenseText');
+    ('ODC Open Database License v1.0', 'https://spdx.org/licenses/ODbL-1.0.html#licenseText'),
+    ('Licence Ouverte/Open Licence Version 2.0', 'https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf');
 
 
 ---------
