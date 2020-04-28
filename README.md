@@ -104,7 +104,7 @@ Pour des questions de lisibilité, il est conseillé de créer la vue dans le sc
 
 ## Enregistrer l'export créé dans le module Admin
 
-L'interface d'administration est accessible dans GeoNature via le module ``Admin`` puis ``backoffice GeoNature``.
+L'interface d'administration est accessible dans GeoNature via le module ``Admin`` puis ``Backoffice GeoNature``.
 
 Dans la rubrique Exports selectionner le menu ``Export`` puis cliquer sur ``Create`` et renseigner les valeurs.
 
@@ -152,6 +152,8 @@ cd GN2_HOME
 source backend/venv/bin/activate
 geonature gn_exports_run_cron_export
 ```
+
+Le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom-Export.Format``.
 
 # Export RDF au format sémantique Darwin-SW
 
