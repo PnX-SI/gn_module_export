@@ -5,6 +5,8 @@ CHANGELOG
 1.0.4 (unreleased)
 ------------------
 
+**🚀 Nouveautés**
+
 * Amélioration de la vue SINP par défaut (``gn_exports.v_synthese_sinp``) (#70) :
 
   * Amélioration des performances des jointures comme dans l'export Synthèse, revu dans la version 2.3.0 de GeoNature (https://github.com/PnX-SI/GeoNature/commit/6633de4825c3a57b868bbe284aefdb99a260ced2)
@@ -17,6 +19,10 @@ CHANGELOG
 **🐛 Corrections**
 
 * Correction de petites typos (#71)
+
+**⚠️ Notes de version**
+
+* Si vous mettez à jour le module, exécutez le script de mise à jour ``data/migrations/1.0.3to1.0.4.sql`` pour ajouter la licence ouverte 2.0 et améliorer la vue SINP par défaut (``gn_exports.v_synthese_sinp``)
 
 1.0.3 (2020-04-24)
 ------------------
