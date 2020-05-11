@@ -55,7 +55,7 @@ def gn_exports_run_cron_export():
                         isScheduler=True
                     )
                     gne_logger.info(
-                        "Export {} whith frequency {} day is done".format(
+                        "Export {} with frequency {} day is done".format(
                             schedule.export.label, schedule.frequency
                         )
                     )
@@ -74,7 +74,7 @@ def gn_exports_run_cron_export():
 @with_appcontext
 def gn_exports_run_cron_export_dsw(limit, offset):
     """
-        Export des données de la synthese au format Dawin-SW (ttl)
+        Export des données de la synthese au format Darwin-SW (ttl)
 
         Exemples
 
@@ -83,7 +83,7 @@ def gn_exports_run_cron_export_dsw(limit, offset):
         - geonature gn_exports_run_cron_export_dsw --limit=2 --offset=1
     """
 
-    gne_logger.info("START schedule Dawin-SW export task")
+    gne_logger.info("START schedule Darwin-SW export task")
 
     from flask import current_app
     from ..rdf import generate_store_dws
@@ -96,7 +96,7 @@ def gn_exports_run_cron_export_dsw(limit, offset):
             conf.get('export_dsw_filename')
         ))
 
-        # get data and generate sematic data structure
+        # get data and generate semantic data structure
         store = generate_store_dws(limit=limit, offset=offset, filters={})
 
         # Store file
