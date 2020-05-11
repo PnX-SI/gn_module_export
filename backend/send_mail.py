@@ -70,7 +70,7 @@ def export_send_mail_error(mail_to, export, error):
             Votre export <i>{}</i> n'a pas fonctionné correctement.
         </p>
         <p>
-            <b>Detail</b>
+            <b>Detail : </b>
             {}
         </p>
         <p>
@@ -100,9 +100,9 @@ def export_send_mail_error(mail_to, export, error):
 
 def export_send_admin_mail_error(mail_to, export, error):
     """
-        Send email after export is failed
+        Send email after export has failed
 
-        .. :quickref: Send email after export is failed
+        .. :quickref: Send email after export has failed
 
 
         :query [str] role: User who runs the export
@@ -121,7 +121,7 @@ def export_send_admin_mail_error(mail_to, export, error):
             L'export <i>{}</i> n'a pas fonctionné correctement.
         </p>
         <p>
-            <b>Detail</b>
+            <b>Detail : </b>
             {}
         </p>
     """.format(label, error)
