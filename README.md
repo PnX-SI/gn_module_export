@@ -81,7 +81,7 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Rapatriez le fichier de configuration
 
 ```
-cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
+cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_export/config/conf_gn_module.toml
 ```
 
 - Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports dans le dossier ``geonature/external_modules/exports/backend/templates/swagger/``.
@@ -156,6 +156,8 @@ geonature gn_exports_run_cron_export
 ```
 
 Le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom-Export.Format``.
+
+⚠️ Les fichiers sont servis par le serveur web Gunicorn qui a un timeout limité qui s'applique aussi au téléchargement des fichiers. Si le fichier à télécharger est volumineux, il est possible que le téléchargement soit coupé avant de terminer au bout de quelques minutes. Même si il est possible de le reprendre pour le terminer (éventuellement en plusieurs fois), une solution est en cours d'investigation pour servir les fichiers des exports par Apache (non concerné par un timeout pour le téléchargement), plutôt que par Gunicorn.
 
 # Export RDF au format sémantique Darwin-SW
 
