@@ -102,6 +102,7 @@ def thread_export_data(id_export, export_format, info_role, filters, mail_to):
             export,
             "Error when creating the export file : {}".format(repr(exp))
         )
+        raise exp
         return
 
     # Send mail
@@ -319,6 +320,6 @@ def clean_export_file(dir_to_del, nb_days):
         item_time = item.stat().st_mtime
         if item_time < time_to_del:
             if item.is_dir():
-                shutil.rmtree(item)
+                shutil.rmtree(str(item))
             if item.is_file():
                 item.unlink()
