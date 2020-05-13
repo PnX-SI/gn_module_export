@@ -48,17 +48,17 @@ def schedule_export_filename(export):
 
 def thread_export_data(id_export, export_format, info_role, filters, mail_to):
     """
-        Lance un thread qui permet d'executer les fonctions d'export
+        Lance un thread qui permet d'exécuter les fonctions d'export
             en arrière plan
 
-        .. :quickref: Lance un thread qui permet d'executer les fonctions
+        .. :quickref: Lance un thread qui permet d'exécuter les fonctions
             d'export en arrière plan
 
         :query int id_export: Identifiant de l'export
-        :query str export_format: format de l'export (csv, json, shp)
+        :query str export_format: Format de l'export (csv, json, shp)
         :query {} info_role: Information du role
         :query {} filters: Filtre à appliquer sur l'export
-        :query [str] mail_to: Mail de reception
+        :query [str] mail_to: Email de reception
 
 
         **Returns:**
@@ -81,7 +81,7 @@ def thread_export_data(id_export, export_format, info_role, filters, mail_to):
         export_send_mail_error(
             mail_to,
             None,
-            "Error when export data : {}".format(repr(exp))
+            "Error when exporting data : {}".format(repr(exp))
         )
         return
 
@@ -100,7 +100,7 @@ def thread_export_data(id_export, export_format, info_role, filters, mail_to):
         export_send_mail_error(
             mail_to,
             export,
-            "Error when create export file : {}".format(repr(exp))
+            "Error when creating the export file : {}".format(repr(exp))
         )
         return
 
@@ -115,7 +115,7 @@ def thread_export_data(id_export, export_format, info_role, filters, mail_to):
         export_send_mail_error(
             mail_to,
             export,
-            "Error when sending mail : {}".format(repr(exp))
+            "Error when sending email : {}".format(repr(exp))
         )
 
 
@@ -127,7 +127,7 @@ def export_data_file(id_export, export_format, filters, isScheduler=False):
         .. :quickref:  Fonction qui permet de générer un export fichier
 
         :query int id_export: Identifiant de l'export
-        :query str export_format: format de l'export (csv, json, shp)
+        :query str export_format: Format de l'export (csv, json, shp)
         :query {} filters: Filtre à appliquer sur l'export
 
 
@@ -191,7 +191,7 @@ class GenerateExport():
 
         os.makedirs(self.export_dir, exist_ok=True)
 
-        # Nettoyage des anciens export clean_export_file()
+        # Nettoyage des anciens exports clean_export_file()
         clean_export_file(
             dir_to_del=self.export_dir,
             nb_days=current_app.config["EXPORTS"]['nb_days_keep_file']
@@ -199,7 +199,7 @@ class GenerateExport():
 
     def generate_data_export(self):
         """
-            Génération des fichier d'export en fonction du format demandé
+            Génération des fichiers d'export en fonction du format demandé
         """
         out = None
 
@@ -209,7 +209,7 @@ class GenerateExport():
         ]
 
         if self.format not in format_list:
-            raise Exception('Unsuported format')
+            raise Exception('Unsupported format')
 
         if (self.format == 'shp' and self.has_geometry):
             self.generate_shp('shp')
@@ -238,7 +238,7 @@ class GenerateExport():
 
     def generate_csv(self):
         """
-            transformation des données au format csv
+            Transformation des données au format CSV
         """
         return generate_csv_content(
             columns=[c.name for c in self.columns],
@@ -248,7 +248,7 @@ class GenerateExport():
 
     def generate_json(self):
         """
-            transformation des données au format json/geojson
+            Transformation des données au format JSON/GeoJSON
         """
         return json.dumps(
             self.data,
@@ -258,7 +258,7 @@ class GenerateExport():
 
     def generate_shp(self, export_format):
         """
-            transformation des données au format shp
+            Transformation des données au format SHP
             et sauvegarde sous forme d'une archive
         """
 
@@ -284,7 +284,7 @@ class GenerateExport():
 
         FionaShapeService.save_and_zip_shapefiles()
 
-        # Suppression des fichiers générés et non compressé
+        # Suppression des fichiers générés et non compressés
         for gtype in ['POINT', 'POLYGON', 'POLYLINE']:
             file_path = Path(self.export_dir, gtype + '_' + self.file_name)
             if file_path.is_dir():

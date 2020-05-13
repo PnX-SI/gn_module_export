@@ -81,7 +81,7 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Rapatriez le fichier de configuration
 
 ```
-cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
+cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_export/config/conf_gn_module.toml
 ```
 
 - Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports dans le dossier ``geonature/external_modules/exports/backend/templates/swagger/``.
@@ -101,6 +101,8 @@ geonature update_module_configuration EXPORTS
 Pour créer un nouvel export, il faut au préalable créer une vue dans la base de données correspondante à l'export souhaité.
 
 Pour des questions de lisibilité, il est conseillé de créer la vue dans le schéma ``gn_exports``.
+
+Par défaut, un export public (accessible à tous les utilisateurs ayant accès au module Export d'une instance GeoNature) est créé basé sur la vue ``gn_exports.v_synthese_sinp``, contenant toutes les données présentes dans la Synthèse. Il est possible de limiter les données dans cet exeport (en ajoutant des critères dans la clause WHERE de la vue ``gn_exports.v_synthese_sinp``), de supprimer cet export ou de le limiter à certains utilisateurs uniquement.
 
 ## Enregistrer l'export créé dans le module Admin
 
@@ -122,9 +124,9 @@ Par défaut, lors de l'installation du module, un export publique contenant tout
 
 Chaque fois qu'un export de fichier est réalisé depuis le module, celui-ci est tracé dans la table ``gn_exports.t_exports_logs``.
 
-# API json et documentation Swagger d'un export
+# API JSON et documentation Swagger d'un export
 
-Pour chaque export créé, une API json filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API json de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles. 
+Pour chaque export créé, une API JSON filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API JSON de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles. 
 
 Par défaut une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres. 
 
@@ -154,6 +156,8 @@ geonature gn_exports_run_cron_export
 ```
 
 Le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom-Export.Format``.
+
+⚠️ Les fichiers sont servis par le serveur web Gunicorn qui a un timeout limité qui s'applique aussi au téléchargement des fichiers. Si le fichier à télécharger est volumineux, il est possible que le téléchargement soit coupé avant de terminer au bout de quelques minutes. Même si il est possible de le reprendre pour le terminer (éventuellement en plusieurs fois), une solution est en cours d'investigation pour servir les fichiers des exports par Apache (non concerné par un timeout pour le téléchargement), plutôt que par Gunicorn.
 
 # Export RDF au format sémantique Darwin-SW
 
