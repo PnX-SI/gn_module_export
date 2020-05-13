@@ -42,7 +42,7 @@ class EmptyDataSetError(Exception):
 
 class ExportRepository():
     """
-        Classe permetant de manipuler un export
+        Classe permettant de manipuler un export
     """
 
     def __init__(self, id_export, session=DB.session):
@@ -57,14 +57,14 @@ class ExportRepository():
     def _get_data(self, filters=None, limit=1000, offset=0, format="csv"):
         """
             Fonction qui retourne les données de l'export passé en paramètre
-            en applicant des filtres s'il y a lieu
+            en appliquant des filtres s'il y a lieu
 
             .. :quickref: lance une requete qui récupère les données
                     pour un export donné
 
 
             :query Export export_: Définition de l'export
-            :query str geom_column_header: Nom de la colonne géometry
+            :query str geom_column_header: Nom de la colonne geometry
                         si elle existe
             :query {} filters: Filtres à appliquer sur les données
             :query int limit: Nombre maximum de données à retourner
@@ -219,7 +219,7 @@ class ExportRepository():
 
     def get_export_is_allowed(self, info_role):
         """
-            Test si un role à les droits sur un export
+            Test si un role a les droits sur un export
         """
         q = Export.query.outerjoin(
             CorExportsRoles
@@ -249,7 +249,7 @@ def get_allowed_exports(info_role):
 def get_filter_corexportsroles_clause(info_role):
     """
         Fonction qui construit une clause where qui permet de savoir
-        si un role à des droits sur les exports
+        si un role a des droits sur les exports
     """
     return DB.or_(
         CorExportsRoles.id_role == info_role.id_role,
@@ -277,7 +277,7 @@ SWAGGER_TYPE_COR = {
 def generate_swagger_spec(id_export):
     """
         Fonction qui permet de générer dynamiquement
-        les spécifications swagger d'un export
+        les spécifications Swagger d'un export
     """
     swagger_parameters = []
     try:
@@ -308,13 +308,13 @@ def generate_swagger_spec(id_export):
             "in": "query",
             "name": "limit",
             "type": "int",
-            "description": "nombre maximum de résultats à retourner"
+            "description": "Nombre maximum de résultats à retourner"
         },
         {
             "in": "query",
             "name": "offset",
             "type": "int",
-            "description": "numéro de page"
+            "description": "Numéro de page"
         }
     ]
     return general_params + swagger_parameters
