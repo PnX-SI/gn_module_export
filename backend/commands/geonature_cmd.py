@@ -39,6 +39,12 @@ def gn_exports_run_cron_export():
         export_schedules = get_export_schedules()
 
         for schedule in export_schedules:
+
+            gne_logger.info(
+                "Export {} whith frequency {} ".format(
+                    schedule.export.label
+                )
+            )
             # generation nom du fichier export
             schedule_filename = schedule_export_filename(schedule.export.as_dict())
 
@@ -46,6 +52,12 @@ def gn_exports_run_cron_export():
             file_is_to_updated = is_to_updated(schedule.frequency, schedule_filename)
 
             if file_is_to_updated:
+
+                gne_logger.info(
+                    "Export {} need to be regenerated".format(
+                        schedule.export.label
+                    )
+                )
                 # Fonction qui permet de générer un export fichier
                 try:
                     export_data_file(
