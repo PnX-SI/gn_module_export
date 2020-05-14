@@ -2,7 +2,7 @@
 CHANGELOG
 =========
 
-1.0.4 (unreleased)
+1.0.4 (2020-05-14)
 ------------------
 
 **🚀 Nouveautés**
@@ -14,15 +14,16 @@ CHANGELOG
   * Amélioration des noms de champs plus lisibles
   * Complément des commentaires des champs
 * Ajout de la licence ouverte 2.0 d'Etalab par défaut
-* Compléments de la documentation
+* Compléments de la documentation (Export public par défaut, Suppression automatique des fichiers, Fichiers des exports planifiés servis par Apache au lieu de Gunicorn - #73)
 
 **🐛 Corrections**
 
+* Correction de la suppression automatique des fichiers exportés avec Python 3.5
 * Correction de petites typos (#71)
 
 **⚠️ Notes de version**
 
-* Si vous mettez à jour le module, exécutez le script de mise à jour ``data/migrations/1.0.3to1.0.4.sql`` pour ajouter la licence ouverte 2.0 et améliorer la vue SINP par défaut (``gn_exports.v_synthese_sinp``)
+* Si vous mettez à jour le module, exécutez le script SQL de mise à jour ``data/migrations/1.0.3to1.0.4.sql`` pour ajouter la licence ouverte 2.0 et améliorer la vue SINP par défaut (``gn_exports.v_synthese_sinp``)
 
 1.0.3 (2020-04-24)
 ------------------
