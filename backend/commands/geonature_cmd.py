@@ -41,14 +41,14 @@ def gn_exports_run_cron_export():
         for schedule in export_schedules:
 
             gne_logger.info(
-                "Export {} whith frequency {} ".format(
+                "Export {} with frequency {} ".format(
                     schedule.export.label
                 )
             )
-            # generation nom du fichier export
+            # Génération nom du fichier export
             schedule_filename = schedule_export_filename(schedule.export.as_dict())
 
-            # test si le fichier doit être regénéré
+            # Test si le fichier doit être regénéré
             file_is_to_updated = is_to_updated(schedule.frequency, schedule_filename)
 
             if file_is_to_updated:
@@ -108,7 +108,7 @@ def gn_exports_run_cron_export_dsw(limit, offset):
             conf.get('export_dsw_filename')
         ))
 
-        # get data and generate semantic data structure
+        # Get data and generate semantic data structure
         store = generate_store_dws(limit=limit, offset=offset, filters={})
 
         # Store file
