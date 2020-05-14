@@ -60,7 +60,7 @@
         },
         "items": {
           "type": "json",
-          "description": "Résultat de la requete, s'il y a une colonne de géométrie alors géojson"
+          "description": "Résultat de la requete, s'il y a une colonne de géométrie alors GeoJSON"
         }
       }
     }

@@ -178,7 +178,7 @@ class OccurrenceStore:
 def populate_occurence_store(data):
     """
         Fonction qui génère un store
-            à partir de données occurences
+            à partir de données occurrences
 
         TODO : mettre des try/catch
     """
@@ -199,7 +199,7 @@ def generate_store_dws(limit=10, offset=0, filters=None):
     """
         Fonction qui :
             - récupère les données de la requete v_exports_synthese_sinp_rdf
-            - les formattent en vu de leur export en RDF
+            - les formatte en vue de leur export en RDF
 
         TODO : mettre des try/catch
     """
@@ -211,7 +211,7 @@ def generate_store_dws(limit=10, offset=0, filters=None):
     )
     data = query.return_query()
 
-    # generate sematic data structure
+    # generate semantic data structure
     store = populate_occurence_store(data.get('items'))
 
     return store

@@ -86,7 +86,7 @@ class LicenceView(ModelView):
     # Description des colonnes
     column_descriptions = dict(
         name_licence='Nom de la licence',
-        url_licence='Url de la documentation de la licence',
+        url_licence='URL de la documentation de la licence',
     )
 
 
@@ -175,7 +175,7 @@ class ExportView(ModelView):
 
     def validate_form(self, form):
         """
-            validation personnalisée du form
+            Validation personnalisée du form
         """
         # Essai de récupérer en BD la vue sql déclarée
         # Delete n'a pas d'attribut view_name
@@ -187,7 +187,7 @@ class ExportView(ModelView):
             try:
                 if geometry_field.data and geometry_srid.data is None:
                     raise KeyError(
-                        "field Geometry srid is mandatory with Geometry field"
+                        "Field Geometry SRID is mandatory with Geometry field"
                     )
 
                 query = GenericQueryGeo(
@@ -263,7 +263,7 @@ flask_admin.add_view(ExportSchedulesView(
 
 """
 #################################################################
-    Configuration de swagger
+    Configuration de Swagger
 #################################################################
 """
 
@@ -272,7 +272,7 @@ flask_admin.add_view(ExportSchedulesView(
 @blueprint.route('/swagger/<int:id_export>', methods=['GET'])
 def swagger_ui(id_export=None):
     """
-        Génération de l'interface de swagger
+        Génération de l'interface de Swagger
     """
     if not id_export:
         id_export = ""
@@ -291,7 +291,7 @@ def swagger_ui(id_export=None):
 @blueprint.route('/swagger-ressources/<int:id_export>', methods=['GET'])
 def swagger_ressources(id_export=None):
     """
-        Génération des spécifications swagger
+        Génération des spécifications Swagger
     """
 
     # return jsonify(swagger_example)
@@ -313,10 +313,10 @@ def swagger_ressources(id_export=None):
         swagger_spec = render_template('/swagger/' + file_name)
         return Response(swagger_spec)
 
-    # Génération automatique des spécification
+    # Génération automatique des spécifications
     export_parameters = generate_swagger_spec(id_export)
 
-    # Récupération des paramètres url du backend
+    # Récupération des paramètres URL du backend
     backend_url = urlparse(current_app.config['API_ENDPOINT'])
 
     if backend_url.scheme:
@@ -364,7 +364,7 @@ def getOneExportThread(id_export, export_format, info_role):
     """
         Run export with thread
     """
-    # test if export exists
+    # Test if export exists
     if (
         id_export < 1
         or
@@ -381,7 +381,7 @@ def getOneExportThread(id_export, export_format, info_role):
     filters = {f: request.args.get(f) for f in request.args}
     data = dict(request.get_json())
 
-    # alternative email in payload
+    # Alternative email in payload
     email_to = None
     if 'email' in data:
         email_to = data['email']
@@ -459,7 +459,7 @@ def getOneExportThread(id_export, export_format, info_role):
 def getExports(info_role):
     """
         Fonction qui renvoie la liste des exports
-        accessible pour un role donné
+        accessibles pour un role donné
     """
     try:
         exports = get_allowed_exports(info_role)
@@ -491,7 +491,7 @@ def get_one_export_api(id_export, info_role):
 
         Parameters
         ----------
-        limit : nombre limit de résultats à retourner
+        limit : nombre limite de résultats à retourner
         offset : numéro de page
 
         FILTRES :
@@ -525,11 +525,11 @@ def get_one_export_api(id_export, info_role):
         -------
         json
         {
-            'total': Nombre total de résultat,
-            'total_filtered': Nombre total de résultat après filtration,
+            'total': Nombre total de résultats,
+            'total_filtered': Nombre total de résultats après filtration,
             'page': Numéro de la page retournée,
             'limit': Nombre de résultats,
-            'items': données au format Json ou GeoJson
+            'items': Données au format Json ou GeoJson
         }
 
 
@@ -579,7 +579,7 @@ def semantic_dsw():
 
         Parameters
         ----------
-        limit : nombre limit de résultats à retourner
+        limit : nombre limite de résultats à retourner
         offset : numéro de page
 
         FILTRES :

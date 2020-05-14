@@ -81,7 +81,7 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Rapatriez le fichier de configuration
 
 ```
-cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
+cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_export/config/conf_gn_module.toml
 ```
 
 - Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports dans le dossier ``geonature/external_modules/exports/backend/templates/swagger/``.
@@ -102,9 +102,13 @@ Pour créer un nouvel export, il faut au préalable créer une vue dans la base 
 
 Pour des questions de lisibilité, il est conseillé de créer la vue dans le schéma ``gn_exports``.
 
+Par défaut, un export public (accessible à tous les utilisateurs ayant accès au module Export d'une instance GeoNature) est créé basé sur la vue ``gn_exports.v_synthese_sinp``, contenant toutes les données présentes dans la Synthèse. Il est possible de limiter les données dans cet exeport (en ajoutant des critères dans la clause WHERE de la vue ``gn_exports.v_synthese_sinp``), de supprimer cet export ou de le limiter à certains utilisateurs uniquement.
+
+Les fichiers exportés sont automatiquement supprimés 15 jours après avoir été générés (durée configurable avec le paramètre ``nb_days_keep_file``).
+
 ## Enregistrer l'export créé dans le module Admin
 
-L'interface d'administration est accessible dans GeoNature via le module ``Admin`` puis ``backoffice GeoNature``.
+L'interface d'administration est accessible dans GeoNature via le module ``Admin`` puis ``Backoffice GeoNature``.
 
 Dans la rubrique Exports selectionner le menu ``Export`` puis cliquer sur ``Create`` et renseigner les valeurs.
 
@@ -118,13 +122,13 @@ Puis créer des associations entre les rôles et l'export en question.
 
 Seul les roles ayant des emails peuvent être associé à un export, exception faite des groupes.
 
-Par défaut, lors de l'installation du module, un export publique contenant toutes les données de la synthèse est créé. Il est donc accessible à tous les utilisateurs pouvant accéder au module Export. Libre à vous de le modifier ou le supprimer.
+Par défaut, lors de l'installation du module, un export public contenant toutes les données de la synthèse est créé (basé sur la vue ``gn_exports.v_synthese_sinp``). Il est donc accessible à tous les utilisateurs pouvant accéder au module Export. Libre à vous de le modifier ou le supprimer.
 
 Chaque fois qu'un export de fichier est réalisé depuis le module, celui-ci est tracé dans la table ``gn_exports.t_exports_logs``.
 
-# API json et documentation Swagger d'un export
+# API JSON et documentation Swagger d'un export
 
-Pour chaque export créé, une API json filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API json de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles. 
+Pour chaque export créé, une API JSON filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API JSON de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles. 
 
 Par défaut une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres. 
 
@@ -153,9 +157,44 @@ source backend/venv/bin/activate
 geonature gn_exports_run_cron_export
 ```
 
+Le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
+
+⚠️ Par défaut les fichiers sont servis par le serveur web Gunicorn qui a un timeout limité qui s'applique aussi au téléchargement des fichiers. Si le fichier à télécharger est volumineux, il est possible que le téléchargement soit coupé avant de terminer au bout de quelques minutes. Même si il est possible de le reprendre pour le terminer (éventuellement en plusieurs fois), il est aussi possible (et conseillé) de servir les fichiers des exports par Apache (non concerné par un timeout pour le téléchargement), plutôt que par Gunicorn.
+
+Pour cela, modifier la configuration Apache de GeoNature et ajouter un alias vers le dossier où sont générés les exports planifiés :
+
+```
+sudo nano /etc/apache2/sites-available/geonature.conf
+```
+
+Ajoutez ces lignes au milieu de la configuration Apache de GeoNature :
+
+```
+Alias /dataexport/ /home/geonatadmin/geonature/backend/static/exports/schedules/
+<Directory /home/geonatadmin/geonature/backend/static/exports/schedules>
+   Require all granted
+</Directory>
+```
+
+Rechargez la configuration Apache pour prendre en compte les modifications :
+
+```
+sudo /etc/init.d/apache2 reload
+```
+
+Dans cet exemple les fichiers seront accessibles à l'adresse : ``<URL_GEONATURE>/dataexport/Nom_Export.Format``. Le chemin ``/dataexport/`` est adaptable bien entendu.
+
+Autre possibilité pour ne pas avoir à modifier la configuration Apache de GeoNature, créer un lien symbolique (en adaptant le chemin à votre contexte) : 
+
+```
+ln -s /home/geonatadmin/geonature/backend/static/exports/schedules/ /home/geonatadmin/geonature/frontend/dist/dataexport
+```
+
 # Export RDF au format sémantique Darwin-SW
 
 Le module peut génèrer un export RDF au format Darwin-SW des données de la Synthèse de GeoNature.
+
+Cet export est basé sur la vue ``gn_exports.v_exports_synthese_sinp_rdf`` dont il ne faut pas modifier la structure. Il est cependant possible d'en filtrer le contenu en y ajoutant des conditions dans un ``WHERE`` à la fin de la vue.
 
 L'export est accessible de deux façons :
 
