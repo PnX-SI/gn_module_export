@@ -159,7 +159,7 @@ geonature gn_exports_run_cron_export
 
 Le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
 
-⚠️ Par défaut les fichiers sont servis par le serveur web Gunicorn qui a un timeout limité qui s'applique aussi au téléchargement des fichiers. Si le fichier à télécharger est volumineux, il est possible que le téléchargement soit coupé avant de terminer au bout de quelques minutes. Même si il est possible de le reprendre pour le terminer (éventuellement en plusieurs fois), une solution il est aussi possible (et conseillé) de servir les fichiers des exports par Apache (non concerné par un timeout pour le téléchargement), plutôt que par Gunicorn.
+⚠️ Par défaut les fichiers sont servis par le serveur web Gunicorn qui a un timeout limité qui s'applique aussi au téléchargement des fichiers. Si le fichier à télécharger est volumineux, il est possible que le téléchargement soit coupé avant de terminer au bout de quelques minutes. Même si il est possible de le reprendre pour le terminer (éventuellement en plusieurs fois), il est aussi possible (et conseillé) de servir les fichiers des exports par Apache (non concerné par un timeout pour le téléchargement), plutôt que par Gunicorn.
 
 Pour cela, modifier la configuration Apache de GeoNature et ajouter un alias vers le dossier où sont générés les exports planifiés :
 
@@ -184,7 +184,7 @@ sudo /etc/init.d/apache2 reload
 
 Dans cet exemple les fichiers seront accessibles à l'adresse : ``<URL_GEONATURE>/dataexport/Nom_Export.Format``. Le chemin ``/dataexport/`` est adaptable bien entendu.
 
-Autre possibilité pour ne pas avoir à modifier la configuration Apache de GeoNature, créer un lien symbolique : 
+Autre possibilité pour ne pas avoir à modifier la configuration Apache de GeoNature, créer un lien symbolique (en adaptant le chemin à votre contexte) : 
 
 ```
 ln -s /home/geonatadmin/geonature/backend/static/exports/schedules/ /home/geonatadmin/geonature/frontend/dist/dataexport
