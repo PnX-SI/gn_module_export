@@ -18,7 +18,19 @@ def export_send_mail(mail_to, export, file_name):
         :query str file_name: Name of exported file
     """
     url = url_for('static', filename='exports/'+file_name)
+    if ('export_web_url' in current_app.config['EXPORTS']
+        and current_app.config['EXPORTS']['export_web_url']):
+        base_url = current_app.config['EXPORTS']['export_web_url']
+    else:
+        base_url = "{}/{}".format(
+            current_app.config['URL_APPLICATION'],
+            "dataexport"
+        )
 
+    url = "{}/{}".format(
+        base_url,
+        file_name
+    )
     msg = """
             Bonjour,
             <p>

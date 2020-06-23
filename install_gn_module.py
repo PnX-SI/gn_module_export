@@ -1,3 +1,4 @@
+import os
 import sys
 import subprocess
 
@@ -40,12 +41,21 @@ def gnmodule_install_app(gn_db, gn_app):
         gn_db.session.commit()
 
         # Création repertoires
-        Path(BACKEND_DIR / "static/exports").mkdir(
+        # TODO use config
+        Path(BACKEND_DIR / "static/exports/usr_generated").mkdir(
             parents=True, exist_ok=True
         )
         Path(ROOT_DIR / "var/log/gn_export").mkdir(
             parents=True, exist_ok=True
         )
+
+        # Création un lien symbolique pour les exports web
+        # TODO use config
+        os.symlink(
+            str(BACKEND_DIR / "static/exports/usr_generated"),
+            str(Path(ROOT_DIR / "frontend/dist/dataexport"))
+        )
+
         # Création script cron
         write_in_cron_tab()
 

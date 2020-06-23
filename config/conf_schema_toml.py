@@ -36,6 +36,7 @@ export_format_map = {
 base_export_dir = str(ROOT_DIR) + '/backend/static/exports/'
 export_schedules_dir = base_export_dir + 'schedules/'
 export_dsw_dir = base_export_dir + 'dsw/'
+export_usrgenerated_dir = str(ROOT_DIR) + '/backend/static/exports/usr_generated'
 export_dsw_filename = 'export_dsw.ttl'
 
 
@@ -45,3 +46,5 @@ class GnModuleSchemaConf(Schema):
     export_dsw_dir = fields.String(missing=export_dsw_dir)
     export_dsw_filename = fields.String(missing=export_dsw_filename)
     nb_days_keep_file = fields.Int(missing=15)
+    export_usrgenerated_dir = fields.String(missing=export_usrgenerated_dir)
+    export_web_url = fields.String()

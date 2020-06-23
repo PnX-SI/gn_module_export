@@ -188,7 +188,7 @@ class GenerateExport():
         if isScheduler:
             self.export_dir = conf.get('export_schedules_dir')
         else:
-            self.export_dir = os.path.join(current_app.static_folder, 'exports')  # noqa E501
+            self.export_dir = os.path.join(conf.get('export_usrgenerated_dir'))  # noqa E501
 
         os.makedirs(self.export_dir, exist_ok=True)
 
