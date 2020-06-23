@@ -9,9 +9,14 @@ from flask.cli import with_appcontext
 from geonature.core.command import main
 from geonature.utils.env import ROOT_DIR
 
-# Configuration logger
+# #######################
+#  Configuration logger
+# #######################
+Path(LOG_DIR).mkdir(
+    parents=True, exist_ok=True
+)
 gne_handler = logging.FileHandler(
-    str(ROOT_DIR / "var/log/gn_export/cron.log"), mode="w"
+    str(LOG_DIR / "cron.log"), mode="w"
 )
 formatter = logging.Formatter(
     fmt='%(asctime)s %(levelname)-8s %(message)s',
