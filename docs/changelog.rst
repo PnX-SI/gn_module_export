@@ -2,12 +2,27 @@
 CHANGELOG
 =========
 
-1.0.5 (unreleased)
+1.1.0 (unreleased)
 ------------------
+
+* MAJ manifest.toml et VERSION en 1.1.0
+* Revoir doc Apache
+* Compatible GeoNature 2.4.0 minimum
+
+**🚀 Nouveautés**
+
+* Ajout des exports au format GeoPackage (#54)
+* Modification du répertoire des exports généré par les utilisateurs et utilisation d'un paramètre pour générer le lien du fichier (#73)
 
 **🐛 Corrections**
 
-* 
+* Création du fichier ``var/log/gn_export/cron.log`` lors de l'installation du module
+
+**⚠️ Notes de version**
+
+* Créer fichier cron.log si MAJ ?
+* Créer lien symbolique ?
+* Ajouter conf chemin fichier ?
 
 1.0.4 (2020-05-14)
 ------------------
