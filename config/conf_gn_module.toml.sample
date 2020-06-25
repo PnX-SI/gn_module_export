@@ -8,3 +8,7 @@
 # export_schedules_dir = '{GN_HOME}/backend/static/exports/schedules/'
 # export_dsw_dir = '{GN_HOME}/backend/static/exports/dsw/'
 # export_dsw_filename = 'export_dsw.ttl'
+
+
+# export_web_url : paramètre optionel. Correspond à une url pour les fichiers générés lors des exports utilisateurs
+# cette adresse doit être reliée au répertoire statics/exports/usr_generated
