@@ -27,12 +27,12 @@ def gnmodule_install_app(gn_db, gn_app):
         except Exception:
             raise GNModuleInstallError("Mail config is not correct please read the doc")  # noqa: E501
 
-        # here = Path(__file__).parent
         requirements_path = MODULE_DIR / 'backend' / 'requirements.txt'
         assert requirements_path.is_file()
         subprocess.call(
             [sys.executable, '-m', 'pip', 'install', '-r', '{}'.format(requirements_path)],  # noqa: E501
-            cwd=str(MODULE_DIR))
+            cwd=str(MODULE_DIR)
+        )
 
         # installation base de données
         gn_db.session.execute(
@@ -40,22 +40,13 @@ def gnmodule_install_app(gn_db, gn_app):
         )
         gn_db.session.commit()
 
-        # Création repertoires
-        # TODO use config
-        Path(BACKEND_DIR / "static/exports/usr_generated").mkdir(
+        # Création repertoires nécessaires au fonctionnement du module
+        Path(BACKEND_DIR / "static/exports").mkdir(
             parents=True, exist_ok=True
         )
         Path(ROOT_DIR / "var/log/gn_export").mkdir(
             parents=True, exist_ok=True
         )
-
-        # Création un lien symbolique pour les exports web
-        # TODO use config
-        os.symlink(
-            str(BACKEND_DIR / "static/exports/usr_generated"),
-            str(Path(ROOT_DIR / "frontend/dist/dataexport"))
-        )
-
         # Création script cron
         write_in_cron_tab()
 
