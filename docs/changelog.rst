@@ -19,9 +19,10 @@ CHANGELOG
 * Création du fichier ``var/log/gn_export/cron.log`` lors de l'installation du module
 
 **⚠️ Notes de version**
+
 * Pour ne pas avoir de soucis de timeout lors du téléchargement des fichiers par les utilisateurs, il faut que les fichiers soit directement transmis par apache. Pour réaliser cela il y a deux solutions:
-  * configurer apache pour que l'ensemble du répertoire ``backend/static`` soit servis en mode fichier. Cf configuration apache de GeoNature
-  * créer une configuration spécifique avec un alias pointant vers le répertoire ``backend/static/exports/usr_generated`` et renseigner le paramètre ``export_web_url`` en conséquence
+   * configurer apache pour que l'ensemble du répertoire ``backend/static`` soit servis en mode fichier. Cf configuration apache de GeoNature
+   * créer une configuration spécifique avec un alias pointant vers le répertoire ``backend/static/exports/usr_generated`` et renseigner le paramètre ``export_web_url`` en conséquence
 
 * Les fichiers générés par les exports utilisateurs ne se situent plus dans ``backend/static/exports`` mais dans ``backend/static/exports/usr_generated``. Il faut supprimer les fichiers situés à la racine de ``backend/static/exports``
 * Créer le répertoire ``var/log/gn_export``
