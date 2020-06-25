@@ -56,7 +56,7 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Lancez l'installation du module
 
 ```
-source backend/venv/bin/activate
+source geonature/backend/venv/bin/activate
 geonature install_gn_module /PATH_TO_MODULE/gn_module_export exports
 deactivate
 ```
