@@ -5,14 +5,13 @@ CHANGELOG
 1.1.0 (unreleased)
 ------------------
 
-* MAJ manifest.toml et VERSION en 1.1.0
 * Revoir doc Apache
 * Compatible GeoNature 2.4.0 minimum
 
 **🚀 Nouveautés**
 
 * Ajout des exports au format GeoPackage (#54)
-* Modification du répertoire des exports généré par les utilisateurs et utilisation d'un paramètre export_web_url pour surcoucher le lien du fichier (#73)
+* Modification du répertoire des exports généré par les utilisateurs et utilisation d'un paramètre ``export_web_url`` pour surcoucher le lien du fichier (#73)
 
 **🐛 Corrections**
 
@@ -23,6 +22,15 @@ CHANGELOG
 * Pour ne pas avoir de soucis de timeout lors du téléchargement des fichiers par les utilisateurs, il faut que les fichiers soit directement transmis par apache. Pour réaliser cela il y a deux solutions:
    * configurer apache pour que l'ensemble du répertoire ``backend/static`` soit servis en mode fichier. Cf configuration apache de GeoNature
    * créer une configuration spécifique avec un alias pointant vers le répertoire ``backend/static/exports/usr_generated`` et renseigner le paramètre ``export_web_url`` en conséquence
+   
+::
+
+  Alias "/dataexport" "/{GEONATURE_DIR}/backend/static/exports/usr_generated"
+  <Directory "/{GEONATURE_DIR}/backend/static/exports/usr_generated">
+    AllowOverride None
+    Order allow,deny
+    Allow from all
+  </Directory>
 
 * Les fichiers générés par les exports utilisateurs ne se situent plus dans ``backend/static/exports`` mais dans ``backend/static/exports/usr_generated``. Il faut supprimer les fichiers situés à la racine de ``backend/static/exports``
 * Créer le répertoire ``var/log/gn_export``
