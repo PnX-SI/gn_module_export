@@ -16,7 +16,7 @@ Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNa
 
 ### Email
 
-Le module d'export envoie des emails indiquant que l'export demandé est prêt. Pour cela il est nécessaire de configurer au préalable les paramètres d'envoi d'emails dans la configuration générale de GeoNature (section ``[MAIL_CONFIG]`` de ``config/geonature_config.toml``).
+Le module d'export envoie des emails indiquant que l'export demandé est prêt. Pour cela il est nécessaire de configurer au préalable les paramètres d'envoi d'emails dans la configuration générale de GeoNature (section ``[MAIL_CONFIG]`` de ``geonature/config/geonature_config.toml``).
 
 La configuration des emails utilise les paramètres définis par Flask_mail. Pour avoir accès à l'ensemble des paramètres se référer à la [documentation complète](https://flask-mail.readthedocs.io/en/latest/).
 
@@ -31,11 +31,22 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
 
 ### Autres paramètres
 
-Les autres paramètres concernent les dossiers d'export et se configurent dans le fichier ``config/conf_gn_module.toml`` du module Export :
+Les paramètres du module surcouchables concernent les dossiers d'export et se configurent dans le fichier ``gn_module_export/config/conf_gn_module.toml`` du module Export :
 
 * ``export_schedules_dir`` : chemin absolu du dossier où les exports programmés seront déposés lors de la réalisation de la commande ``gn_exports_run_cron_export``
 * ``export_dsw_dir`` : chemin absolu du dossier où l'export sémantique au format Darwin-SW sera réalisé
 * ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
+* ``export_web_url`` : URL des fichiers exportés à la demande par les utilisateurs
+
+Voir le fichier ``gn_module_export/config/conf_gn_module.toml.example`` d'exemple des paramètres.
+
+Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier ``gn_module_export/config/conf_gn_module.toml``, vous devez lancer une commande pour appliquer les modifications des paramètres : 
+
+```
+cd /home/`whoami`/geonature/backend
+source venv/bin/activate
+geonature update_module_configuration EXPORTS
+```
 
 ## Commande d'installation
 
