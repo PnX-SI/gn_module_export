@@ -2,38 +2,26 @@
 CHANGELOG
 =========
 
-1.1.0 (unreleased)
+1.1.0 (2020-07-01)
 ------------------
 
-* Revoir doc Apache
-* Compatible GeoNature 2.4.0 minimum
+Compatible avec GeoNature 2.4.0 minimum.
 
 **🚀 Nouveautés**
 
 * Ajout des exports au format GeoPackage (#54)
-* Modification du répertoire des exports généré par les utilisateurs et utilisation d'un paramètre ``export_web_url`` pour surcoucher le lien du fichier (#73)
+* Modification du répertoire des exports générés à la demande par les utilisateurs et utilisation d'un paramètre ``export_web_url`` pour surcoucher l'URL des fichiers exportés (#73)
 
 **🐛 Corrections**
 
-* Création du fichier ``var/log/gn_export/cron.log`` lors de l'installation du module
+* Création du fichier ``geonature/var/log/gn_export/cron.log`` lors de l'installation du module
+* Correction d'un bug de la commande des exports planifiés (``IndexError: tuple index out of range``)
 
 **⚠️ Notes de version**
 
-* Pour ne pas avoir de soucis de timeout lors du téléchargement des fichiers par les utilisateurs, il faut que les fichiers soit directement transmis par apache. Pour réaliser cela il y a deux solutions:
-   * configurer apache pour que l'ensemble du répertoire ``backend/static`` soit servis en mode fichier. Cf configuration apache de GeoNature
-   * créer une configuration spécifique avec un alias pointant vers le répertoire ``backend/static/exports/usr_generated`` et renseigner le paramètre ``export_web_url`` en conséquence
-   
-::
-
-  Alias "/dataexport" "/{GEONATURE_DIR}/backend/static/exports/usr_generated"
-  <Directory "/{GEONATURE_DIR}/backend/static/exports/usr_generated">
-    AllowOverride None
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-* Les fichiers générés par les exports utilisateurs ne se situent plus dans ``backend/static/exports`` mais dans ``backend/static/exports/usr_generated``. Il faut supprimer les fichiers situés à la racine de ``backend/static/exports``
-* Créer le répertoire ``var/log/gn_export``
+* Les fichiers générés par les exports utilisateurs ne se situent plus dans ``geonature/backend/static/exports`` mais dans ``geonature/backend/static/exports/usr_generated``. Vous pouvez donc supprimer les éventuels fichiers situés à la racine de ``geonature/backend/static/exports``.
+* Si il n'existe pas déjà, créer le répertoire ``geonature/var/log/gn_export``.
+* Par défaut, les fichiers exportés sont servis par Gunicorn qui a un timeout qui coupe le téléchargement des fichiers volumineux après quelques minutes. Il est conseillé de modifier la configuration Apache de GeoNature pour servir les fichiers exportés par Apache et avec des URL simplifiées. Voir la documentation (https://github.com/PnX-SI/gn_module_export/blob/master/README.md#url-des-fichiers).
 
 1.0.4 (2020-05-14)
 ------------------
