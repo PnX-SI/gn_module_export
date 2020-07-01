@@ -2,7 +2,7 @@
 CHANGELOG
 =========
 
-1.1.0 (2020-07-01)
+1.1.0 (unreleased)
 ------------------
 
 Compatible avec GeoNature 2.4.0 minimum.
@@ -11,10 +11,12 @@ Compatible avec GeoNature 2.4.0 minimum.
 
 * Ajout des exports au format GeoPackage (#54)
 * Modification du répertoire des exports générés à la demande par les utilisateurs et utilisation d'un paramètre ``export_web_url`` pour surcoucher l'URL des fichiers exportés (#73)
+* Ajout d'une rubrique dans la documentation sur la configuration des URL des fichiers exportés
 
 **🐛 Corrections**
 
 * Création du fichier ``geonature/var/log/gn_export/cron.log`` lors de l'installation du module
+* Corrections de la prise en compte de la fréquence (en jours) pour les exports planifiés
 * Correction d'un bug de la commande des exports planifiés (``IndexError: tuple index out of range``)
 
 **⚠️ Notes de version**
