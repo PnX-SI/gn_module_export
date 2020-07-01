@@ -51,7 +51,8 @@ def gn_exports_run_cron_export():
             schedule_filename = schedule_export_filename(schedule.export.as_dict())
 
             # Test si le fichier doit être regénéré
-            file_is_to_updated = is_to_updated(schedule.frequency, schedule_filename)
+            filename = "{}.{}".format(schedule_filename, schedule.format)
+            file_is_to_updated = is_to_updated(schedule.frequency, filename)
 
             if file_is_to_updated:
                 # Fonction qui permet de générer un export fichier
@@ -69,7 +70,12 @@ def gn_exports_run_cron_export():
                     )
                 except Exception as exception:
                     gne_logger.error("exception export_data_file: {}".format(exception))
-
+            else:
+                gne_logger.info(
+                    "Export {} with frequency {} day not need to be updated".format(
+                        schedule.export.label, schedule.frequency
+                    )
+                )
         gne_logger.info("END schedule export task")
     except Exception as exception:
         raise (exception)
