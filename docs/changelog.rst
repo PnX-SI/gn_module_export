@@ -2,7 +2,7 @@
 CHANGELOG
 =========
 
-1.1.0 (unreleased)
+1.1.0 (2020-07-02)
 ------------------
 
 Compatible avec GeoNature 2.4.0 minimum.
