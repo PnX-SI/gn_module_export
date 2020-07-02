@@ -2,6 +2,29 @@
 CHANGELOG
 =========
 
+1.1.0 (2020-07-02)
+------------------
+
+Compatible avec GeoNature 2.4.0 minimum.
+
+**🚀 Nouveautés**
+
+* Ajout des exports au format GeoPackage (#54)
+* Modification du répertoire des exports générés à la demande par les utilisateurs et utilisation d'un paramètre ``export_web_url`` pour surcoucher l'URL des fichiers exportés (#73)
+* Ajout d'une rubrique dans la documentation sur la configuration des URL des fichiers exportés
+
+**🐛 Corrections**
+
+* Création du fichier ``geonature/var/log/gn_export/cron.log`` lors de l'installation du module
+* Corrections de la prise en compte de la fréquence (en jours) pour les exports planifiés
+* Correction d'un bug de la commande des exports planifiés (``IndexError: tuple index out of range``)
+
+**⚠️ Notes de version**
+
+* Les fichiers générés par les exports utilisateurs ne se situent plus dans ``geonature/backend/static/exports`` mais dans ``geonature/backend/static/exports/usr_generated``. Vous pouvez donc supprimer les éventuels fichiers situés à la racine de ``geonature/backend/static/exports``.
+* Si il n'existe pas déjà, créer le répertoire ``geonature/var/log/gn_export``.
+* Par défaut, les fichiers exportés sont servis par Gunicorn qui a un timeout qui coupe le téléchargement des fichiers volumineux après quelques minutes. Il est conseillé de modifier la configuration Apache de GeoNature pour servir les fichiers exportés par Apache et avec des URL simplifiées. Voir la documentation (https://github.com/PnX-SI/gn_module_export/blob/master/README.md#url-des-fichiers).
+
 1.0.4 (2020-05-14)
 ------------------
 

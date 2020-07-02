@@ -15,7 +15,7 @@ from shapely.geometry import asShape
 
 from utils_flask_sqla.response import generate_csv_content
 from utils_flask_sqla_geo.utilsgeometry import (
-    FionaShapeService
+    FionaShapeService, FionaGpkgService
 )
 
 from geonature.utils.filemanager import (
@@ -188,7 +188,11 @@ class GenerateExport():
         if isScheduler:
             self.export_dir = conf.get('export_schedules_dir')
         else:
-            self.export_dir = os.path.join(current_app.static_folder, 'exports')  # noqa E501
+            self.export_dir = os.path.join(
+                current_app.static_folder,
+                'exports',
+                conf.get('usr_generated_dirname')
+            )
 
         os.makedirs(self.export_dir, exist_ok=True)
 
@@ -263,7 +267,12 @@ class GenerateExport():
             et sauvegarde sous forme d'une archive
         """
 
-        FionaShapeService.create_shapes_struct(
+        if export_format == 'shp':
+            fionaService = FionaShapeService
+        else:
+            fionaService = FionaGpkgService
+
+        fionaService.create_fiona_struct(
             db_cols=self.columns,
             srid=self.export.get('geometry_srid'),
             dir_path=self.export_dir,
@@ -277,13 +286,13 @@ class GenerateExport():
                 feature.get(field) for field in ('geometry', 'properties')
             )
 
-            FionaShapeService.create_feature(
+            fionaService.create_feature(
                 props, from_shape(
                     asShape(geom), self.export.get('geometry_srid')
                 )
             )
 
-        FionaShapeService.save_and_zip_shapefiles()
+        fionaService.save_files()
 
         # Suppression des fichiers générés et non compressés
         for gtype in ['POINT', 'POLYGON', 'POLYLINE']:

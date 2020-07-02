@@ -25,6 +25,11 @@ export_format_map = {
         'mime': 'application/zip',
         'geofeature': True,
         'label': 'ShapeFile'
+        },
+    'gpkg': {
+        'mime': 'application/zip',
+        'geofeature': True,
+        'label': 'GeoPackage'
         }
 }  # noqa: E133
 
@@ -40,3 +45,5 @@ class GnModuleSchemaConf(Schema):
     export_dsw_dir = fields.String(missing=export_dsw_dir)
     export_dsw_filename = fields.String(missing=export_dsw_filename)
     nb_days_keep_file = fields.Int(missing=15)
+    export_web_url = fields.String()
+    usr_generated_dirname = fields.String(missing="usr_generated")

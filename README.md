@@ -16,7 +16,7 @@ Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNa
 
 ### Email
 
-Le module d'export envoie des emails indiquant que l'export demandé est prêt. Pour cela il est nécessaire de configurer au préalable les paramètres d'envoi d'emails dans la configuration générale de GeoNature (section ``[MAIL_CONFIG]`` de ``config/geonature_config.toml``).
+Le module d'export envoie des emails indiquant que l'export demandé est prêt. Pour cela il est nécessaire de configurer au préalable les paramètres d'envoi d'emails dans la configuration générale de GeoNature (section ``[MAIL_CONFIG]`` de ``geonature/config/geonature_config.toml``).
 
 La configuration des emails utilise les paramètres définis par Flask_mail. Pour avoir accès à l'ensemble des paramètres se référer à la [documentation complète](https://flask-mail.readthedocs.io/en/latest/).
 
@@ -31,11 +31,22 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
 
 ### Autres paramètres
 
-Les autres paramètres concernent les dossiers d'export et se configurent dans le fichier ``config/conf_gn_module.toml`` du module Export :
+Les paramètres du module surcouchables concernent les dossiers d'export et se configurent dans le fichier ``gn_module_export/config/conf_gn_module.toml`` du module Export :
 
 * ``export_schedules_dir`` : chemin absolu du dossier où les exports programmés seront déposés lors de la réalisation de la commande ``gn_exports_run_cron_export``
 * ``export_dsw_dir`` : chemin absolu du dossier où l'export sémantique au format Darwin-SW sera réalisé
 * ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
+* ``export_web_url`` : URL des fichiers exportés à la demande par les utilisateurs
+
+Voir le fichier ``gn_module_export/config/conf_gn_module.toml.example`` d'exemple des paramètres.
+
+Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier ``gn_module_export/config/conf_gn_module.toml``, vous devez lancer une commande pour appliquer les modifications des paramètres : 
+
+```
+cd /home/`whoami`/geonature/backend
+source venv/bin/activate
+geonature update_module_configuration EXPORTS
+```
 
 ## Commande d'installation
 
@@ -56,7 +67,7 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Lancez l'installation du module
 
 ```
-source backend/venv/bin/activate
+source geonature/backend/venv/bin/activate
 geonature install_gn_module /PATH_TO_MODULE/gn_module_export exports
 deactivate
 ```
@@ -157,24 +168,39 @@ source backend/venv/bin/activate
 geonature gn_exports_run_cron_export
 ```
 
-Le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
+Par défaut, le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
 
-⚠️ Par défaut les fichiers sont servis par le serveur web Gunicorn qui a un timeout limité qui s'applique aussi au téléchargement des fichiers. Si le fichier à télécharger est volumineux, il est possible que le téléchargement soit coupé avant de terminer au bout de quelques minutes. Même si il est possible de le reprendre pour le terminer (éventuellement en plusieurs fois), il est aussi possible (et conseillé) de servir les fichiers des exports par Apache (non concerné par un timeout pour le téléchargement), plutôt que par Gunicorn.
+# URL des fichiers
 
-Pour cela, modifier la configuration Apache de GeoNature et ajouter un alias vers le dossier où sont générés les exports planifiés :
+Par défaut les fichiers sont servis par le serveur web Gunicorn qui a un timeout limité qui s'applique aussi au téléchargement des fichiers. Si le fichier à télécharger est volumineux, il est possible que le téléchargement soit coupé avant de terminer au bout de quelques minutes. Même si il est possible de le reprendre pour le terminer (éventuellement en plusieurs fois), il est aussi possible (et conseillé) de servir les fichiers des exports par Apache (non concerné par un timeout pour le téléchargement), plutôt que par Gunicorn.
+
+Pour cela, modifier la configuration Apache de GeoNature et ajouter un alias vers le dossier où sont générés les fichiers exportés :
 
 ```
 sudo nano /etc/apache2/sites-available/geonature.conf
 ```
 
-Ajoutez ces lignes au milieu de la configuration Apache de GeoNature :
+Ajoutez ces lignes au milieu de la configuration Apache de GeoNature (en adaptant le chemin absolu et le nom de l'alias comme vous le souhaitez). Exemple pour les exports planifiés : 
 
 ```
-Alias /dataexport/ /home/geonatadmin/geonature/backend/static/exports/schedules/
-<Directory /home/geonatadmin/geonature/backend/static/exports/schedules>
+Alias "/exportschedules" "/home/myuser/geonature/backend/static/exports/schedules"
+<Directory "/home/myuser/geonature/backend/static/exports/schedules">
+   AllowOverride None
    Require all granted
 </Directory>
 ```
+
+Pour les fichiers générés à la demande par les utilisateurs :
+
+```
+Alias "/exportfiles" "/home/myuser/geonature/backend/static/exports/usr_generated"
+<Directory "/home/myuser/geonature/backend/static/exports/usr_generated">
+   AllowOverride None
+   Require all granted
+</Directory>
+```
+
+Renseignez le paramètre ``export_web_url`` en cohérence dans le fichier ``config/conf_gn_module.toml`` du module (``export_web_url=<URL_GEONATURE>/exportfiles`` dans cet exemple).
 
 Rechargez la configuration Apache pour prendre en compte les modifications :
 
@@ -182,13 +208,9 @@ Rechargez la configuration Apache pour prendre en compte les modifications :
 sudo /etc/init.d/apache2 reload
 ```
 
-Dans cet exemple les fichiers seront accessibles à l'adresse : ``<URL_GEONATURE>/dataexport/Nom_Export.Format``. Le chemin ``/dataexport/`` est adaptable bien entendu.
+Dans cet exemple les fichiers des exports planifiés seront accessibles à l'adresse ``<URL_GEONATURE>/exportschedules/Nom_Export.Format``. Le chemin ``/exportschedules/`` est adaptable bien entendu au niveau de l'alias de la configuration Apache. Les fichiers des exports générés à la demande par les utilisateurs seront disponibles à l'adresse ``<URL_GEONATURE>/exportfiles/Date_Nom_Export.Format``
 
-Autre possibilité pour ne pas avoir à modifier la configuration Apache de GeoNature, créer un lien symbolique (en adaptant le chemin à votre contexte) : 
-
-```
-ln -s /home/geonatadmin/geonature/backend/static/exports/schedules/ /home/geonatadmin/geonature/frontend/dist/dataexport
-```
+Une autre solution plus globale serait de compléter la configuration Apache de GeoNature pour que l'ensemble de son répertoire ``backend/static`` soit servi en mode fichier par Apache. Voir http://docs.geonature.fr/conf-apache.html.
 
 # Export RDF au format sémantique Darwin-SW
 
