@@ -175,6 +175,7 @@ class GenerateExport():
     """
         Classe permettant de générer un fichier d'export dans le format spécfié
     """
+
     def __init__(self, file_name, format, data, columns, export, isScheduler=False):
         self.file_name = file_name
         self.format = format
@@ -248,7 +249,7 @@ class GenerateExport():
         return generate_csv_content(
             columns=[c.name for c in self.columns],
             data=self.data.get('items'),
-            separator=','
+            separator=current_app.config['EXPORTS']['csv_separator']
         )
 
     def generate_json(self):
