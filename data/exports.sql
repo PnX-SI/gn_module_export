@@ -183,6 +183,8 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
     s.count_max AS "Nombre_max",
     s.altitude_min AS "Altitude_min",
     s.altitude_max AS "Altitude_max",
+    s.depth_min as "Profondeur_min",
+    s.depth_max as "Profondeur_max",
     s.observers AS "Observateurs",
     s.determiner AS "Determinateur",
     s.validator AS "Validateur",
@@ -200,12 +202,19 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
     jdd_acteurs.acteurs AS "JDD_acteurs",
     af.unique_acquisition_framework_id AS "CA_UUID",
     af.acquisition_framework_name AS "CA_nom",
+    s.reference_biblio AS "Reference_biblio",
+    s.cd_hab AS "Code_habitat",
+    h.lb_hab_fr AS "Habitat",
+    s.place_name AS "Nom_lieu",
+    s.precision AS "Precision",
+    s.additional_data AS "Donnees_additionnelles",
     public.st_astext(s.the_geom_4326) AS "WKT_4326",
     public.ST_x(s.the_geom_point) AS "X_centroid_4326",
     public.ST_y(s.the_geom_point) AS "Y_centroid_4326",
     n1.label_default AS "Nature_objet_geo",
-    n2.label_default AS "Methode_regroupement",
-    n3.label_default AS "Methode_obs",
+    n2.label_default AS "Type_regroupement",
+    s.grp_method AS "Methode_regroupement",
+    n3.label_default as "Comportement",
     n4.label_default AS "Technique_obs",
     n5.label_default AS "Statut_biologique",
     n6.label_default AS "Etat_biologique",
@@ -224,13 +233,14 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
     n19.label_default AS "Methode_determination"
    FROM gn_synthese.synthese s
      JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
+     JOIN ref_habitats.habref h ON h.cd_hab.s.cd_hab
      JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
      JOIN jdd_acteurs ON jdd_acteurs.id_dataset = s.id_dataset
      JOIN gn_meta.t_acquisition_frameworks af ON d.id_acquisition_framework = af.id_acquisition_framework
      JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
      LEFT JOIN ref_nomenclatures.t_nomenclatures n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n3 ON s.id_nomenclature_obs_meth = n3.id_nomenclature
+     LEFT JOIN ref_nomenclatures.t_nomenclatures n3 ON s.id_nomenclature_behaviour = n3.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n4 ON s.id_nomenclature_obs_technique = n4.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n5 ON s.id_nomenclature_bio_status = n5.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n6 ON s.id_nomenclature_bio_condition = n6.id_nomenclature
@@ -271,6 +281,8 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nombre_min" IS 'Nombre minimal d''
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nombre_max" IS 'Nombre maximal d''objet dénombré';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Altitude_min" IS 'Altitude minimale';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Altitude_max" IS 'Altitude maximale';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Profondeur_min" IS 'Profondeur minimale';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Profondeur_max" IS 'Profondeur maximale';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Observateurs" IS 'Personne(s) ayant procédé à l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Determinateur" IS 'Personne ayant procédé à la détermination';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Validateur" IS 'Personne ayant procédé à la validation';
@@ -288,14 +300,22 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."JDD_nom" IS 'Nom du jeu de donnée
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."JDD_acteurs" IS 'Acteurs du jeu de données';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."CA_UUID" IS 'Identifiant unique du cadre d''acquisition';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."CA_nom" IS 'Nom du cadre d''acquisition';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Reference_biblio" IS 'Référence bibliographique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Code_habitat" IS 'Code habitat (Habref)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Habitat" IS 'Libellé français de l''habitat (Habref)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nom_lieu" IS 'Nom du lieu';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Précision" IS 'Précision de la géométrie. Estimation en mètres d''une zone tampon autour de l''objet géographique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Donnees_additionnelles" IS 'Données des champs additionnels';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."WKT_4326" IS 'Géométrie complète de la localisation en projection WGS 84 (4326)';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."X_centroid_4326" IS 'Latitude du centroïde de la localisation en projection WGS 84 (4326)';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Y_centroid_4326" IS 'Longitude du centroïde de la localisation en projection WGS 84 (4326)';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nature_objet_geo" IS 'Classe associée au concept de localisation géographique';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Methode_regroupement" IS 'Description de la méthode ayant présidé au regroupement, de façon aussi succincte que possible : champ libre';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Type_regroupement" IS 'Type du regroupement';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Methode_regroupement" IS 'Description de la méthode ayant présidé au regroupement';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Methode_obs" IS 'Méthode d''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Technique_obs" IS 'Indique de quelle manière on a pu constater la présence d''un sujet d''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Statut_biologique" IS 'Comportement général de l''individu sur le site d''observation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Comportement" IS 'Comportement de l''individu ou groupe d''individus';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Etat_biologique" IS 'Code de l''état biologique de l''organisme au moment de l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Naturalite" IS 'Naturalité de l''occurrence, conséquence de l''influence anthropique directe qui la caractérise';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Preuve_existante" IS 'Indique si une preuve existe ou non';
