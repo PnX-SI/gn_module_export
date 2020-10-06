@@ -2,12 +2,19 @@
 CHANGELOG
 =========
 
-1.1.1 (unreleased)
+1.2.0 (unreleased)
 ------------------
 
-**🐛 Corrections**
+Compatibilité avec GeoNature 2.5.0 et la mise à jour du standard Occurrences de taxon du SINP en version 2.0.
 
-*
+**🚀 Nouveautés**
+
+* Révision de la vue par défaut ``gn_exports.v_synthese_sinp`` suite à la mise de la Synthèse en version 2.0 du standard Occurrences de taxon du SINP (#82)
+* Ajout d'un paramètre ``csv_separator`` permettant de définir le séparateur de colonnes des fichiers CSV (; par défaut)
+
+**⚠️ Notes de version**
+
+* Si vous mettez à jour le module, exécutez le script SQL de mise à jour ``data/migrations/1.1.0to1.2.0.sql`` pour mettre à jour la vue par défaut ``gn_exports.v_synthese_sinp`` avec les champs de la version 2.0 du standard Occurrences de taxon du SINP. Ou adaptez cette vue comme vous le souhaitez.
 
 1.1.0 (2020-07-02)
 ------------------
