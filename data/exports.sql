@@ -233,7 +233,7 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
     n19.label_default AS "Methode_determination"
    FROM gn_synthese.synthese s
      JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
-     JOIN ref_habitats.habref h ON h.cd_hab.s.cd_hab
+     JOIN ref_habitats.habref h ON h.cd_hab.s = cd_hab
      JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
      JOIN jdd_acteurs ON jdd_acteurs.id_dataset = s.id_dataset
      JOIN gn_meta.t_acquisition_frameworks af ON d.id_acquisition_framework = af.id_acquisition_framework
