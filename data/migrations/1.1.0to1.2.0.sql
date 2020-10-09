@@ -87,11 +87,11 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
     n19.label_default AS "Methode_determination"
    FROM gn_synthese.synthese s
      JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
-     JOIN ref_habitats.habref h ON h.cd_hab = s.cd_hab
      JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
      JOIN jdd_acteurs ON jdd_acteurs.id_dataset = s.id_dataset
      JOIN gn_meta.t_acquisition_frameworks af ON d.id_acquisition_framework = af.id_acquisition_framework
      JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
+     LEFT JOIN ref_habitats.habref h ON h.cd_hab = s.cd_hab
      LEFT JOIN ref_nomenclatures.t_nomenclatures n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n3 ON s.id_nomenclature_behaviour = n3.id_nomenclature
@@ -158,7 +158,7 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."Reference_biblio" IS 'Référence 
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Code_habitat" IS 'Code habitat (Habref)';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Habitat" IS 'Libellé français de l''habitat (Habref)';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nom_lieu" IS 'Nom du lieu';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Précision" IS 'Précision de la géométrie. Estimation en mètres d''une zone tampon autour de l''objet géographique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."Precision" IS 'Précision de la géométrie. Estimation en mètres d''une zone tampon autour de l''objet géographique';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Donnees_additionnelles" IS 'Données des champs additionnels';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."WKT_4326" IS 'Géométrie complète de la localisation en projection WGS 84 (4326)';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."X_centroid_4326" IS 'Latitude du centroïde de la localisation en projection WGS 84 (4326)';
@@ -166,7 +166,6 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."Y_centroid_4326" IS 'Longitude du 
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nature_objet_geo" IS 'Classe associée au concept de localisation géographique';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Type_regroupement" IS 'Description de la méthode ayant présidé au regroupement, de façon aussi succincte que possible : champ libre';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Methode_regroupement" IS 'Méthode du regroupement';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Methode_obs" IS 'Méthode d''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Technique_obs" IS 'Indique de quelle manière on a pu constater la présence d''un sujet d''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Statut_biologique" IS 'Comportement général de l''individu sur le site d''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Comportement" IS 'Comportement de l''individu ou groupe d''individus';
