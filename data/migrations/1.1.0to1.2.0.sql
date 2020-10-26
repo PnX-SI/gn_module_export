@@ -186,18 +186,52 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."Methode_determination" IS 'Descrip
 
 -- Vue par défaut d'export des données de la synthèse au format SINP v2
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
- WITH jdd_acteurs AS (  
- SELECT
+ WITH cda AS (  
+   SELECT
     d.id_dataset,
-    string_agg(DISTINCT concat(COALESCE(orga.nom_organisme, ((roles.nom_role::text || ' '::text) || roles.prenom_role::text)::character varying), ' : ', nomencl.label_default), ' | '::text) AS acteurs
+    string_agg(DISTINCT concat(COALESCE(orga.nom_organisme::character varying)), ' | '::text) AS acteurs
    FROM gn_meta.t_datasets d
      JOIN gn_meta.cor_dataset_actor act ON act.id_dataset = d.id_dataset
      JOIN ref_nomenclatures.t_nomenclatures nomencl ON nomencl.id_nomenclature = act.id_nomenclature_actor_role
+     LEFT JOIN ref_nomenclatures.bib_nomenclatures_types bnt ON bnt.id_type = nomencl.id_type
      LEFT JOIN utilisateurs.bib_organismes orga ON orga.id_organisme = act.id_organism
      LEFT JOIN utilisateurs.t_roles roles ON roles.id_role = act.id_role
-  GROUP BY d.id_dataset
-)
- SELECT distinct(s.id_synthese) AS "ID_synthese",
+   WHERE bnt.mnemonique = 'ROLE_ACTEUR' AND nomencl.cd_nomenclature = '1' AND act.id_organism IS NOT NULL
+   GROUP BY d.id_dataset
+ ),
+ departement AS (
+   SELECT
+    s.id_synthese,
+    a.area_name AS nom_departement,
+    a.area_code AS code_departement
+   FROM ref_geo.l_areas a
+   JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
+   JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
+   JOIN ref_geo.bib_areas_types bat ON bat.id_type = a.id_type
+   WHERE bat.type_code = 'DEP'
+ ),
+ commune AS (
+   SELECT
+    s.id_synthese,
+    a.area_name AS nom_commune,
+    a.area_code AS code_commune
+   FROM ref_geo.l_areas a
+   JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
+   JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
+   JOIN ref_geo.bib_areas_types bat ON bat.id_type = a.id_type
+   WHERE bat.type_code = 'COM'
+ ),
+ maille10 AS (
+   SELECT
+    s.id_synthese,
+    a.area_code AS code_maille
+   FROM ref_geo.l_areas a
+   JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
+   JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
+   JOIN ref_geo.bib_areas_types bat ON bat.id_type = a.id_type
+   WHERE bat.type_code = 'M10'
+ )
+ SELECT s.id_synthese AS "ID_synthese",
     s.entity_source_pk_value AS "idOrigine",
     s.unique_id_sinp AS "idSINPOccTax",
     s.unique_id_sinp_grp AS "idSINPRegroupement",
@@ -211,39 +245,14 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
     h.cd_hab AS "habitat",
     h.lb_code AS "codeHabitat",
     'Habref 5.0 2019' AS "versionRef",
-    cda.id_organism AS "organismeGestionnaireDonnee",
-    (SELECT DISTINCT(a3.area_name)
-     FROM ref_geo.l_areas a3
-     JOIN gn_synthese.cor_area_synthese cas3 ON a3.id_area = cas3.id_area
-     JOIN gn_synthese.synthese s3 ON cas3.id_synthese = s3.id_synthese
-     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a3.id_type
-     WHERE bat.type_name = 'Départements') AS "nomDepartement",
-    (SELECT DISTINCT(a3.area_code)
-     FROM ref_geo.l_areas a3
-     JOIN gn_synthese.cor_area_synthese cas3 ON a3.id_area = cas3.id_area
-     JOIN gn_synthese.synthese s3 ON cas3.id_synthese = s3.id_synthese
-     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a3.id_type
-     WHERE bat.type_name = 'Départements') AS "codeDepartement",
+    cda.acteurs AS "organismeGestionnaireDonnee",
+    departement.nom_departement AS "nomDepartement",
+    departement.code_departement AS "codeDepartement",
     EXTRACT(YEAR FROM current_date) AS "anneeRefDepartement",
-    (SELECT DISTINCT(a2.area_name)
-     FROM ref_geo.l_areas a2
-     JOIN gn_synthese.cor_area_synthese cas2 ON a2.id_area = cas2.id_area
-     JOIN gn_synthese.synthese s2 ON cas2.id_synthese = s2.id_synthese
-     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a2.id_type
-     WHERE bat.type_name = 'Communes') AS "nomCommune",
-    (SELECT DISTINCT(a2.area_code)
-     FROM ref_geo.l_areas a2
-     JOIN gn_synthese.cor_area_synthese cas2 ON a2.id_area = cas2.id_area
-     JOIN gn_synthese.synthese s2 ON cas2.id_synthese = s2.id_synthese
-     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a2.id_type
-     WHERE bat.type_name = 'Communes') AS "codeCommune",
+    commune.nom_commune AS "nomCommune",
+    commune.code_commune AS "codeCommune",
     EXTRACT(YEAR FROM current_date) AS "anneeRefCommune",
-    (SELECT DISTINCT(a2.area_code)
-     FROM ref_geo.l_areas a2
-     JOIN gn_synthese.cor_area_synthese cas2 ON a2.id_area = cas2.id_area
-     JOIN gn_synthese.synthese s2 ON cas2.id_synthese = s2.id_synthese
-     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a2.id_type
-     WHERE bat.type_name = 'Mailles 10*10') AS "codeMaille",
+    maille10.code_maille AS "codeMaille",
     s.nom_cite AS "nomCite",
     s.count_min AS "denombrementMin",
     s.count_max AS "denombrementMax",
@@ -291,10 +300,12 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
    FROM gn_synthese.synthese s
      JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
      JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
-     JOIN jdd_acteurs ON jdd_acteurs.id_dataset = s.id_dataset
      JOIN gn_meta.t_acquisition_frameworks af ON d.id_acquisition_framework = af.id_acquisition_framework
      JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
-     JOIN gn_meta.cor_dataset_actor cda ON d.id_dataset = cda.id_dataset
+     JOIN cda ON d.id_dataset = cda.id_dataset
+     JOIN departement ON s.id_synthese = departement.id_synthese
+     JOIN commune ON s.id_synthese = commune.id_synthese
+     JOIN maille10 ON s.id_synthese = maille10.id_synthese
      INNER JOIN gn_synthese.cor_area_synthese cas ON s.id_synthese = cas.id_synthese
      INNER JOIN ref_geo.l_areas a ON cas.id_area = a.id_area
      LEFT JOIN ref_habitats.habref h ON h.cd_hab = s.cd_hab
@@ -318,7 +329,6 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
      LEFT JOIN ref_nomenclatures.t_nomenclatures n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n20 ON s.id_nomenclature_behaviour = n20.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n21 ON d.id_nomenclature_data_origin = n21.id_nomenclature
-   WHERE cda.id_nomenclature_actor_role = 367
 ;
 
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_v2."ID_synthese" IS 'Identifiant de la donnée dans la table synthese';
