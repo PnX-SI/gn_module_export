@@ -364,29 +364,34 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
      FROM ref_geo.l_areas a3
      JOIN gn_synthese.cor_area_synthese cas3 ON a3.id_area = cas3.id_area
      JOIN gn_synthese.synthese s3 ON cas3.id_synthese = s3.id_synthese
-     WHERE id_type = 26) AS "nomDepartement",
+     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a3.id_type
+     WHERE bat.type_name = 'Départements') AS "nomDepartement",
     (SELECT DISTINCT(a3.area_code)
      FROM ref_geo.l_areas a3
      JOIN gn_synthese.cor_area_synthese cas3 ON a3.id_area = cas3.id_area
      JOIN gn_synthese.synthese s3 ON cas3.id_synthese = s3.id_synthese
-     WHERE id_type = 26) AS "codeDepartement",
+     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a3.id_type
+     WHERE bat.type_name = 'Départements') AS "codeDepartement",
     EXTRACT(YEAR FROM current_date) AS "anneeRefDepartement",
     (SELECT DISTINCT(a2.area_name)
      FROM ref_geo.l_areas a2
      JOIN gn_synthese.cor_area_synthese cas2 ON a2.id_area = cas2.id_area
      JOIN gn_synthese.synthese s2 ON cas2.id_synthese = s2.id_synthese
-     WHERE id_type = 25) AS "nomCommune",
+     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a2.id_type
+     WHERE bat.type_name = 'Communes') AS "nomCommune",
     (SELECT DISTINCT(a2.area_code)
      FROM ref_geo.l_areas a2
      JOIN gn_synthese.cor_area_synthese cas2 ON a2.id_area = cas2.id_area
      JOIN gn_synthese.synthese s2 ON cas2.id_synthese = s2.id_synthese
-     WHERE id_type = 25) AS "codeCommune",
+     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a2.id_type
+     WHERE bat.type_name = 'Communes') AS "codeCommune",
     EXTRACT(YEAR FROM current_date) AS "anneeRefCommune",
     (SELECT DISTINCT(a2.area_code)
      FROM ref_geo.l_areas a2
      JOIN gn_synthese.cor_area_synthese cas2 ON a2.id_area = cas2.id_area
      JOIN gn_synthese.synthese s2 ON cas2.id_synthese = s2.id_synthese
-     WHERE id_type = 27) AS "codeMaille",
+     JOIN ref_geo.bib_areas_types bat ON bat.id_type = a2.id_type
+     WHERE bat.type_name = 'Mailles 10*10') AS "codeMaille",
     s.nom_cite AS "nomCite",
     s.count_min AS "denombrementMin",
     s.count_max AS "denombrementMax",
