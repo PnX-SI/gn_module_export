@@ -202,34 +202,37 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
  departement AS (
    SELECT
     s.id_synthese,
-    a.area_name AS nom_departement,
-    a.area_code AS code_departement
+    string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS nom_departement,
+    string_agg(DISTINCT concat(COALESCE(a.area_code::character varying)), ' | '::text) AS code_departement
    FROM ref_geo.l_areas a
    JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
    JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
    JOIN ref_geo.bib_areas_types bat ON bat.id_type = a.id_type
    WHERE bat.type_code = 'DEP'
+   GROUP BY s.id_synthese
  ),
  commune AS (
    SELECT
     s.id_synthese,
-    a.area_name AS nom_commune,
-    a.area_code AS code_commune
+    string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS nom_commune,
+    string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS code_commune
    FROM ref_geo.l_areas a
    JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
    JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
    JOIN ref_geo.bib_areas_types bat ON bat.id_type = a.id_type
    WHERE bat.type_code = 'COM'
+   GROUP BY s.id_synthese
  ),
  maille10 AS (
    SELECT
     s.id_synthese,
-    a.area_code AS code_maille
+    string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS code_maille
    FROM ref_geo.l_areas a
    JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
    JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
    JOIN ref_geo.bib_areas_types bat ON bat.id_type = a.id_type
    WHERE bat.type_code = 'M10'
+   GROUP BY s.id_synthese
  )
  SELECT s.id_synthese AS "ID_synthese",
     s.entity_source_pk_value AS "idOrigine",
@@ -306,8 +309,6 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
      JOIN departement ON s.id_synthese = departement.id_synthese
      JOIN commune ON s.id_synthese = commune.id_synthese
      JOIN maille10 ON s.id_synthese = maille10.id_synthese
-     INNER JOIN gn_synthese.cor_area_synthese cas ON s.id_synthese = cas.id_synthese
-     INNER JOIN ref_geo.l_areas a ON cas.id_area = a.id_area
      LEFT JOIN ref_habitats.habref h ON h.cd_hab = s.cd_hab
      LEFT JOIN ref_nomenclatures.t_nomenclatures n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
@@ -395,3 +396,4 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp_v2."statutSource" IS 'Indique si la
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_v2."occMethodeDetermination" IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_v2."occComportement" IS 'Comportement de l''individu ou groupe d''individus.';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_v2."dSPublique" IS 'Indique explicitement si la donnée à l''origine de la DEE est publique ou privée. Cela concerne la donnée initiale et son acquisition naturaliste.';
+               
