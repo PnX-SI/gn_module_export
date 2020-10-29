@@ -203,7 +203,8 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
    SELECT
     s.id_synthese,
     string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS nom_departement,
-    string_agg(DISTINCT concat(COALESCE(a.area_code::character varying)), ' | '::text) AS code_departement
+    string_agg(DISTINCT concat(COALESCE(a.area_code::character varying)), ' | '::text) AS code_departement,
+    EXTRACT(YEAR FROM current_date) AS annee_ref_departement
    FROM ref_geo.l_areas a
    JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
    JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
@@ -215,7 +216,8 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
    SELECT
     s.id_synthese,
     string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS nom_commune,
-    string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS code_commune
+    string_agg(DISTINCT concat(COALESCE(a.area_code::character varying)), ' | '::text) AS code_commune,
+    EXTRACT(YEAR FROM current_date) AS annee_ref_commune
    FROM ref_geo.l_areas a
    JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
    JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
@@ -251,10 +253,10 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
     cda.acteurs AS "organismeGestionnaireDonnee",
     departement.nom_departement AS "nomDepartement",
     departement.code_departement AS "codeDepartement",
-    EXTRACT(YEAR FROM current_date) AS "anneeRefDepartement",
+    departement.annee_ref_departement AS "anneeRefDepartement",
     commune.nom_commune AS "nomCommune",
     commune.code_commune AS "codeCommune",
-    EXTRACT(YEAR FROM current_date) AS "anneeRefCommune",
+    commune.annee_ref_commune AS "anneeRefCommune",
     maille10.code_maille AS "codeMaille",
     s.nom_cite AS "nomCite",
     s.count_min AS "denombrementMin",
@@ -305,10 +307,10 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
      JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
      JOIN gn_meta.t_acquisition_frameworks af ON d.id_acquisition_framework = af.id_acquisition_framework
      JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
-     JOIN cda ON d.id_dataset = cda.id_dataset
-     JOIN departement ON s.id_synthese = departement.id_synthese
-     JOIN commune ON s.id_synthese = commune.id_synthese
-     JOIN maille10 ON s.id_synthese = maille10.id_synthese
+     LEFT JOIN cda ON d.id_dataset = cda.id_dataset
+     LEFT JOIN departement ON s.id_synthese = departement.id_synthese
+     LEFT JOIN commune ON s.id_synthese = commune.id_synthese
+     LEFT JOIN maille10 ON s.id_synthese = maille10.id_synthese
      LEFT JOIN ref_habitats.habref h ON h.cd_hab = s.cd_hab
      LEFT JOIN ref_nomenclatures.t_nomenclatures n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
@@ -396,4 +398,3 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp_v2."statutSource" IS 'Indique si la
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_v2."occMethodeDetermination" IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_v2."occComportement" IS 'Comportement de l''individu ou groupe d''individus.';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_v2."dSPublique" IS 'Indique explicitement si la donnée à l''origine de la DEE est publique ou privée. Cela concerne la donnée initiale et son acquisition naturaliste.';
-               
