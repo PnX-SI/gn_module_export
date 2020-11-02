@@ -2,7 +2,7 @@
 -- Révision de la vue d'export SINP par défaut avec la mise à jour du standard Occurrences de taxons en version 2.0
 -- Compatibilité avec GeoNature 2.5.0 et +
 
-DROP VIEW gn_exports.v_synthese_sinp;
+DROP VIEW IF EXISTS  gn_exports.v_synthese_sinp;
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
  WITH jdd_acteurs AS (  
  SELECT
@@ -185,7 +185,7 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."Type_info_geo" IS 'Type d''informa
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."Methode_determination" IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
 
 
-
+DROP VIEW IF EXISTS gn_exports.v_exports_synthese_sinp_rdf ;
 CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
     WITH deco AS (
          SELECT s_1.id_synthese,
@@ -297,6 +297,7 @@ LEFT OUTER JOIN info_dataset info_d ON info_d.id_dataset = d.id_dataset;
 
 
 -- Vue par défaut d'export des données de la synthèse au format SINP v2
+DROP VIEW IF EXISTS  gn_exports.v_synthese_sinp_v2;
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
 WITH cda AS (  
    SELECT
