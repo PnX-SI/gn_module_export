@@ -298,56 +298,26 @@ LEFT OUTER JOIN info_dataset info_d ON info_d.id_dataset = d.id_dataset;
 
 -- Vue par défaut d'export des données de la synthèse au format SINP v2
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
- WITH cda AS (  
+WITH cda AS (  
    SELECT
     d.id_dataset,
-    string_agg(DISTINCT concat(COALESCE(orga.nom_organisme::character varying)), ' | '::text) AS acteurs
+    string_agg(DISTINCT orga.nom_organisme, ' | ') AS acteurs
    FROM gn_meta.t_datasets d
      JOIN gn_meta.cor_dataset_actor act ON act.id_dataset = d.id_dataset
      JOIN ref_nomenclatures.t_nomenclatures nomencl ON nomencl.id_nomenclature = act.id_nomenclature_actor_role
-     LEFT JOIN ref_nomenclatures.bib_nomenclatures_types bnt ON bnt.id_type = nomencl.id_type
      LEFT JOIN utilisateurs.bib_organismes orga ON orga.id_organisme = act.id_organism
      LEFT JOIN utilisateurs.t_roles roles ON roles.id_role = act.id_role
-   WHERE bnt.mnemonique = 'ROLE_ACTEUR' AND nomencl.cd_nomenclature = '1' AND act.id_organism IS NOT NULL
+   WHERE  nomencl.cd_nomenclature = '1' AND act.id_organism IS NOT NULL
    GROUP BY d.id_dataset
  ),
- departement AS (
-   SELECT
-    s.id_synthese,
-    string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS nom_departement,
-    string_agg(DISTINCT concat(COALESCE(a.area_code::character varying)), ' | '::text) AS code_departement,
-    EXTRACT(YEAR FROM current_date) AS annee_ref_departement
-   FROM ref_geo.l_areas a
-   JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
-   JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
-   JOIN ref_geo.bib_areas_types bat ON bat.id_type = a.id_type
-   WHERE bat.type_code = 'DEP'
-   GROUP BY s.id_synthese
- ),
- commune AS (
-   SELECT
-    s.id_synthese,
-    string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS nom_commune,
-    string_agg(DISTINCT concat(COALESCE(a.area_code::character varying)), ' | '::text) AS code_commune,
-    EXTRACT(YEAR FROM current_date) AS annee_ref_commune
-   FROM ref_geo.l_areas a
-   JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
-   JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
-   JOIN ref_geo.bib_areas_types bat ON bat.id_type = a.id_type
-   WHERE bat.type_code = 'COM'
-   GROUP BY s.id_synthese
- ),
- maille10 AS (
-   SELECT
-    s.id_synthese,
-    string_agg(DISTINCT concat(COALESCE(a.area_name::character varying)), ' | '::text) AS code_maille
-   FROM ref_geo.l_areas a
-   JOIN gn_synthese.cor_area_synthese cas ON a.id_area = cas.id_area
-   JOIN gn_synthese.synthese s ON cas.id_synthese = s.id_synthese
-   JOIN ref_geo.bib_areas_types bat ON bat.id_type = a.id_type
-   WHERE bat.type_code = 'M10'
-   GROUP BY s.id_synthese
- )
+ areas AS (
+	SELECT ta.id_type, type_code, id_area, a_1.area_code, a_1.area_name 
+	FROM ref_geo.bib_areas_types ta
+	JOIN ref_geo.l_areas a_1 ON ta.id_type = a_1.id_type
+	WHERE  ta.type_code in ('DEP', 'COM', 'M1')
+), current_year AS (
+	SELECT date_part('YEAR', current_timestamp)::int AS current_year
+)
  SELECT s.id_synthese AS "ID_synthese",
     s.entity_source_pk_value AS "idOrigine",
     s.unique_id_sinp AS "idSINPOccTax",
@@ -363,13 +333,13 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
     h.lb_code AS "codeHabitat",
     'Habref 5.0 2019' AS "versionRef",
     cda.acteurs AS "organismeGestionnaireDonnee",
-    departement.nom_departement AS "nomDepartement",
-    departement.code_departement AS "codeDepartement",
-    departement.annee_ref_departement AS "anneeRefDepartement",
-    commune.nom_commune AS "nomCommune",
-    commune.code_commune AS "codeCommune",
-    commune.annee_ref_commune AS "anneeRefCommune",
-    maille10.code_maille AS "codeMaille",
+    a.jname ->> 'DEP' AS "nomDepartement",
+    a.jcode ->> 'DEP' AS "codeDepartement",
+    cy.current_year AS "anneeRefDepartement",
+    a.jname ->> 'COM' AS "nomCommune",
+    a.jcode ->> 'COM' AS "codeCommune",
+    cy.current_year AS "anneeRefCommune",
+    a.jcode ->> 'M10' AS "codeMaille",
     s.nom_cite AS "nomCite",
     s.count_min AS "denombrementMin",
     s.count_max AS "denombrementMax",
@@ -392,9 +362,13 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
     s.meta_update_date AS "dEEDateTransformation",
     COALESCE(s.meta_update_date, s.meta_create_date) AS "dEEDateDerniereModification",
     s.reference_biblio AS "referenceBiblio",
-    (SELECT MAX(meta_create_date)
-     FROM gn_sensitivity.cor_sensitivity_synthese css
-     WHERE css.uuid_attached_row = s.unique_id_sinp) AS "sensiDateAttribution",
+    (
+    	SELECT meta_create_date
+	     FROM gn_sensitivity.cor_sensitivity_synthese css
+	     WHERE css.uuid_attached_row = s.unique_id_sinp
+	     ORDER BY meta_create_date DESC
+	     LIMIT 1
+     ) AS "sensiDateAttribution",
     n1.label_default AS "natureObjetGeo",
     n2.label_default AS "methodeRegroupement",
     n4.label_default AS "obsTechnique",
@@ -415,14 +389,30 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_v2 AS
     n20.label_default AS "occComportement",
     n21.label_default AS "dSPublique"
    FROM gn_synthese.synthese s
+   JOIN current_year cy ON true
      JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
      JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
      JOIN gn_meta.t_acquisition_frameworks af ON d.id_acquisition_framework = af.id_acquisition_framework
      JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
      LEFT JOIN cda ON d.id_dataset = cda.id_dataset
-     LEFT JOIN departement ON s.id_synthese = departement.id_synthese
-     LEFT JOIN commune ON s.id_synthese = commune.id_synthese
-     LEFT JOIN maille10 ON s.id_synthese = maille10.id_synthese
+     LEFT JOIN LATERAL ( 
+		SELECT 
+			d_1.id_synthese,
+	        json_object_agg(d_1.type_code, d_1.o_name) AS jname,
+	        json_object_agg(d_1.type_code, d_1.o_code) AS jcode
+	   	FROM ( 
+	   		SELECT 
+	   			sa.id_synthese,
+				ta.type_code,
+				string_agg(ta.area_name, '|') AS o_name,
+				string_agg(ta.area_code, '|') AS o_code
+			FROM gn_synthese.cor_area_synthese sa
+			JOIN areas ta ON ta.id_area = sa.id_area
+			WHERE sa.id_synthese = s.id_synthese
+			GROUP BY sa.id_synthese, ta.type_code
+	     ) d_1
+	     GROUP BY d_1.id_synthese
+	) a ON TRUE
      LEFT JOIN ref_habitats.habref h ON h.cd_hab = s.cd_hab
      LEFT JOIN ref_nomenclatures.t_nomenclatures n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
      LEFT JOIN ref_nomenclatures.t_nomenclatures n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
