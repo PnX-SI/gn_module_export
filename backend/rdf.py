@@ -25,6 +25,17 @@ class OccurrenceStore:
     def save(self, store_uri, format_="turtle"):
         self.graph.serialize(store_uri, format_)
 
+    def _create_element_if_defined(self, property, type, value, as_litteral=True):
+        # Test if value is defined and not in black list
+        if not value:
+            return
+        if value in ("aucun", "Inconnu", "Ne Sait Pas", "None"):
+            return
+
+        if as_litteral:
+            value = Literal(value)
+        self.graph.add((property, type, value))
+
     def build_agent(self, who=None):
         agent = BNode()
         self.graph.add((agent, RDF.type, FOAF["Agent"]))
@@ -34,7 +45,7 @@ class OccurrenceStore:
         return agent
 
     def build_recordlevel(self, record):
-        recordlevel = BNode()
+        recordlevel = URIRef(Literal(record["jddId"]))
         self.graph.add((recordlevel, RDF.type, DCMTERMS.Event))
         self.graph.add((recordlevel, DCMTERMS["language"], Literal("fr")))
         self.graph.add((recordlevel, DWC["datasetID"], Literal(record["jddId"])))
@@ -49,53 +60,54 @@ class OccurrenceStore:
         return recordlevel
 
     def build_event(self, recordlevel, record):
-        event = BNode()
-        self.graph.add((event, RDF.type, DWC["Event"]))
         if "permIdGrp" in record.keys():
-            self.graph.add((event, DWC["eventID"], Literal(record["permIdGrp"])))
+            event = URIRef(Literal(record["permIdGrp"]))
+        else:
+            event = BNode()
+        self.graph.add((event, RDF.type, DWC["Event"]))
+
+        # cas période d'observation
+        # Date séparée par un / cf https://dwc.tdwg.org/terms/#dwc:eventDate
+        event_dates = [
+            dt.isoformat(dt.strptime(record["dateDebut"], "%Y-%m-%d %H:%M:%S"))
+        ]
+        if not record["dateDebut"] == record["dateFin"]:
+            event_dates.append(
+                dt.isoformat(dt.strptime(record["dateFin"], "%Y-%m-%d %H:%M:%S"))
+            )
         self.graph.add(
             (
                 event,
                 DWC["eventDate"],
-                Literal(
-                    "/".join(
-                        [
-                            dt.isoformat(
-                                dt.strptime(record["dateDebut"], "%Y-%m-%d %H:%M:%S")
-                            ),
-                            dt.isoformat(
-                                dt.strptime(record["dateFin"], "%Y-%m-%d %H:%M:%S")
-                            ),
-                        ]
-                    )
-                ),
+                Literal("/".join(event_dates)),
             )
         )
         # self.graph.add(
         #     (event, DWC['samplingProtocol'], Literal(record['obsMeth'])))  # noqa: E501
-        self.graph.add(
-            (event, DWC["eventRemarks"], Literal(record["obsCtx"]))
-        )  # noqa: E501
+        self._create_element_if_defined(event, DWC["eventRemarks"], record["obsCtx"])
+
         self.graph.add((recordlevel, DSW["basisOfRecord"], event))
         return event
 
     def build_location(self, event, record):
+        # Si la localisation de l'événement est déjà défini
+        if (event, DSW["locatedAt"], None) in self.graph:
+            return
+
         location = BNode()
         self.graph.add((location, RDF.type, DCMTERMS["Location"]))
-        self.graph.add(
-            (location, DWC["maximumElevationInMeters"], Literal(record["altMax"]))
-        )  # noqa: E501
-        self.graph.add(
-            (location, DWC["minimumElevationInMeters"], Literal(record["altMin"]))
-        )  # noqa: E501
+
+        self._create_element_if_defined(
+            location, DWC["maximumElevationInMeters"], record["altMax"]
+        )
+        self._create_element_if_defined(
+            location, DWC["minimumElevationInMeters"], record["altMin"]
+        )
         self.graph.add((location, DWC["footprintWKT"], Literal(record["geom"])))
         self.graph.add((location, DWC["geodeticDatum"], Literal("EPSG:4326")))
-        self.graph.add(
-            (
-                location,
-                DWC["coordinateUncertaintyInMeters"],
-                Literal(record["difNivPrec"]),
-            )
+
+        self._create_element_if_defined(
+            location, DWC["coordinateUncertaintyInMeters"], record["difNivPrec"]
         )
         self.graph.add(
             (
@@ -121,33 +133,41 @@ class OccurrenceStore:
         occurrence = BNode()
         self.graph.add((occurrence, RDF.type, DWC["Occurrence"]))
         self.graph.add((occurrence, DWC["occurrenceID"], Literal(record["permId"])))
-        self.graph.add(
-            (occurrence, DWC["occurrenceStatus"], Literal(record["statObs"]))
+
+        self._create_element_if_defined(
+            occurrence, DWC["occurrenceStatus"], record["statObs"]
         )
-        self.graph.add(
-            (occurrence, DWC["occurrenceRemarks"], Literal(record["obsDescr"]))
+
+        self._create_element_if_defined(
+            occurrence, DWC["occurrenceRemarks"], record["obsDescr"]
         )
-        self.graph.add(
-            (occurrence, DWC["organismQuantityType"], Literal(record["objDenbr"]))
-        )  # noqa: E501
-        self.graph.add(
-            (occurrence, DWC["occurrenceQuantity"], Literal(record["denbrMin"]))
-        )  # noqa: E501
-        self.graph.add(
-            (occurrence, DWC["establishmentMeans"], Literal(record["ocNat"]))
+
+        self._create_element_if_defined(
+            occurrence, DWC["organismQuantityType"], record["objDenbr"]
         )
-        self.graph.add((occurrence, DWC["lifeStage"], Literal(record["ocStade"])))
-        self.graph.add(
-            (occurrence, DWC["occurrenceStatus"], Literal(record["statObs"]))
+
+        self._create_element_if_defined(
+            occurrence, DWC["occurrenceQuantity"], record["denbrMin"]
+        )
+
+        self._create_element_if_defined(
+            occurrence, DWC["establishmentMeans"], record["ocNat"]
+        )
+
+        self._create_element_if_defined(occurrence, DWC["lifeStage"], record["ocStade"])
+
+        self._create_element_if_defined(
+            occurrence, DWC["occurrenceStatus"], record["statObs"]
         )
 
         if "observer" in record.keys():
             observer = self.build_agent(record["observer"])
             self.graph.add((occurrence, DWC["recordedBy"], observer))
 
-        self.graph.add(
-            (occurrence, DWC["occurrenceRemarks"], Literal(record["obsDescr"]))
+        self._create_element_if_defined(
+            occurrence, DWC["occurrenceRemarks"], record["obsDescr"]
         )
+
         self.graph.add((occurrence, DSW["atEvent"], event))
         self.graph.add((event, DSW["eventOf"], occurrence))
         return occurrence
@@ -162,19 +182,11 @@ class OccurrenceStore:
     def build_identification(self, organism, record):
         identification = BNode()
         self.graph.add((identification, RDF.type, DWC["Identification"]))
-        self.graph.add(
-            (
-                identification,
-                DWC["identificationVerificationStatus"],
-                Literal(record["preuveOui"]),
-            )
+        self._create_element_if_defined(
+            identification, DWC["identificationVerificationStatus"], record["preuveOui"]
         )  # noqa: E501
-        self.graph.add(
-            (
-                identification,
-                DWC["identificationRemarks"],
-                Literal(record["preuvNoNum"]),
-            )
+        self._create_element_if_defined(
+            identification, DWC["identificationRemarks"], record["preuvNoNum"]
         )  # noqa: E501
 
         if "determiner" in record.keys():
@@ -186,16 +198,28 @@ class OccurrenceStore:
         return identification
 
     def build_taxon(self, identification, record):
-        taxon = BNode()
-        self.graph.add((taxon, RDF.type, DWC["Taxon"]))
-        self.graph.add((taxon, DWC["scientificName"], Literal(record["nom_complet"])))
-        self.graph.add(
-            (taxon, DWC["vernacularName"], Literal(record["nomCite"], lang="fr"))
-        )
-        self.graph.add((taxon, DWC["taxonID"], Literal(record["cdNom"])))
+        # Il y a un soucis entre la définition du taxon au sens taxref
+        #  c-a-d basé sur le cd_nom
+        #  et le taxon au sens identification
+        #       qui se base sur cd_nom avec potentiellement un nom cité parataxonomique
+
         # TODO : pour le moment version de taxref fixée à 12
         #  car la 13 n'est pas implémentée dans le lod
         #   a suivre
+        taxon = URIRef(
+            Literal(
+                "http://taxref.mnhn.fr/lod/taxon/{}/13.0".format(str(record["cdRef"]))
+            )
+        )
+        self.graph.add((taxon, RDF.type, DWC["Taxon"]))
+        self.graph.add((taxon, DWC["scientificName"], Literal(record["nom_complet"])))
+        # Désactivé car le nom cité ne correspond pas forcement au vernacularName
+        #  et qui n'est pas unique pour un taxon
+        # self.graph.add(
+        #     (taxon, DWC["vernacularName"], Literal(record["nomCite"], lang="fr"))
+        # )
+        self.graph.add((taxon, DWC["taxonID"], Literal(record["cdNom"])))
+
         self.graph.add(
             (
                 taxon,
