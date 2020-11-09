@@ -209,7 +209,7 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
     h.lb_hab_fr AS "Habitat",
     s.place_name AS "Nom_lieu",
     s.precision AS "Precision",
-    s.additional_data AS "Donnees_additionnelles",
+    s.additional_data::text AS "Donnees_additionnelles",
     public.st_astext(s.the_geom_4326) AS "WKT_4326",
     public.ST_x(s.the_geom_point) AS "X_centroid_4326",
     public.ST_y(s.the_geom_point) AS "Y_centroid_4326",
