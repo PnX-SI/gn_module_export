@@ -1,104 +1,98 @@
 <div id="all" class="container-fluid">
-    <div class="wrapper row ">
-      <div class="container card">
-        <div class="card-body">
-          <div id="title">
-            <h2>EXPORTS</h2>
-            <hr >
-          </div>
-          <div class="alert alert-info">
-            Voici la liste des exports disponibles. Ces exports ont été programmés par l'administrateur de GeoNature.<br>
-            Pour modifier cette liste ou disposer d'exports supplémentaires, veuillez contacter le service administrateur.
-          </div>
-          <!-- Liste des exports disponibles au téléchargement -->
-          <div *ngIf="exports">
-            <div class="card export-card mb-3" *ngFor="let export of exports">
-              <div class="card-body" >
-                <h5 class="card-title">{{export.label}}</h5>
-                <p class="card-text">{{export.desc}}</p>
-                <div class="d-flex justify-content-end" >
-                    <a
-                    class="btn btn-warning btn-sm"
-                    href="{{api_endpoint}}/swagger/{{export.id}}"
-                    target="_blank" rel="noopener noreferrer"
-                    >
-                      API JSON
-                    </a>
-                    <button id="{{export.id}}" type="submit"
-                    class="btn btn-primary btn-sm ml-3"
-                    (click)="selectFormat(export.id, export_download)">
-                      Télécharger
-                    </button>
-                </div>
+  <div class="wrapper row ">
+    <div class="container card">
+      <div class="card-body">
+        <div id="title">
+          <h2>EXPORTS</h2>
+          <hr>
+        </div>
+        <div class="alert alert-info">
+          Voici la liste des exports disponibles. Ces exports ont été programmés par l'administrateur de GeoNature.<br>
+          Pour modifier cette liste ou disposer d'exports supplémentaires, veuillez contacter le service administrateur.
+        </div>
+        <!-- Liste des exports disponibles au téléchargement -->
+        <div *ngIf="exports">
+          <div class="card export-card mb-3" *ngFor="let export of exports">
+            <div class="card-body">
+              <h5 class="card-title">{{export.label}}</h5>
+              <p class="card-text">{{export.desc}}</p>
+              <div class="d-flex justify-content-end">
+                <a class="btn btn-warning btn-sm" href="{{api_endpoint}}/swagger/{{export.id}}" target="_blank"
+                  rel="noopener noreferrer">
+                  API JSON
+                </a>
+                <button id="{{export.id}}" type="submit" class="btn btn-primary btn-sm ml-3"
+                  (click)="selectFormat(export.id, export_download)">
+                  Télécharger
+                </button>
               </div>
             </div>
           </div>
-          <div *ngIf="!exports">
-            <div class="alert alert-warning text-center">
-                Aucun export n'est disponible
-            </div>
+        </div>
+        <div *ngIf="!exports">
+          <div class="alert alert-warning text-center">
+            Aucun export n'est disponible
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Modal Téléchargement Popup-->
-    <ng-template #export_download let-c="close" let-d="dismiss">
-      <div class="modal-content">
-        <!-- Modal content-->
-        <div class="modal-header">
-            <h4 class="modal-title">Configuration de l'export</h4>
-        </div>
+  <!-- Modal Téléchargement Popup-->
+  <ng-template #export_download let-c="close" let-d="dismiss">
+    <div class="modal-content">
+      <!-- Modal content-->
+      <div class="modal-header">
+        <h4 class="modal-title">Configuration de l'export</h4>
+      </div>
 
-        <div class="modal-body">
-          <!-- Formulaire pour le choix des standards et des formats de téléchargement des fichiers -->
-          <form [formGroup]="modalForm">
-            <label> Choisissez un format </label>
-            <select class="form-control" id="formatSelection"
-                    formControlName="formatSelection" required autocomplete="off"
-                    (change)="downloading=false"
-            >
-                    <option  
-                      *ngFor="let item of exportFormat | keyvalue;" 
-                      value="{{item.key}}"
-                      [disabled]="(!item.value['geofeature']) ? false : (!_export.geometry_field) ? true : false"
-                    >
-                        {{item.value["label"]}}
-                    </option>
-            </select>
-            <br>
-            <div class="wrapper-licence" [ngClass]=" {'checkbox-invalid': !modalForm.controls['exportLicence'].valid}">
-              <div class="form-check" id="checkLicence" >
-                <input type="checkbox" class="form-check-input" id="exportLicence"  formControlName="exportLicence" required/>
-                <label class="form-check-label" for="exportLicence">
-                  Accepter la licence
-                  <a href="{{ _export.licence.url_licence }}" alt="Lire la licence"  title="Lire la licence" target="_blank">
-                    <b> {{ _export.licence.name_licence}} </b>
-                  </a>
-                </label>
+      <div class="modal-body">
+        <!-- Formulaire pour le choix des standards et des formats de téléchargement des fichiers -->
+        <form [formGroup]="modalForm">
+          <label> Choisissez un format </label>
+          <select class="form-control" id="formatSelection" formControlName="formatSelection" required
+            autocomplete="off" (change)="downloading=false">
+            <option *ngFor="let item of exportFormat | keyvalue;" value="{{item.key}}"
+              [disabled]="(!item.value['geofeature']) ? false : (!_export.geometry_field) ? true : false">
+              {{item.value["label"]}}
+            </option>
+          </select>
+          <br>
+          <div class="wrapper-licence" [ngClass]=" {'checkbox-invalid': !modalForm.controls['exportLicence'].valid}">
+            <div class="form-check" id="checkLicence">
+              <input type="checkbox" class="form-check-input" id="exportLicence" formControlName="exportLicence"
+                required />
+              <label class="form-check-label" for="exportLicence">
+                Accepter la licence
+                <a href="{{ _export.licence.url_licence }}" alt="Lire la licence" title="Lire la licence"
+                  target="_blank">
+                  <b> {{ _export.licence.name_licence}} </b>
+                </a>
+              </label>
 
-              </div>
             </div>
-            <br>
-            <hr>
-            <br>
-            <label for="emailInput">
-              <small>
-                  Saisissez un email pour recevoir le lien de téléchargement sur une autre boite que la votre (optionnel).
-              </small>
-            </label>
-            <input type="email" formControlName="emailInput" id="emailInput" class="form-control" />
-            <div *ngIf="modalForm.get('emailInput').hasError('pattern')" >
-                <small> <i style="color:red;" >Email non valide.</i> </small>
-            </div>
+          </div>
+          <br>
+          <hr>
+          <br>
+          <label for="emailInput">
+            <small>
+              Saisissez un email pour recevoir le lien de téléchargement.
+            </small>
+          </label>
+          <input type="email" formControlName="emailInput" id="emailInput" class="form-control" />
+          <div *ngIf="modalForm.get('emailInput').hasError('pattern')">
+            <small> <i style="color:red;">Email non valide.</i> </small>
+          </div>
         </form>
 
-        </div>
-        <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
-        <div class="modal-footer" id="choicePopup">
-          <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Annuler</button>
-          <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success" (click)="download()">OK</button>
-        </div>
       </div>
-    </ng-template>
+      <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
+      <div class="modal-footer" id="choicePopup">
+        <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Annuler</button>
+        <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success"
+          (click)="download()">OK</button>
+      </div>
+    </div>
+  </ng-template>
 </div>
