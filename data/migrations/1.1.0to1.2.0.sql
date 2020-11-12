@@ -116,7 +116,7 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_synthese"            IS 'Identifiant de la donnée dans la table synthese';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_source"              IS 'Identifiant de la donnée dans la table source';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_perm_sinp"           IS 'Identifiant permanent de l''occurrence';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_perm_grp_sinp"       IS 'Identifiant permanent du regroupement attribué par la plateforme régionale ou thématique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_perm_grp_sinp"       IS 'Identifiant permanent du regroupement';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."date_debut"             IS 'Date du jour, dans le système local de l''observation dans le système grégorien. En cas d’imprécision, cet attribut représente la date la plus ancienne de la période d''imprécision.';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."date_fin"               IS 'Date du jour, dans le système local de l''observation dans le système grégorien. En cas d’imprécision, cet attribut représente la date la plus récente de la période d''imprécision.';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."cd_nom"                 IS 'Identifiant Taxref du nom de l''objet observé';
@@ -184,7 +184,7 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."statut_source"          IS 'Indiqu
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."type_info_geo"          IS 'Type d''information géographique';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."methode_determination"  IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
 
-
+-- Révision de la vue permettant de faire les exports RDF
 DROP VIEW IF EXISTS gn_exports.v_exports_synthese_sinp_rdf ;
 CREATE OR REPLACE VIEW gn_exports.v_exports_synthese_sinp_rdf AS
     WITH deco AS (
@@ -296,7 +296,7 @@ JOIN deco ON deco.id_synthese = s.id_synthese
 LEFT OUTER JOIN info_dataset info_d ON info_d.id_dataset = d.id_dataset;
 
 
--- Vue par défaut d'export des données de la synthèse au format SINP v2
+-- Vue d'export des données de la synthèse au format DEE du SINP
 DROP VIEW IF EXISTS  gn_exports.v_synthese_sinp_dee;
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_dee AS
 WITH cda AS (  
@@ -450,30 +450,30 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."codeHabRef" IS 'Identifiant Ta
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."habitat" IS 'Habitat dans lequel le taxon a été observé';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."codeHabitat" IS 'Code métier de l''habitat où le taxon de l''observation a été identifié';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."versionRef" IS 'Version de Habref utilisée';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."organismeGestionnaireDonnee" IS 'Notes:	Nom de l’organisme qui détient la Donnée Source (DS) de la DEE et qui en a la responsabilité. Si plusieurs organismes sont nécessaires, les séparer par des virgules.';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."nomDepartement" IS 'Nom du département.';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."codeDepartement" IS 'Code INSEE en vigueur suivant l''année du référentiel INSEE des départements, auquel l''information est rattachée.';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."anneeRefDepartement" IS 'Année du référentiel INSEE utilisé.';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."nomCommune" IS 'Nom de la commune. Libellé de la/les commune(s) où a été effectuée l’observation suivant le référentiel INSEE en vigueur.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."organismeGestionnaireDonnee" IS 'Notes : Nom de l’organisme qui détient la Donnée Source (DS) de la DEE et qui en a la responsabilité. Si plusieurs organismes sont nécessaires, les séparer par des virgules.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."nomDepartement" IS 'Nom du département';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."codeDepartement" IS 'Code INSEE en vigueur suivant l''année du référentiel INSEE des départements, auquel l''information est rattachée';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."anneeRefDepartement" IS 'Année du référentiel INSEE utilisé';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."nomCommune" IS 'Nom de la commune. Libellé de la/les commune(s) où a été effectuée l’observation suivant le référentiel INSEE en vigueur';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."codeCommune" IS 'Code de la/les commune(s) où a été effectuée l’observation suivant le référentiel INSEE en vigueur';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."anneeRefCommune" IS 'Année de production du référentiel INSEE, qui sert à déterminer quel est le référentiel en vigueur pour le code et le nom de la commune.';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."codeMaille" IS 'Code de la cellule de la grille de référence nationale 10kmx10km dans laquelle se situe l’observation.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."anneeRefCommune" IS 'Année de production du référentiel INSEE, qui sert à déterminer quel est le référentiel en vigueur pour le code et le nom de la commune';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."codeMaille" IS 'Code de la cellule de la grille de référence nationale 10kmx10km dans laquelle se situe l’observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."nomCite" IS 'Nom de l''objet utilisé dans la donnée source';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."denombrementMin" IS 'Nombre minimal d''objet dénombré';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."denombrementMax" IS 'Nombre maximal d''objet dénombré';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."altitudeMin" IS 'Altitude minimale';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."altitudeMax" IS 'Altitude maximale';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."altitudeMoyenne" IS 'Altitude moyenne de l''observation.';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."profondeurMin" IS 'Profondeur Minimum de l’observation en mètres selon le référentiel des profondeurs indiqué dans les métadonnées (système de référence spatiale verticale).';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."profondeurMax" IS 'Profondeur Maximale de l’observation en mètres selon le référentiel des profondeurs indiqué dans les métadonnées (système de référence spatiale verticale).';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."profondeurMoyenne" IS 'Profondeur moyenne de l''observation.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."altitudeMoyenne" IS 'Altitude moyenne de l''observation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."profondeurMin" IS 'Profondeur Minimum de l’observation en mètres selon le référentiel des profondeurs indiqué dans les métadonnées (système de référence spatiale verticale)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."profondeurMax" IS 'Profondeur Maximale de l’observation en mètres selon le référentiel des profondeurs indiqué dans les métadonnées (système de référence spatiale verticale)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."profondeurMoyenne" IS 'Profondeur moyenne de l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."observateur" IS 'Personne(s) ayant procédé à l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."determinateur" IS 'Personne ayant procédé à la détermination';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."uRLPreuveNumerique" IS 'Adresse web à laquelle on pourra trouver la preuve numérique ou l''archive contenant toutes les preuves numériques (image(s), sonogramme(s), film(s), séquence(s) génétique(s)...)';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."preuveNonNumerique" IS 'Indique si une preuve existe ou non. Par preuve on entend un objet physique ou numérique permettant de démontrer l''existence de l''occurrence et/ou d''en vérifier l''exactitude';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."geometrie" IS 'Géometrie de la localisation de l''objet observé';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."precisionGeometrie" IS 'Estimation en mètres d’une zone tampon autour de l''objet géographique.';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."nomLieu" IS 'Nom du lieu ou de la station où a été effectué l''observation.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."precisionGeometrie" IS 'Estimation en mètres d’une zone tampon autour de l''objet géographique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."nomLieu" IS 'Nom du lieu ou de la station où a été effectué l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."commentaire" IS 'Description libre du contexte de l''observation, aussi succincte et précise que possible';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."obsDescription" IS 'Description libre de l''observation, aussi succincte et précise que possible';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."dateDetermination" IS 'Date de création de la donnée';
@@ -498,5 +498,5 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."statutObservation" IS 'Indique
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."dEEFloutage" IS 'Indique si un floutage a été effectué avant (par le producteur) ou lors de la transformation en DEE';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."statutSource" IS 'Indique si la DS de l’observation provient directement du terrain (via un document informatisé ou une base de données), d''une collection, de la littérature, ou n''est pas connu';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."occMethodeDetermination" IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."occComportement" IS 'Comportement de l''individu ou groupe d''individus.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."occComportement" IS 'Comportement de l''individu ou groupe d''individus';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."dSPublique" IS 'Indique explicitement si la donnée à l''origine de la DEE est publique ou privée. Cela concerne la donnée initiale et son acquisition naturaliste.';
