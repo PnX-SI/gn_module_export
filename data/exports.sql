@@ -332,6 +332,13 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."statut_source"          IS 'Indiqu
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."type_info_geo"          IS 'Type d''information géographique';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."methode_determination"  IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
 
+
+-- Ajout d'un export par défaut basé sur la vue gn_exports.v_synthese_sinp
+INSERT INTO gn_exports.t_exports (label, schema_name, view_name, "desc", geometry_field, geometry_srid, public, id_licence)
+VALUES ('Synthese SINP', 'gn_exports', 'v_synthese_sinp', 'Export des données de la synthèse au standard SINP', 'geom', 4326, TRUE, 1);
+
+
+-- Vue des données de la synthèse au format DEE du SINP
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_dee AS
 WITH cda AS (  
    SELECT
@@ -534,10 +541,6 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."statutSource" IS 'Indique si l
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."occMethodeDetermination" IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."occComportement" IS 'Comportement de l''individu ou groupe d''individus';
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."dSPublique" IS 'Indique explicitement si la donnée à l''origine de la DEE est publique ou privée. Cela concerne la donnée initiale et son acquisition naturaliste.';
-
--- Ajout d'un export par défaut basé sur la vue gn_exports.v_synthese_sinp
-INSERT INTO gn_exports.t_exports (label, schema_name, view_name, "desc", geometry_field, geometry_srid, public, id_licence)
-VALUES ('Synthese SINP', 'gn_exports', 'v_synthese_sinp', 'Export des données de la synthèse au standard SINP', 'geom', 4326, TRUE, 1);
 
 
 ----------------------
