@@ -2,7 +2,7 @@
 -- Révision de la vue d'export SINP par défaut avec la mise à jour du standard Occurrences de taxons en version 2.0
 -- Compatibilité avec GeoNature 2.5.0 et +
 
-DROP VIEW IF EXISTS  gn_exports.v_synthese_sinp;
+DROP VIEW if exists gn_exports.v_synthese_sinp;
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
  WITH jdd_acteurs AS (  
  SELECT
@@ -15,76 +15,76 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
      LEFT JOIN utilisateurs.t_roles roles ON roles.id_role = act.id_role
   GROUP BY d.id_dataset
 )
- SELECT s.id_synthese AS "ID_synthese",
-    s.entity_source_pk_value AS "ID_source",
-    s.unique_id_sinp AS "ID_perm_SINP",
-    s.unique_id_sinp_grp AS "ID_perm_GRP_SINP",
-    s.date_min AS "Date_debut",
-    s.date_max AS "Date_fin",
-    t.cd_nom AS "CD_nom",
-    t.cd_ref AS "CD_ref",
-    s.meta_v_taxref AS "Version_Taxref",
-    s.nom_cite AS "Nom_cite",
-    t.nom_valide AS "Nom_valide",
-    t.regne AS "Regne",
-    t.group1_inpn AS "Group1_INPN",
-    t.group2_inpn AS "Group2_INPN",
-    t.classe AS "Classe",
-    t.ordre AS "Ordre",
-    t.famille AS "Famille",
-    t.id_rang AS "Rang_taxo",
-    s.count_min AS "Nombre_min",
-    s.count_max AS "Nombre_max",
-    s.altitude_min AS "Altitude_min",
-    s.altitude_max AS "Altitude_max",
-    s.depth_min as "Profondeur_min",
-    s.depth_max as "Profondeur_max",
-    s.observers AS "Observateurs",
-    s.determiner AS "Determinateur",
-    s.validator AS "Validateur",
-    s.sample_number_proof AS "Numero_preuve",
-    s.digital_proof AS "Preuve_numerique",
-    s.non_digital_proof AS "Preuve_non_numerique",
+ SELECT s.id_synthese AS "id_synthese",
+    s.entity_source_pk_value AS "id_source",
+    s.unique_id_sinp AS "id_perm_sinp",
+    s.unique_id_sinp_grp AS "id_perm_grp_sinp",
+    s.date_min AS "date_debut",
+    s.date_max AS "date_fin",
+    t.cd_nom AS "cd_nom",
+    t.cd_ref AS "cd_ref",
+    s.meta_v_taxref AS "version_taxref",
+    s.nom_cite AS "nom_cite",
+    t.nom_valide AS "nom_valide",
+    t.regne AS "regne",
+    t.group1_inpn AS "group1_inpn",
+    t.group2_inpn AS "group2_inpn",
+    t.classe AS "classe",
+    t.ordre AS "ordre",
+    t.famille AS "famille",
+    t.id_rang AS "rang_taxo",
+    s.count_min AS "nombre_min",
+    s.count_max AS "nombre_max",
+    s.altitude_min AS "altitude_min",
+    s.altitude_max AS "altitude_max",
+    s.depth_min AS "profondeur_min",
+    s.depth_max AS "profondeur_max",
+    s.observers AS "observateurs",
+    s.determiner AS "determinateur",
+    s.validator AS "validateur",
+    s.sample_number_proof AS "numero_preuve",
+    s.digital_proof AS "preuve_numerique",
+    s.non_digital_proof AS "preuve_non_numerique",
     s.the_geom_4326 AS geom,
-    s.comment_context AS "Comment_releve",
-    s.comment_description AS "Comment_occurrence",
-    s.meta_create_date AS "Date_creation",
-    s.meta_update_date AS "Date_modification",
-    COALESCE(s.meta_update_date, s.meta_create_date) AS "Derniere_action",
-    d.unique_dataset_id AS "JDD_UUID",
-    d.dataset_name AS "JDD_nom",
-    jdd_acteurs.acteurs AS "JDD_acteurs",
-    af.unique_acquisition_framework_id AS "CA_UUID",
-    af.acquisition_framework_name AS "CA_nom",
-    s.reference_biblio AS "Reference_biblio",
-    s.cd_hab AS "Code_habitat",
-    h.lb_hab_fr AS "Habitat",
-    s.place_name AS "Nom_lieu",
-    s.precision AS "Precision",
-    s.additional_data::text AS "Donnees_additionnelles",
-    public.st_astext(s.the_geom_4326) AS "WKT_4326",
-    public.ST_x(s.the_geom_point) AS "X_centroid_4326",
-    public.ST_y(s.the_geom_point) AS "Y_centroid_4326",
-    n1.label_default AS "Nature_objet_geo",
-    n2.label_default AS "Type_regroupement",
-    s.grp_method AS "Methode_regroupement",
-    n3.label_default as "Comportement",
-    n4.label_default AS "Technique_obs",
-    n5.label_default AS "Statut_biologique",
-    n6.label_default AS "Etat_biologique",
-    n7.label_default AS "Naturalite",
-    n8.label_default AS "Preuve_existante",
-    n9.label_default AS "Precision_diffusion",
-    n10.label_default AS "Stade_vie",
-    n11.label_default AS "Sexe",
-    n12.label_default AS "Objet_denombrement",
-    n13.label_default AS "Type_denombrement",
-    n14.label_default AS "Niveau_sensibilite",
-    n15.label_default AS "Statut_observation",
-    n16.label_default AS "Floutage_DEE",
-    n17.label_default AS "Statut_source",
-    n18.label_default AS "Type_info_geo",
-    n19.label_default AS "Methode_determination"
+    s.comment_context AS "comment_releve",
+    s.comment_description AS "comment_occurrence",
+    s.meta_create_date AS "date_creation",
+    s.meta_update_date AS "date_modification",
+    coalesce(s.meta_update_date, s.meta_create_date) AS "derniere_action",
+    d.unique_dataset_id AS "jdd_uuid",
+    d.dataset_name AS "jdd_nom",
+    jdd_acteurs.acteurs AS "jdd_acteurs",
+    af.unique_acquisition_framework_id AS "ca_uuid",
+    af.acquisition_framework_name AS "ca_nom",
+    s.reference_biblio AS "reference_biblio",
+    s.cd_hab AS "code_habitat",
+    h.lb_hab_fr AS "habitat",
+    s.place_name AS "nom_lieu",
+    s.precision AS "precision",
+    s.additional_data::text AS "donnees_additionnelles",
+    public.st_astext(s.the_geom_4326) AS "wkt_4326",
+    public.st_x(s.the_geom_point) AS "x_centroid_4326",
+    public.st_y(s.the_geom_point) AS "y_centroid_4326",
+    n1.label_default AS "nature_objet_geo",
+    n2.label_default AS "type_regroupement",
+    s.grp_method AS "methode_regroupement",
+    n3.label_default AS "comportement",
+    n4.label_default AS "technique_obs",
+    n5.label_default AS "statut_biologique",
+    n6.label_default AS "etat_biologique",
+    n7.label_default AS "naturalite",
+    n8.label_default AS "preuve_existante",
+    n9.label_default AS "precision_diffusion",
+    n10.label_default AS "stade_vie",
+    n11.label_default AS "sexe",
+    n12.label_default AS "objet_denombrement",
+    n13.label_default AS "type_denombrement",
+    n14.label_default AS "niveau_sensibilite",
+    n15.label_default AS "statut_observation",
+    n16.label_default AS "floutage_dee",
+    n17.label_default AS "statut_source",
+    n18.label_default AS "type_info_geo",
+    n19.label_default AS "methode_determination"
    FROM gn_synthese.synthese s
      JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
      JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
@@ -113,76 +113,76 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
      LEFT JOIN ref_nomenclatures.t_nomenclatures n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature
 ;
 
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."ID_synthese" IS 'Identifiant de la donnée dans la table synthese';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."ID_source" IS 'Identifiant de la donnée dans la table source';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."ID_perm_SINP" IS 'Identifiant permanent de l''occurrence';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."ID_perm_GRP_SINP" IS 'Identifiant permanent du regroupement attribué par la plateforme régionale ou thématique';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Date_debut" IS 'Date du jour, dans le système local de l''observation dans le système grégorien. En cas d’imprécision, cet attribut représente la date la plus ancienne de la période d''imprécision.';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Date_fin" IS 'Date du jour, dans le système local de l''observation dans le système grégorien. En cas d’imprécision, cet attribut représente la date la plus récente de la période d''imprécision.';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."CD_nom" IS 'Identifiant Taxref du nom de l''objet observé';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."CD_ref" IS 'Identifiant Taxref du taxon correspondant à l''objet observé';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Version_Taxref" IS 'Version de Taxref utilisée';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nom_cite" IS 'Nom de l''objet utilisé dans la donnée source';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nom_valide" IS 'Nom valide de l''objet observé';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Regne" IS 'Règne de l''objet dénombré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Group1_INPN" IS 'Groupe INPN (1) de l''objet dénombré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Group2_INPN" IS 'Groupe INPN (2) de l''objet dénombré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Classe" IS 'Classe de l''objet dénombré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Ordre" IS 'Ordre de l''objet dénombré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Famille" IS 'Famille de l''objet dénombré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Rang_taxo" IS 'Rang taxonomique de l''objet dénombré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nombre_min" IS 'Nombre minimal d''objet dénombré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nombre_max" IS 'Nombre maximal d''objet dénombré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Altitude_min" IS 'Altitude minimale';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Altitude_max" IS 'Altitude maximale';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Profondeur_min" IS 'Profondeur minimale';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Profondeur_max" IS 'Profondeur maximale';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Observateurs" IS 'Personne(s) ayant procédé à l''observation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Determinateur" IS 'Personne ayant procédé à la détermination';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Validateur" IS 'Personne ayant procédé à la validation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Numero_preuve" IS 'Numéro de l''échantillon de la preuve';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Preuve_numerique" IS 'Adresse web à laquelle on pourra trouver la preuve numérique ou l''archive contenant toutes les preuves numériques (image(s), sonogramme(s), film(s), séquence(s) génétique(s)...)';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Preuve_non_numerique" IS 'Indique si une preuve existe ou non. Par preuve on entend un objet physique ou numérique permettant de démontrer l''existence de l''occurrence et/ou d''en vérifier l''exactitude';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."geom" IS 'Géometrie de la localisation de l''objet observé';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Comment_releve" IS 'Description libre du contexte de l''observation, aussi succincte et précise que possible';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Comment_occurrence" IS 'Description libre de l''observation, aussi succincte et précise que possible';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Date_creation" IS 'Date de création de la donnée';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Date_modification" IS 'Date de la dernière modification de la données';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Derniere_action" IS 'Date de la dernière action sur l''objet observé';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."JDD_UUID" IS 'Identifiant unique du jeu de données';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."JDD_nom" IS 'Nom du jeu de données';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."JDD_acteurs" IS 'Acteurs du jeu de données';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."CA_UUID" IS 'Identifiant unique du cadre d''acquisition';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."CA_nom" IS 'Nom du cadre d''acquisition';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Reference_biblio" IS 'Référence bibliographique';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Code_habitat" IS 'Code habitat (Habref)';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Habitat" IS 'Libellé français de l''habitat (Habref)';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nom_lieu" IS 'Nom du lieu';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Precision" IS 'Précision de la géométrie. Estimation en mètres d''une zone tampon autour de l''objet géographique';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Donnees_additionnelles" IS 'Données des champs additionnels';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."WKT_4326" IS 'Géométrie complète de la localisation en projection WGS 84 (4326)';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."X_centroid_4326" IS 'Latitude du centroïde de la localisation en projection WGS 84 (4326)';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Y_centroid_4326" IS 'Longitude du centroïde de la localisation en projection WGS 84 (4326)';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Nature_objet_geo" IS 'Classe associée au concept de localisation géographique';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Type_regroupement" IS 'Description de la méthode ayant présidé au regroupement, de façon aussi succincte que possible : champ libre';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Methode_regroupement" IS 'Méthode du regroupement';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Technique_obs" IS 'Indique de quelle manière on a pu constater la présence d''un sujet d''observation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Statut_biologique" IS 'Comportement général de l''individu sur le site d''observation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Comportement" IS 'Comportement de l''individu ou groupe d''individus';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Etat_biologique" IS 'Code de l''état biologique de l''organisme au moment de l''observation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Naturalite" IS 'Naturalité de l''occurrence, conséquence de l''influence anthropique directe qui la caractérise';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Preuve_existante" IS 'Indique si une preuve existe ou non';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Precision_diffusion" IS 'Niveau maximal de précision de la diffusion souhaitée par le producteur vers le grand public';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Stade_vie" IS 'Stade de développement du sujet de l''observation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Sexe" IS 'Sexe du sujet de l''observation';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Objet_denombrement" IS 'Objet sur lequel porte le dénombrement';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Type_denombrement" IS 'Méthode utilisée pour le dénombrement (INSPIRE)';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Niveau_sensibilite" IS 'Indique si l''observation ou le regroupement est sensible d''après les principes du SINP et à quel degré';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Statut_observation" IS 'Indique si le taxon a été observé directement/indirectement (indices de présence), ou bien non observé';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Floutage_DEE" IS 'Indique si un floutage a été effectué avant (par le producteur) ou lors de la transformation en DEE';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Statut_source" IS 'Indique si la DS de l’observation provient directement du terrain (via un document informatisé ou une base de données), d''une collection, de la littérature, ou n''est pas connu';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Type_info_geo" IS 'Type d''information géographique';
-COMMENT ON COLUMN gn_exports.v_synthese_sinp."Methode_determination" IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_synthese"            IS 'Identifiant de la donnée dans la table synthese';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_source"              IS 'Identifiant de la donnée dans la table source';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_perm_sinp"           IS 'Identifiant permanent de l''occurrence';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_perm_grp_sinp"       IS 'Identifiant permanent du regroupement attribué par la plateforme régionale ou thématique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."date_debut"             IS 'Date du jour, dans le système local de l''observation dans le système grégorien. En cas d’imprécision, cet attribut représente la date la plus ancienne de la période d''imprécision.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."date_fin"               IS 'Date du jour, dans le système local de l''observation dans le système grégorien. En cas d’imprécision, cet attribut représente la date la plus récente de la période d''imprécision.';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."cd_nom"                 IS 'Identifiant Taxref du nom de l''objet observé';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."cd_ref"                 IS 'Identifiant Taxref du taxon correspondant à l''objet observé';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."version_taxref"         IS 'Version de Taxref utilisée';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."nom_cite"               IS 'Nom de l''objet utilisé dans la donnée source';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."nom_valide"             IS 'Nom valide de l''objet observé';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."regne"                  IS 'Règne de l''objet dénombré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."group1_inpn"            IS 'Groupe INPN (1) de l''objet dénombré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."group2_inpn"            IS 'Groupe INPN (2) de l''objet dénombré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."classe"                 IS 'Classe de l''objet dénombré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."ordre"                  IS 'Ordre de l''objet dénombré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."famille"                IS 'Famille de l''objet dénombré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."rang_taxo"              IS 'Rang taxonomique de l''objet dénombré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."nombre_min"             IS 'Nombre minimal d''objet dénombré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."nombre_max"             IS 'Nombre maximal d''objet dénombré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."altitude_min"           IS 'Altitude minimale';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."altitude_max"           IS 'Altitude maximale';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."profondeur_min"         IS 'Profondeur minimale';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."profondeur_max"         IS 'Profondeur maximale';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."observateurs"           IS 'Personne(s) ayant procédé à l''observation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."determinateur"          IS 'Personne ayant procédé à la détermination';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."validateur"             IS 'Personne ayant procédé à la validation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."numero_preuve"          IS 'Numéro de l''échantillon de la preuve';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."preuve_numerique"       IS 'Adresse web à laquelle on pourra trouver la preuve numérique ou l''archive contenant toutes les preuves numériques (image(s), sonogramme(s), film(s), séquence(s) génétique(s)...)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."preuve_non_numerique"   IS 'Indique si une preuve existe ou non. Par preuve on entend un objet physique ou numérique permettant de démontrer l''existence de l''occurrence et/ou d''en vérifier l''exactitude';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."geom"                   IS 'Géometrie de la localisation de l''objet observé';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."comment_releve"         IS 'Description libre du contexte de l''observation, aussi succincte et précise que possible';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."comment_occurrence"     IS 'Description libre de l''observation, aussi succincte et précise que possible';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."date_creation"          IS 'Date de création de la donnée';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."date_modification"      IS 'Date de la dernière modification de la données';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."derniere_action"        IS 'Date de la dernière action sur l''objet observé';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."jdd_uuid"               IS 'Identifiant unique du jeu de données';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."jdd_nom"                IS 'Nom du jeu de données';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."jdd_acteurs"            IS 'Acteurs du jeu de données';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."ca_uuid"                IS 'Identifiant unique du cadre d''acquisition';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."ca_nom"                 IS 'Nom du cadre d''acquisition';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."reference_biblio"       IS 'Référence bibliographique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."code_habitat"           IS 'Code habitat (Habref)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."habitat"                IS 'Libellé français de l''habitat (Habref)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."nom_lieu"               IS 'Nom du lieu';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."precision"              IS 'Précision de la géométrie. Estimation en mètres d''une zone tampon autour de l''objet géographique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."donnees_additionnelles" IS 'Données des champs additionnels';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."wkt_4326"               IS 'Géométrie complète de la localisation en projection WGS 84 (4326)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."x_centroid_4326"        IS 'Latitude du centroïde de la localisation en projection WGS 84 (4326)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."y_centroid_4326"        IS 'Longitude du centroïde de la localisation en projection WGS 84 (4326)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."nature_objet_geo"       IS 'Classe associée au concept de localisation géographique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."type_regroupement"      IS 'Description de la méthode ayant présidé au regroupement, de façon aussi succincte que possible : champ libre';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."methode_regroupement"   IS 'Méthode du regroupement';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."technique_obs"          IS 'Indique de quelle manière on a pu constater la présence d''un sujet d''observation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."statut_biologique"      IS 'Comportement général de l''individu sur le site d''observation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."comportement"           IS 'Comportement de l''individu ou groupe d''individus';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."etat_biologique"        IS 'Code de l''état biologique de l''organisme au moment de l''observation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."naturalite"             IS 'Naturalité de l''occurrence, conséquence de l''influence anthropique directe qui la caractérise';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."preuve_existante"       IS 'Indique si une preuve existe ou non';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."precision_diffusion"    IS 'Niveau maximal de précision de la diffusion souhaitée par le producteur vers le grand public';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."stade_vie"              IS 'Stade de développement du sujet de l''observation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."sexe"                   IS 'Sexe du sujet de l''observation';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."objet_denombrement"     IS 'Objet sur lequel porte le dénombrement';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."type_denombrement"      IS 'Méthode utilisée pour le dénombrement (INSPIRE)';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."niveau_sensibilite"     IS 'Indique si l''observation ou le regroupement est sensible d''après les principes du SINP et à quel degré';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."statut_observation"     IS 'Indique si le taxon a été observé directement/indirectement (indices de présence), ou bien non observé';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."floutage_dee"           IS 'Indique si un floutage a été effectué avant (par le producteur) ou lors de la transformation en DEE';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."statut_source"          IS 'Indique si la DS de l’observation provient directement du terrain (via un document informatisé ou une base de données), d''une collection, de la littérature, ou n''est pas connu';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."type_info_geo"          IS 'Type d''information géographique';
+COMMENT ON COLUMN gn_exports.v_synthese_sinp."methode_determination"  IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
 
 
 DROP VIEW IF EXISTS gn_exports.v_exports_synthese_sinp_rdf ;
