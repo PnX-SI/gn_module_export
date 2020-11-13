@@ -3,8 +3,8 @@ import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { NgbModal, NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 import { CommonService } from "@geonature_common/service/common.service";
 import { AppConfig } from "@geonature_config/app.config";
+
 import { ModuleConfig } from "../module.config";
-import { AuthService, User } from '@geonature/components/auth/auth.service';
 
 import {
   Export,
@@ -12,7 +12,6 @@ import {
   ApiErrorResponse
 } from "../services/export.service";
 
-import { UserDataService } from "@geonature/userModule/services/user-data.service";
 @Component({
   selector: "pnx-export-list",
   templateUrl: "export-list.component.html",
@@ -29,46 +28,30 @@ export class ExportListComponent implements OnInit {
   public closeResult: string;
   private _export: Export;
   private _modalRef: NgbModalRef;
-  private _emailPattern = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
+  private _emailPattern = "^[a-z0-9._%+-]+@[a-z0-9.-]+.[a-z]{2,4}$";
   public exportFormat: {} = ModuleConfig["export_format_map"];
-  private currentUser: User;
-  private _fullUser: {};
 
   constructor(
     private _exportService: ExportService,
     private _fb: FormBuilder,
     private modalService: NgbModal,
     private _commonService: CommonService,
-    private _userService: UserDataService,
-    public _authService: AuthService,
+    
+  ) {}
 
-  ) { }
-
-  // emailInput: ["", Validators.compose([Validators.required, Validators.pattern[this._emailPattern]])]
   ngOnInit() {
     this.modalForm = this._fb.group({
       formatSelection: ["", Validators.required],
       exportLicence: ["", Validators.required],
-      emailInput: ["", Validators.compose([
-        Validators.required,
-        Validators.pattern(this._emailPattern)
-      ])]
+      emailInput: ["", Validators.pattern[this._emailPattern]]
     });
-
-    this.currentUser = this._authService.getCurrentUser();
 
     this.loadingIndicator = true;
 
     this._exportService.getExports().subscribe(
       (exports: Export[]) => {
         this.exports = exports;
-        //Chargement des données de l'utilisateur
-        this._userService.getRole(parseInt(this.currentUser.id_role)).subscribe(res => {
-          this._fullUser = res;
-          this.modalForm.patchValue({ emailInput: this._fullUser["email"] });
-          this.loadingIndicator = false;
-        });
-
+        this.loadingIndicator = false;
       },
       (errorMsg: ApiErrorResponse) => {
         this._commonService.regularToaster(
@@ -78,8 +61,6 @@ export class ExportListComponent implements OnInit {
         this.loadingIndicator = false;
       }
     );
-
-
   }
 
   get formatSelection() {
