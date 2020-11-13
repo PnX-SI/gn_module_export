@@ -7,7 +7,7 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
  WITH jdd_acteurs AS (  
  SELECT
     d.id_dataset,
-    string_agg(DISTINCT concat(COALESCE(orga.nom_organisme, ((roles.nom_role::text || ' '::text) || roles.prenom_role::text)::character varying), ' : ', nomencl.label_default), ' | '::text) AS acteurs
+    string_agg(DISTINCT concat(COALESCE(orga.nom_organisme, ((roles.nom_role::text || ' '::text) || roles.prenom_role::text)::character varying), ' (', nomencl.label_default,')'), ', '::text) AS acteurs
    FROM gn_meta.t_datasets d
      JOIN gn_meta.cor_dataset_actor act ON act.id_dataset = d.id_dataset
      JOIN ref_nomenclatures.t_nomenclatures nomencl ON nomencl.id_nomenclature = act.id_nomenclature_actor_role
