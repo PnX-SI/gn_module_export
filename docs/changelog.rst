@@ -2,7 +2,7 @@
 CHANGELOG
 =========
 
-1.2.0 (2020-11-12)
+1.2.0 (2020-11-13)
 ------------------
 
 Nécessite la version 2.5.0 minimum de GeoNature, du fait de la mise à jour du standard Occurrences de taxon du SINP en version 2.0
@@ -23,7 +23,7 @@ Nécessite la version 2.5.0 minimum de GeoNature, du fait de la mise à jour du 
 1.1.0 (2020-07-02)
 ------------------
 
-Compatible avec GeoNature 2.4.0 minimum.
+Compatible avec GeoNature 2.4 minimum.
 
 **🚀 Nouveautés**
 
