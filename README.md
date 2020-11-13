@@ -223,7 +223,7 @@ Cet export est basé sur la vue ``gn_exports.v_exports_synthese_sinp_rdf`` dont 
 L'export est accessible de deux façons :
 
 * API
-* Commande GeoNature
+* Fichier .ttl généré par une commande GeoNature
  
 API : 
 
@@ -232,15 +232,17 @@ API :
     Paramètres : 
         - limit
         - offset
-        - champs présent dans la vue v_exports_synthese_sinp_rdf
+        - champs présents dans la vue v_exports_synthese_sinp_rdf
         
-Commande :
+Fichier .ttl, généré par la commande :
 
 ```
 cd GN2_HOME
 source backend/venv/bin/activate
 geonature gn_exports_run_cron_export_dsw --limit 10 --offset=0
 ```
+
+Le fichier est alors disponible à l'adresse <URL_GEONATURE>/api/static/exports/dsw/export_dsw.ttl.
 
 Les paramètres ``limit`` et ``offset`` sont optionnels. S'ils ne sont pas spécifiés l'export se fera sur l'ensemble des données.
 
