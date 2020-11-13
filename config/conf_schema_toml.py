@@ -47,3 +47,4 @@ class GnModuleSchemaConf(Schema):
     nb_days_keep_file = fields.Int(missing=15)
     export_web_url = fields.String()
     usr_generated_dirname = fields.String(missing="usr_generated")
+    csv_separator = fields.String(missing=";")

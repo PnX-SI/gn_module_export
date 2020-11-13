@@ -74,6 +74,8 @@ deactivate
 
 ## Mise à jour du module
 
+- Suivez les éventuelles notes de la version que vous souhaitez installer
+
 - Téléchargez la nouvelle version du module
 
 ```
@@ -95,7 +97,7 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_export/config/conf_gn_module.toml
 ```
 
-- Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports dans le dossier ``geonature/external_modules/exports/backend/templates/swagger/``.
+- Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports depuis le dossier ``/home/`whoami`/gn_module_export_old/backend/templates/swagger/``.
 
 - Relancez la compilation en mettant à jour la configuration
 

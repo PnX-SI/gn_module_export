@@ -2,10 +2,27 @@
 CHANGELOG
 =========
 
+1.2.0 (2020-11-13)
+------------------
+
+Nécessite la version 2.5.0 minimum de GeoNature, du fait de la mise à jour du standard Occurrences de taxon du SINP en version 2.0
+
+**🚀 Nouveautés**
+
+* Compatibilité avec GeoNature 2.5 et + 
+* Révision de la vue d'export fournie par défaut (``gn_exports.v_synthese_sinp``) suite à la mise de la Synthèse en version 2.0 du standard Occurrences de taxon du SINP et passage des noms de champs en minusucule (#82)
+* Révision de la vue permettant de faire les exports sémantiques au format RDF (``gn_exports.v_exports_synthese_sinp_rdf``) suite à la mise de la Synthèse en version 2.0 du standard Occurrences de taxon du SINP (#82)
+* Création d'une vue complémentaire (``gn_exports.v_synthese_sinp_dee``) au format DEE (Données Elementaires d'Echange) du SINP (#80 par @alainlaupinmnhn)
+* Ajout d'un paramètre ``csv_separator`` permettant de définir le séparateur de colonnes des fichiers CSV (``;`` par défaut)
+
+**⚠️ Notes de version**
+
+* Si vous mettez à jour le module, exécutez le script SQL de mise à jour ``data/migrations/1.1.0to1.2.0.sql``, notamment pour mettre à jour la vue par défaut ``gn_exports.v_synthese_sinp`` avec les champs de la version 2.0 du standard Occurrences de taxon du SINP. Ou adaptez cette vue comme vous le souhaitez.
+
 1.1.0 (2020-07-02)
 ------------------
 
-Compatible avec GeoNature 2.4.0 minimum.
+Compatible avec GeoNature 2.4 minimum.
 
 **🚀 Nouveautés**
 
