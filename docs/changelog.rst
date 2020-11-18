@@ -5,6 +5,17 @@ CHANGELOG
 1.2.0 (2020-11-13)
 ------------------
 
+Nécessite la version 2.5.3 de GeoNature
+
+**🚀 Nouveautés**
+
+* Récupération de l'email de l'utilisateur dans le formulaire de téléchargement (#50)
+
+
+
+1.2.0 (2020-11-13)
+------------------
+
 Nécessite la version 2.5.0 minimum de GeoNature, du fait de la mise à jour du standard Occurrences de taxon du SINP en version 2.0
 
 **🚀 Nouveautés**
