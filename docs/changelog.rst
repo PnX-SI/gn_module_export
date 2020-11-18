@@ -2,10 +2,10 @@
 CHANGELOG
 =========
 
-1.2.0 (2020-11-18)
+1.2.1 (2020-11-18)
 ------------------
 
-Nécessite la version 2.5.3 de GeoNature
+Nécessite la version 2.5.4 de GeoNature
 
 **🚀 Nouveautés**
 
