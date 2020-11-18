@@ -2,16 +2,21 @@
 CHANGELOG
 =========
 
+1.2.2 (unreleased)
+------------------
+
+**🐛 Corrections**
+
+* 
+
 1.2.1 (2020-11-18)
 ------------------
 
-Nécessite la version 2.5.4 de GeoNature
+Nécessite la version 2.5.4 de GeoNature.
 
 **🚀 Nouveautés**
 
-* Récupération de l'email de l'utilisateur dans le formulaire de téléchargement (#50)
-
-
+* Récupération de l'email de l'utilisateur connecté dans le formulaire de téléchargement (#50)
 
 1.2.0 (2020-11-13)
 ------------------
