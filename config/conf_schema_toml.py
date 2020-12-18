@@ -1,42 +1,22 @@
-'''
+"""
    Spécification du schéma toml des paramètres de configurations
-'''
+"""
 
 from marshmallow import fields, Schema
 from geonature.utils.env import ROOT_DIR
 
 export_format_map = {
-    'csv': {
-        'mime': 'text/csv',
-        'geofeature': False,
-        'label': 'CSV'
-        },
-    'json': {
-        'mime': 'application/json',
-        'geofeature': False,
-        'label': 'Json'
-        },
-    'geojson': {
-        'mime': 'application/json',
-        'geofeature': True,
-        'label': 'GeoJson'
-        },
-    'shp': {
-        'mime': 'application/zip',
-        'geofeature': True,
-        'label': 'ShapeFile'
-        },
-    'gpkg': {
-        'mime': 'application/zip',
-        'geofeature': True,
-        'label': 'GeoPackage'
-        }
+    "csv": {"mime": "text/csv", "geofeature": False, "label": "CSV"},
+    "json": {"mime": "application/json", "geofeature": False, "label": "Json"},
+    "geojson": {"mime": "application/json", "geofeature": True, "label": "GeoJson"},
+    "shp": {"mime": "application/zip", "geofeature": True, "label": "ShapeFile"},
+    "gpkg": {"mime": "application/zip", "geofeature": True, "label": "GeoPackage"},
 }  # noqa: E133
 
-base_export_dir = str(ROOT_DIR) + '/backend/static/exports/'
-export_schedules_dir = base_export_dir + 'schedules/'
-export_dsw_dir = base_export_dir + 'dsw/'
-export_dsw_filename = 'export_dsw.ttl'
+base_export_dir = str(ROOT_DIR) + "/backend/static/exports/"
+export_schedules_dir = base_export_dir + "schedules/"
+export_dsw_dir = base_export_dir + "dsw/"
+export_dsw_filename = "export_dsw.ttl"
 
 
 class GnModuleSchemaConf(Schema):
@@ -48,3 +28,4 @@ class GnModuleSchemaConf(Schema):
     export_web_url = fields.String()
     usr_generated_dirname = fields.String(missing="usr_generated")
     csv_separator = fields.String(missing=";")
+    expose_api_sdw = fields.Boolean(missing=False)
