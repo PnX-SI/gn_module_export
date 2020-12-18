@@ -5,10 +5,13 @@ CHANGELOG
 1.2.2 (2020-12-18)
 ------------------
 
+**🚀 Nouveautés**
+
+* Ajout d'un paramètre ``expose_dsw_api`` qui permet d'activer ou non la route publique d'export en Sémantique Darwin Core. (Inactif par défaut)
+
 **🐛 Corrections**
 
-* Ajout d'un paramètre `expose_dsw_api` qui permet d'activé ou non la route export en Sémantique Darwin Core. (Inactif par défaut)
-* Le formulaire d'export conserve l'email de l'utilisateur courant
+* Le formulaire d'export conserve l'email de l'utilisateur connecté
 
 1.2.1 (2020-11-18)
 ------------------
