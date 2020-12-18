@@ -89,7 +89,7 @@
       </div>
       <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
       <div class="modal-footer" id="choicePopup">
-        <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="c('Close click')">Annuler</button>
+        <button type="submit" class="btn btn-danger" data-dismiss="modal" (click)="cancel_download()">Annuler</button>
         <button [disabled]="!modalForm.valid" id="widthButton" type="submit" class="btn btn-success"
           (click)="download()">OK</button>
       </div>

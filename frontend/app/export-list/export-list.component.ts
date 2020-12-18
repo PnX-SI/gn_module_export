@@ -44,7 +44,6 @@ export class ExportListComponent implements OnInit {
 
   ) { }
 
-  // emailInput: ["", Validators.compose([Validators.required, Validators.pattern[this._emailPattern]])]
   ngOnInit() {
     this.modalForm = this._fb.group({
       formatSelection: ["", Validators.required],
@@ -101,6 +100,13 @@ export class ExportListComponent implements OnInit {
     });
   }
 
+  _resetModalForm() {
+    // Reset form except email
+    this.modalForm.reset({
+      emailInput: this.modalForm.get('emailInput').value
+    });
+  }
+
   download() {
     if (this.modalForm.valid && this._export.id) {
       this.downloading = !this.downloading;
@@ -115,14 +121,14 @@ export class ExportListComponent implements OnInit {
         .downloadExport(this._export, this.formatSelection.value, emailparams)
         .subscribe(
           response => {
-            this.modalForm.reset();
+            this._resetModalForm();
             this._commonService.regularToaster(
               "success",
               response && response.message ? response.message : ""
             );
           },
           (response: ApiErrorResponse) => {
-            this.modalForm.reset();
+            this._resetModalForm();
             this._commonService.regularToaster(
               "error",
               response.error.message ? response.error.message : response.message
@@ -130,6 +136,12 @@ export class ExportListComponent implements OnInit {
           }
         );
     }
+  }
+
+  cancel_download() {
+    // Annulation de l'action export (close modal)
+    this._modalRef.close();
+    this._resetModalForm();
   }
 
   ngOnDestroy() {
