@@ -536,7 +536,7 @@ def get_one_export_api(id_export, info_role):
     return data
 
 
-if current_app.config.get("EXPORTS").get("expose_api_sdw"):
+if current_app.config.get("EXPORTS").get("expose_dsw_api"):
 
     @blueprint.route("/semantic_dsw", methods=["GET"])
     def semantic_dsw():

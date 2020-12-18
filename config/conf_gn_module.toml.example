@@ -12,3 +12,6 @@ export_dsw_filename = 'export_dsw.ttl'
 # export_web_url : paramètre optionel. Correspond à une url pour les fichiers générés lors des exports utilisateurs
 # cette adresse doit être reliée au répertoire statics/exports/usr_generated
 export_web_url='http://geonature.mondomaine.fr/dataexport'
+
+# Indique si la route appel à l'api du Darwin SW est active ou non
+expose_dsw_api = false

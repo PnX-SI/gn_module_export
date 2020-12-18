@@ -7,7 +7,7 @@ CHANGELOG
 
 **🐛 Corrections**
 
-* Ajout d'un paramètre `expose_api_dsw` qui permet d'activé ou non la route export en Sémantique Darwin Core. (Inactif par défaut)
+* Ajout d'un paramètre `expose_dsw_api` qui permet d'activé ou non la route export en Sémantique Darwin Core. (Inactif par défaut)
 * Le formulaire d'export conserve l'email de l'utilisateur courant
 
 1.2.1 (2020-11-18)
