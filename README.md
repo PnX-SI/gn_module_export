@@ -37,7 +37,7 @@ Les paramètres du module surcouchables concernent les dossiers d'export et se c
 * ``export_dsw_dir`` : chemin absolu du dossier où l'export sémantique au format Darwin-SW sera réalisé
 * ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
 * ``export_web_url`` : URL des fichiers exportés à la demande par les utilisateurs
-* ``expose_dsw_api`` : Indique si la route appel à l'api du Darwin SW est active ou non. Par défaut la route n'est pas activée.
+* ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
 
 Voir le fichier ``gn_module_export/config/conf_gn_module.toml.example`` d'exemple des paramètres.
 
@@ -48,8 +48,6 @@ cd /home/`whoami`/geonature/backend
 source venv/bin/activate
 geonature update_module_configuration EXPORTS
 ```
-
-
 
 ## Commande d'installation
 
@@ -112,7 +110,7 @@ geonature update_module_configuration EXPORTS
 
 # Administration du module
 
-## Création d'une nouvelle vue en base
+## Création d'une nouvelle vue dans la BDD
 
 Pour créer un nouvel export, il faut au préalable créer une vue dans la base de données correspondante à l'export souhaité.
 
