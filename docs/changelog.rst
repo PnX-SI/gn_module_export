@@ -2,6 +2,13 @@
 CHANGELOG
 =========
 
+1.2.3 (2020-12-22)
+------------------
+
+**🐛 Corrections**
+
+* Correction du nom du paramètre ``expose_dsw_api`` dans le fichier ``config/conf_schema_toml.py`` (#90)
+
 1.2.2 (2020-12-18)
 ------------------
 

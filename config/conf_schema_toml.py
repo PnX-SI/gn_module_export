@@ -28,4 +28,4 @@ class GnModuleSchemaConf(Schema):
     export_web_url = fields.String()
     usr_generated_dirname = fields.String(missing="usr_generated")
     csv_separator = fields.String(missing=";")
-    expose_api_sdw = fields.Boolean(missing=False)
+    expose_dsw_api = fields.Boolean(missing=False)
