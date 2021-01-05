@@ -536,71 +536,77 @@ def get_one_export_api(id_export, info_role):
     return data
 
 
-if current_app.config.get("EXPORTS").get("expose_dsw_api"):
+try:
+    expose_api = current_app.config.get("EXPORTS").get("expose_dsw_api")
+except AttributeError:
+    # test permettant de s'assurer que la configuration du module soit accessible
+    LOGGER.info("Configuration du module non accéssible (installation en cours)")
+else:
+    if expose_api:
 
-    @blueprint.route("/semantic_dsw", methods=["GET"])
-    def semantic_dsw():
-        """
-        Fonction qui expose un export RDF basé sur le vocabulaire Darwin-SW
-            sous forme d'api
+        @blueprint.route("/semantic_dsw", methods=["GET"])
+        def semantic_dsw():
+            """
+            Fonction qui expose un export RDF basé sur le vocabulaire Darwin-SW
+                sous forme d'api
 
-        Le requetage des données se base sur la classe GenericQuery qui permet
-            de filter les données de façon dynamique en respectant des
-            conventions de nommage
+            Le requetage des données se base sur la classe GenericQuery qui permet
+                de filter les données de façon dynamique en respectant des
+                conventions de nommage
 
-        Parameters
-        ----------
-        limit : nombre limite de résultats à retourner
-        offset : numéro de page
+            Parameters
+            ----------
+            limit : nombre limite de résultats à retourner
+            offset : numéro de page
 
-        FILTRES :
-            nom_col=val: Si nom_col fait partie des colonnes
-                de la vue alors filtre nom_col=val
+            FILTRES :
+                nom_col=val: Si nom_col fait partie des colonnes
+                    de la vue alors filtre nom_col=val
 
-        Returns
-        -------
-        turle
-        """
-        conf = current_app.config.get("EXPORTS")
-        export_dsw_dir = conf.get("export_dsw_dir")
-        export_dsw_fullpath = str(
-            Path(conf.get("export_dsw_dir"), conf.get("export_dsw_filename"))
-        )
-        os.makedirs(export_dsw_dir, exist_ok=True)
-
-        if not export_dsw_fullpath:
-            return to_json_resp(
-                {
-                    "api_error": "dws_disabled",
-                    "message": "Darwin-SW export is disabled",
-                },
-                status=501,
+            Returns
+            -------
+            turle
+            """
+            conf = current_app.config.get("EXPORTS")
+            export_dsw_dir = conf.get("export_dsw_dir")
+            export_dsw_fullpath = str(
+                Path(conf.get("export_dsw_dir"), conf.get("export_dsw_filename"))
             )
+            os.makedirs(export_dsw_dir, exist_ok=True)
 
-        from .rdf import generate_store_dws
+            if not export_dsw_fullpath:
+                return to_json_resp(
+                    {
+                        "api_error": "dws_disabled",
+                        "message": "Darwin-SW export is disabled",
+                    },
+                    status=501,
+                )
 
-        limit = request.args.get("limit", default=1000, type=int)
-        offset = request.args.get("offset", default=0, type=int)
+            from .rdf import generate_store_dws
 
-        args = request.args.to_dict()
-        if "limit" in args:
-            args.pop("limit")
-        if "offset" in args:
-            args.pop("offset")
-        filters = {f: args.get(f) for f in args}
+            limit = request.args.get("limit", default=1000, type=int)
+            offset = request.args.get("offset", default=0, type=int)
 
-        store = generate_store_dws(limit, offset, filters)
-        try:
-            with open(export_dsw_fullpath, "w+b") as xp:
-                store.save(store_uri=xp)
-        except FileNotFoundError:
-            response = Response(
-                response="FileNotFoundError : {}".format(export_dsw_fullpath),
-                status=500,
-                mimetype="application/json",
+            args = request.args.to_dict()
+            if "limit" in args:
+                args.pop("limit")
+            if "offset" in args:
+                args.pop("offset")
+            filters = {f: args.get(f) for f in args}
+
+            store = generate_store_dws(limit, offset, filters)
+            try:
+                with open(export_dsw_fullpath, "w+b") as xp:
+                    store.save(store_uri=xp)
+            except FileNotFoundError:
+                response = Response(
+                    response="FileNotFoundError : {}".format(export_dsw_fullpath),
+                    status=500,
+                    mimetype="application/json",
+                )
+                return response
+
+            return send_from_directory(
+                os.path.dirname(export_dsw_fullpath), os.path.basename(export_dsw_fullpath)
             )
-            return response
-
-        return send_from_directory(
-            os.path.dirname(export_dsw_fullpath), os.path.basename(export_dsw_fullpath)
-        )
