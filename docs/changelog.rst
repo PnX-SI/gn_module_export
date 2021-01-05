@@ -2,6 +2,13 @@
 CHANGELOG
 =========
 
+1.2.4 (2021-01-05)
+------------------
+
+**🐛 Corrections**
+
+* Ajout d'un test de chargement de la configuration du module (#90)
+
 1.2.3 (2020-12-22)
 ------------------
 
