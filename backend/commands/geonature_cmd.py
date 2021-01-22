@@ -9,9 +9,17 @@ from flask.cli import with_appcontext
 from geonature.core.command import main
 from geonature.utils.env import ROOT_DIR
 
-# Configuration logger
+# #######################
+#  Configuration logger
+# #######################
+# Test if directory exists
+LOG_DIR = ROOT_DIR / "var/log/gn_export"
+
+Path(LOG_DIR).mkdir(
+    parents=True, exist_ok=True
+)
 gne_handler = logging.FileHandler(
-    str(ROOT_DIR / "var/log/gn_export/cron.log"), mode="w"
+    str(LOG_DIR / "cron.log"), mode="w"
 )
 formatter = logging.Formatter(
     fmt='%(asctime)s %(levelname)-8s %(message)s',
@@ -31,7 +39,7 @@ def gn_exports_run_cron_export():
         Export planifié d'un fichier
     """
     gne_logger.info("START schedule export task")
-    from ..utils_export import export_data_file, export_filename
+    from ..utils_export import export_data_file, schedule_export_filename
     from ..repositories import get_export_schedules
 
     # Liste des exports automatiques
@@ -39,11 +47,12 @@ def gn_exports_run_cron_export():
         export_schedules = get_export_schedules()
 
         for schedule in export_schedules:
-            # generation nom du fichier export
-            schedule_filename = export_filename(schedule.export.as_dict())
+            # Generation nom du fichier export
+            schedule_filename = schedule_export_filename(schedule.export.as_dict())
 
-            # test si le fichier doit être regénéré
-            file_is_to_updated = is_to_updated(schedule.frequency, schedule_filename)
+            # Test si le fichier doit être regénéré
+            filename = "{}.{}".format(schedule_filename, schedule.format)
+            file_is_to_updated = is_to_updated(schedule.frequency, filename)
 
             if file_is_to_updated:
                 # Fonction qui permet de générer un export fichier
@@ -55,13 +64,18 @@ def gn_exports_run_cron_export():
                         isScheduler=True
                     )
                     gne_logger.info(
-                        "Export {} whith frequency {} day is done".format(
+                        "Export {} with frequency {} day is done".format(
                             schedule.export.label, schedule.frequency
                         )
                     )
                 except Exception as exception:
                     gne_logger.error("exception export_data_file: {}".format(exception))
-
+            else:
+                gne_logger.info(
+                    "Export {} with frequency {} day not need to be updated".format(
+                        schedule.export.label, schedule.frequency
+                    )
+                )
         gne_logger.info("END schedule export task")
     except Exception as exception:
         raise (exception)
@@ -74,7 +88,7 @@ def gn_exports_run_cron_export():
 @with_appcontext
 def gn_exports_run_cron_export_dsw(limit, offset):
     """
-        Export des données de la synthese au format Dawin-SW (ttl)
+        Export des données de la synthese au format Darwin-SW (ttl)
 
         Exemples
 
@@ -83,7 +97,7 @@ def gn_exports_run_cron_export_dsw(limit, offset):
         - geonature gn_exports_run_cron_export_dsw --limit=2 --offset=1
     """
 
-    gne_logger.info("START schedule Dawin-SW export task")
+    gne_logger.info("START schedule Darwin-SW export task")
 
     from flask import current_app
     from ..rdf import generate_store_dws
@@ -96,7 +110,7 @@ def gn_exports_run_cron_export_dsw(limit, offset):
             conf.get('export_dsw_filename')
         ))
 
-        # get data and generate sematic data structure
+        # Get data and generate semantic data structure
         store = generate_store_dws(limit=limit, offset=offset, filters={})
 
         # Store file
@@ -108,7 +122,7 @@ def gn_exports_run_cron_export_dsw(limit, offset):
                 store.save(store_uri=xp)
         except FileNotFoundError as exception:
             gne_logger.error(
-                "exception when saving file {}: ".format(
+                "Exception when saving file {}: ".format(
                     export_dsw_dir
                 ),
                 exception

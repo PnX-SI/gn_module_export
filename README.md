@@ -16,7 +16,7 @@ Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNa
 
 ### Email
 
-Le module d'export envoie des emails indiquant que l'export demandé est prêt. Pour cela il est nécessaire de configurer les paramètres email dans la configuration générale de GeoNature (``config/geonature_config.toml``).
+Le module d'export envoie des emails indiquant que l'export demandé est prêt. Pour cela il est nécessaire de configurer au préalable les paramètres d'envoi d'emails dans la configuration générale de GeoNature (section ``[MAIL_CONFIG]`` de ``geonature/config/geonature_config.toml``).
 
 La configuration des emails utilise les paramètres définis par Flask_mail. Pour avoir accès à l'ensemble des paramètres se référer à la [documentation complète](https://flask-mail.readthedocs.io/en/latest/).
 
@@ -31,11 +31,23 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
 
 ### Autres paramètres
 
-Les autres paramètres concernent les dossiers d'export et se configurent dans le fichier ``config/conf_gn_module.toml`` du module export:
+Les paramètres du module surcouchables concernent les dossiers d'export et se configurent dans le fichier ``gn_module_export/config/conf_gn_module.toml`` du module Export :
 
 * ``export_schedules_dir`` : chemin absolu du dossier où les exports programmés seront déposés lors de la réalisation de la commande ``gn_exports_run_cron_export``
 * ``export_dsw_dir`` : chemin absolu du dossier où l'export sémantique au format Darwin-SW sera réalisé
 * ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
+* ``export_web_url`` : URL des fichiers exportés à la demande par les utilisateurs
+* ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
+
+Voir le fichier ``gn_module_export/config/conf_gn_module.toml.example`` d'exemple des paramètres.
+
+Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier ``gn_module_export/config/conf_gn_module.toml``, vous devez lancer une commande pour appliquer les modifications des paramètres : 
+
+```
+cd /home/`whoami`/geonature/backend
+source venv/bin/activate
+geonature update_module_configuration EXPORTS
+```
 
 ## Commande d'installation
 
@@ -56,22 +68,61 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Lancez l'installation du module
 
 ```
-source backend/venv/bin/activate
+source geonature/backend/venv/bin/activate
 geonature install_gn_module /PATH_TO_MODULE/gn_module_export exports
 deactivate
 ```
 
+## Mise à jour du module
+
+- Suivez les éventuelles notes de la version que vous souhaitez installer
+
+- Téléchargez la nouvelle version du module
+
+```
+wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
+unzip X.Y.Z.zip
+rm X.Y.Z.zip
+```
+
+- Renommez l'ancien et le nouveau répertoire
+
+```
+mv /home/`whoami`/gn_module_export /home/`whoami`/gn_module_export_old
+mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
+```
+
+- Rapatriez le fichier de configuration
+
+```
+cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_export/config/conf_gn_module.toml
+```
+
+- Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports depuis le dossier ``/home/`whoami`/gn_module_export_old/backend/templates/swagger/``.
+
+- Relancez la compilation en mettant à jour la configuration
+
+```
+cd /home/`whoami`/geonature/backend
+source venv/bin/activate
+geonature update_module_configuration EXPORTS
+```
+
 # Administration du module
 
-## Création d'une nouvelle vue en base
+## Création d'une nouvelle vue dans la BDD
 
 Pour créer un nouvel export, il faut au préalable créer une vue dans la base de données correspondante à l'export souhaité.
 
 Pour des questions de lisibilité, il est conseillé de créer la vue dans le schéma ``gn_exports``.
 
+Par défaut, un export public (accessible à tous les utilisateurs ayant accès au module Export d'une instance GeoNature) est créé basé sur la vue ``gn_exports.v_synthese_sinp``, contenant toutes les données présentes dans la Synthèse. Il est possible de limiter les données dans cet exeport (en ajoutant des critères dans la clause WHERE de la vue ``gn_exports.v_synthese_sinp``), de supprimer cet export ou de le limiter à certains utilisateurs uniquement.
+
+Les fichiers exportés sont automatiquement supprimés 15 jours après avoir été générés (durée configurable avec le paramètre ``nb_days_keep_file``).
+
 ## Enregistrer l'export créé dans le module Admin
 
-L'interface d'administration est accessible dans GeoNature via le module ``Admin`` puis ``backoffice GeoNature``.
+L'interface d'administration est accessible dans GeoNature via le module ``Admin`` puis ``Backoffice GeoNature``.
 
 Dans la rubrique Exports selectionner le menu ``Export`` puis cliquer sur ``Create`` et renseigner les valeurs.
 
@@ -85,13 +136,13 @@ Puis créer des associations entre les rôles et l'export en question.
 
 Seul les roles ayant des emails peuvent être associé à un export, exception faite des groupes.
 
-Par défaut, lors de l'installation du module, un export publique contenant toutes les données de la synthèse est créé. Il est donc accessible à tous les utilisateurs pouvant accéder au module Export. Libre à vous de le modifier ou le supprimer.
+Par défaut, lors de l'installation du module, un export public contenant toutes les données de la synthèse est créé (basé sur la vue ``gn_exports.v_synthese_sinp``). Il est donc accessible à tous les utilisateurs pouvant accéder au module Export. Libre à vous de le modifier ou le supprimer.
 
 Chaque fois qu'un export de fichier est réalisé depuis le module, celui-ci est tracé dans la table ``gn_exports.t_exports_logs``.
 
-# API json et documentation Swagger d'un export
+# API JSON et documentation Swagger d'un export
 
-Pour chaque export créé, une API json filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API json de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles. 
+Pour chaque export créé, une API JSON filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API JSON de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles. 
 
 Par défaut une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres. 
 
@@ -120,14 +171,60 @@ source backend/venv/bin/activate
 geonature gn_exports_run_cron_export
 ```
 
+Par défaut, le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
+
+# URL des fichiers
+
+Par défaut les fichiers sont servis par le serveur web Gunicorn qui a un timeout limité qui s'applique aussi au téléchargement des fichiers. Si le fichier à télécharger est volumineux, il est possible que le téléchargement soit coupé avant de terminer au bout de quelques minutes. Même si il est possible de le reprendre pour le terminer (éventuellement en plusieurs fois), il est aussi possible (et conseillé) de servir les fichiers des exports par Apache (non concerné par un timeout pour le téléchargement), plutôt que par Gunicorn.
+
+Pour cela, modifier la configuration Apache de GeoNature et ajouter un alias vers le dossier où sont générés les fichiers exportés :
+
+```
+sudo nano /etc/apache2/sites-available/geonature.conf
+```
+
+Ajoutez ces lignes au milieu de la configuration Apache de GeoNature (en adaptant le chemin absolu et le nom de l'alias comme vous le souhaitez). Exemple pour les exports planifiés : 
+
+```
+Alias "/exportschedules" "/home/myuser/geonature/backend/static/exports/schedules"
+<Directory "/home/myuser/geonature/backend/static/exports/schedules">
+   AllowOverride None
+   Require all granted
+</Directory>
+```
+
+Pour les fichiers générés à la demande par les utilisateurs :
+
+```
+Alias "/exportfiles" "/home/myuser/geonature/backend/static/exports/usr_generated"
+<Directory "/home/myuser/geonature/backend/static/exports/usr_generated">
+   AllowOverride None
+   Require all granted
+</Directory>
+```
+
+Renseignez le paramètre ``export_web_url`` en cohérence dans le fichier ``config/conf_gn_module.toml`` du module (``export_web_url=<URL_GEONATURE>/exportfiles`` dans cet exemple).
+
+Rechargez la configuration Apache pour prendre en compte les modifications :
+
+```
+sudo /etc/init.d/apache2 reload
+```
+
+Dans cet exemple les fichiers des exports planifiés seront accessibles à l'adresse ``<URL_GEONATURE>/exportschedules/Nom_Export.Format``. Le chemin ``/exportschedules/`` est adaptable bien entendu au niveau de l'alias de la configuration Apache. Les fichiers des exports générés à la demande par les utilisateurs seront disponibles à l'adresse ``<URL_GEONATURE>/exportfiles/Date_Nom_Export.Format``
+
+Une autre solution plus globale serait de compléter la configuration Apache de GeoNature pour que l'ensemble de son répertoire ``backend/static`` soit servi en mode fichier par Apache. Voir http://docs.geonature.fr/conf-apache.html.
+
 # Export RDF au format sémantique Darwin-SW
 
 Le module peut génèrer un export RDF au format Darwin-SW des données de la Synthèse de GeoNature.
 
+Cet export est basé sur la vue ``gn_exports.v_exports_synthese_sinp_rdf`` dont il ne faut pas modifier la structure. Il est cependant possible d'en filtrer le contenu en y ajoutant des conditions dans un ``WHERE`` à la fin de la vue.
+
 L'export est accessible de deux façons :
 
-* API
-* Commande GeoNature
+* API (si ``expose_dsw_api = true``)
+* Fichier .ttl généré par une commande GeoNature
  
 API : 
 
@@ -136,9 +233,9 @@ API :
     Paramètres : 
         - limit
         - offset
-        - champs présent dans la vue  v_exports_synthese_sinp_rdf
+        - champs présents dans la vue v_exports_synthese_sinp_rdf
         
-Commande :
+Fichier .ttl, généré par la commande :
 
 ```
 cd GN2_HOME
@@ -146,15 +243,17 @@ source backend/venv/bin/activate
 geonature gn_exports_run_cron_export_dsw --limit 10 --offset=0
 ```
 
+Le fichier est alors disponible à l'adresse <URL_GEONATURE>/api/static/exports/dsw/export_dsw.ttl.
+
 Les paramètres ``limit`` et ``offset`` sont optionnels. S'ils ne sont pas spécifiés l'export se fera sur l'ensemble des données.
 
 ### Standard Darwin-SW
 
 Le format Darwin-SW est un vocabulaire RDF conçu par le TDWG. Il repose sur le langage Web Ontology Language (OWL) qui est un langage de représentation des connaissances.
 
-"Darwin-SW (DSW) is an RDF vocabulary designed to complement the Biodiversity Information Standards (TDWG) Darwin Core Standard. DSW is based on a model derived from a community consensus about the relationships among the main Darwin Core classes. DSW creates two new classes to accommodate important aspects of its model that are not currently part of Darwin Core: a class of Individual Organisms and a class of Tokens, which are forms of evidence.  DSW uses Web Ontology Language (OWL) to make assertions about the classes in its model and to define object properties that are used to link instances of those classes. A goal in the creation of DSW was to facilitate consistent markup of biodiversity data so that RDF graphs created by different providers could be easily merged.  Accordingly, DSW provides a mechanism for testing whether its terms are being used in a manner consistent with its model. Two transitive object properties enable the creation of simple SPARQL queries that can be used to discover new information about linked resources whose metadata are generated by different providers. The Individual Organism class enables semantic linking of biodiversity resources to vocabularies outside of TDWG that deal with observations and ecological phenomena." (Source : http://www.semantic-web-journal.net/system/files/swj635.pdf)
+_"Darwin-SW (DSW) is an RDF vocabulary designed to complement the Biodiversity Information Standards (TDWG) Darwin Core Standard. DSW is based on a model derived from a community consensus about the relationships among the main Darwin Core classes. DSW creates two new classes to accommodate important aspects of its model that are not currently part of Darwin Core: a class of Individual Organisms and a class of Tokens, which are forms of evidence.  DSW uses Web Ontology Language (OWL) to make assertions about the classes in its model and to define object properties that are used to link instances of those classes. A goal in the creation of DSW was to facilitate consistent markup of biodiversity data so that RDF graphs created by different providers could be easily merged.  Accordingly, DSW provides a mechanism for testing whether its terms are being used in a manner consistent with its model. Two transitive object properties enable the creation of simple SPARQL queries that can be used to discover new information about linked resources whose metadata are generated by different providers. The Individual Organism class enables semantic linking of biodiversity resources to vocabularies outside of TDWG that deal with observations and ecological phenomena."_ (Source : http://www.semantic-web-journal.net/system/files/swj635.pdf)
 
-Exemple de graph représentant l'export d'une seule donnée de la synthèse selon le standard Darwin-SW avec un lien vers TAXREF-LD :
+Exemple de graphe représentant l'export d'une seule donnée de la synthèse selon le standard Darwin-SW avec un lien vers TAXREF-LD :
 
 ![Exemple de graph pour une donnée](docs/semantic/sample_semantic_dsw.png)
 
@@ -177,36 +276,3 @@ A voir aussi :
 * https://fr.wikipedia.org/wiki/Syst%C3%A8me_d'information_taxonomique_int%C3%A9gr%C3%A9
 
 Pour le volet Taxonomie, un travail expérimental a été réalisé : https://github.com/PnX-SI/TaxHub/issues/150
-
-# Mise à jour du module
-
-- Téléchargez la nouvelle version du module
-
-```
-wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
-unzip X.Y.Z.zip
-rm X.Y.Z.zip
-```
-
-- Renommez l'ancien et le nouveau répertoire
-
-```
-mv /home/`whoami`/gn_module_export /home/`whoami`/gn_module_export_old
-mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
-```
-
-- Rapatriez le fichier de configuration
-
-```
-cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml   /home/`whoami`/gn_module_export/config/conf_gn_module.toml
-```
-
-Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports dans le dossier ``geonature/external_modules/exports/backend/templates/swagger/``.
-
-- Relancez la compilation en mettant à jour la configuration
-
-```
-cd /home/`whoami`/geonature/backend
-source venv/bin/activate
-geonature update_module_configuration EXPORTS
-```
