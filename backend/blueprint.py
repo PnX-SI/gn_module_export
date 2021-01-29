@@ -331,9 +331,7 @@ def swagger_ressources(id_export=None):
 @permissions.check_cruved_scope(
     "E",
     True,
-    module_code="EXPORTS",
-    redirect_on_expiration=current_app.config.get("URL_APPLICATION"),
-    redirect_on_invalid_token=current_app.config.get("URL_APPLICATION"),
+    module_code="EXPORTS"
 )
 def getOneExportThread(id_export, export_format, info_role):
     """
@@ -424,9 +422,7 @@ def getOneExportThread(id_export, export_format, info_role):
 @permissions.check_cruved_scope(
     "R",
     True,
-    module_code="EXPORTS",
-    redirect_on_expiration=current_app.config.get("URL_APPLICATION"),
-    redirect_on_invalid_token=current_app.config.get("URL_APPLICATION"),
+    module_code="EXPORTS"
 )
 @json_resp
 def getExports(info_role):
@@ -452,9 +448,7 @@ def getExports(info_role):
 @permissions.check_cruved_scope(
     "R",
     True,
-    module_code="EXPORTS",
-    redirect_on_expiration=current_app.config.get("URL_APPLICATION"),
-    redirect_on_invalid_token=current_app.config.get("URL_APPLICATION"),
+    module_code="EXPORTS"
 )
 @json_resp
 def get_one_export_api(id_export, info_role):
