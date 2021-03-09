@@ -30,7 +30,7 @@ from wtforms import validators, IntegerField
 
 from pypnusershub.db.models import User
 
-from geonature.core.admin.admin import flask_admin
+from geonature.core.admin.admin import admin as flask_admin
 from utils_flask_sqla.response import json_resp, to_json_resp
 
 
