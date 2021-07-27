@@ -441,7 +441,8 @@ def getExports(info_role):
         LOGGER.critical("%s", str(e))
         return {"api_error": "logged_error"}, 400
     else:
-        return [export.as_dict(recursif=True) for export in exports]
+
+        return [export.as_dict(fields=["licence"]) for export in exports]
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
