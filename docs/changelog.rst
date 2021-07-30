@@ -2,12 +2,14 @@
 CHANGELOG
 =========
 
-1.2.5 (2021-01-29)
+1.2.5 (2021-07-30)
 ------------------
 
 **🐛 Corrections**
 
-* Compatibilité avec GéoNature 2.6.x
+* Compatibilité avec GéoNature 2.7.x
+* Supression des exports: cascade sur cor_roles et schedules (#93)
+
 
 1.2.4 (2021-01-05)
 ------------------
