@@ -54,11 +54,7 @@ class Export(DB.Model):
         primary_key=True, nullable=False
     )
 
-    licence = DB.relationship(
-        'Licences',
-        primaryjoin='Export.id_licence==Licences.id_licence',
-        backref='exports'
-    )
+    licence = DB.relationship("Licences")
 
     def __str__(self):
         return "{}".format(self.label)
@@ -102,13 +98,13 @@ class CorExportsRoles(DB.Model):
     id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role),
                         primary_key=True, nullable=False)
 
-    export = relationship(
-        Export,
+    export = DB.relationship(
+        "Export",
         lazy='joined',
         cascade="all,delete"
     )
-    role = relationship(
-        UserRepr,
+    role = DB.relationship(
+        "UserRepr",
         lazy='joined'
     )
 
@@ -121,8 +117,8 @@ class ExportSchedules(DB.Model):
     format = DB.Column(DB.String(10), nullable=False)
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
 
-    export = relationship(
-        Export,
+    export = DB.relationship(
+        "Export",
         lazy='subquery',
         cascade="all,delete"
     )
