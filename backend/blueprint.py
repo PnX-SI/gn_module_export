@@ -12,6 +12,9 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError
+from psycopg2.errors import ForeignKeyViolation
+
 from flask import (
     Blueprint,
     request,
@@ -26,6 +29,7 @@ from flask import (
 from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
+from flask_admin.babel import gettext
 from wtforms import validators, IntegerField
 
 from pypnusershub.db.models import User
@@ -193,6 +197,18 @@ class ExportView(ModelView):
                 return False
 
         return super(ExportView, self).validate_form(form)
+
+    def handle_view_exception(self, exc):
+        """
+            Customisation du message d'erreur en cas de suppresion de l'export
+            s'il est toujours référencé dans les tables de logs
+        """
+        if isinstance(exc, IntegrityError):
+            if isinstance(exc.orig, ForeignKeyViolation):
+                flash(gettext("L'export ne peut pas être supprimé car il est toujours référencé (table de log)"), 'error')
+                return True
+
+        return super(ModelView, self).handle_view_exception(exc)
 
 
 class ExportSchedulesView(ModelView):

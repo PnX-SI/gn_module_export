@@ -1,4 +1,5 @@
 
+from sqlalchemy.orm import relationship
 from geonature.utils.env import DB
 
 from utils_flask_sqla.serializers import serializable
@@ -97,10 +98,19 @@ class CorExportsRoles(DB.Model):
     __table_args__ = {'schema': 'gn_exports'}
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id),
                           primary_key=True, nullable=False)
-    export = DB.relationship('Export', foreign_keys=[id_export], lazy='joined')
+
     id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role),
                         primary_key=True, nullable=False)
-    role = DB.relationship('UserRepr', foreign_keys=[id_role], lazy='joined')
+
+    export = relationship(
+        Export,
+        lazy='joined',
+        cascade="all,delete"
+    )
+    role = relationship(
+        UserRepr,
+        lazy='joined'
+    )
 
 
 class ExportSchedules(DB.Model):
@@ -111,9 +121,8 @@ class ExportSchedules(DB.Model):
     format = DB.Column(DB.String(10), nullable=False)
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
 
-    export = DB.relationship(
-        'Export',
-        primaryjoin='Export.id==ExportSchedules.id_export',
-        backref='exports',
-        lazy='subquery'
+    export = relationship(
+        Export,
+        lazy='subquery',
+        cascade="all,delete"
     )
