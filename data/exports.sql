@@ -53,14 +53,15 @@ COMMENT ON TABLE gn_exports.t_licences IS 'This table is used to declare the lic
 
 ALTER TABLE ONLY gn_exports.t_licences
     ADD CONSTRAINT pk_gn_exports_t_licences PRIMARY KEY (id_licence);
-ALTER TABLE ONLY gn_exports.t_exports
-    ADD CONSTRAINT fk_gn_exports_t_exports_id_licence FOREIGN KEY (id_licence) REFERENCES gn_exports.t_licences (id_licence);
 
 -- Licences par défaut
 INSERT INTO gn_exports.t_licences (name_licence, url_licence) VALUES
     ('Creative Commons Attribution 1.0 Generic', 'https://spdx.org/licenses/CC-BY-1.0.html'),
     ('ODC Open Database License v1.0', 'https://spdx.org/licenses/ODbL-1.0.html#licenseText'),
     ('Licence Ouverte/Open Licence Version 2.0', 'https://www.etalab.gouv.fr/wp-content/uploads/2017/04/ETALAB-Licence-Ouverte-v2.0.pdf');
+
+ALTER TABLE ONLY gn_exports.t_exports
+    ADD CONSTRAINT fk_gn_exports_t_exports_id_licence FOREIGN KEY (id_licence) REFERENCES gn_exports.t_licences (id_licence);
 
 
 ---------
@@ -75,7 +76,7 @@ ALTER TABLE ONLY gn_exports.cor_exports_roles
     ADD CONSTRAINT cor_exports_roles_pkey PRIMARY KEY (id_export, id_role);
 
 ALTER TABLE ONLY gn_exports.cor_exports_roles
-    ADD CONSTRAINT fk_cor_exports_roles_id_export FOREIGN KEY (id_export) REFERENCES gn_exports.t_exports(id);
+    ADD CONSTRAINT fk_cor_exports_roles_id_export FOREIGN KEY (id_export) REFERENCES gn_exports.t_exports(id) ON DELETE CASCADE;
 
 ALTER TABLE ONLY gn_exports.cor_exports_roles
     ADD CONSTRAINT fk_cor_exports_roles_id_role FOREIGN KEY (id_role) REFERENCES utilisateurs.t_roles(id_role) ON UPDATE CASCADE;
@@ -139,7 +140,7 @@ ALTER TABLE ONLY gn_exports.t_export_schedules
     ADD CONSTRAINT t_export_schedules_pkey PRIMARY KEY (id_export_schedule);
 
 ALTER TABLE ONLY gn_exports.t_export_schedules
-    ADD CONSTRAINT fk_t_export_schedules_id_export FOREIGN KEY (id_export) REFERENCES gn_exports.t_exports(id);
+    ADD CONSTRAINT fk_t_export_schedules_id_export FOREIGN KEY (id_export) REFERENCES gn_exports.t_exports(id) ON DELETE CASCADE;
 
 COMMENT ON COLUMN gn_exports.t_export_schedules."frequency" IS 'Fréquence de remplacement du fichier en jour';
 
@@ -152,7 +153,7 @@ COMMENT ON COLUMN gn_exports.t_export_schedules."frequency" IS 'Fréquence de re
 
 DROP VIEW if exists gn_exports.v_synthese_sinp;
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
- WITH jdd_acteurs AS (  
+ WITH jdd_acteurs AS (
  SELECT
     d.id_dataset,
     string_agg(DISTINCT concat(COALESCE(orga.nom_organisme, ((roles.nom_role::text || ' '::text) || roles.prenom_role::text)::character varying), ' (', nomencl.label_default,')'), ', '::text) AS acteurs
@@ -340,7 +341,7 @@ VALUES ('Synthese SINP', 'gn_exports', 'v_synthese_sinp', 'Export des données d
 
 -- Vue des données de la synthèse au format DEE du SINP
 CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_dee AS
-WITH cda AS (  
+WITH cda AS (
    SELECT
     d.id_dataset,
     string_agg(DISTINCT orga.nom_organisme, ' | ') AS acteurs
@@ -353,7 +354,7 @@ WITH cda AS (
    GROUP BY d.id_dataset
  ),
  areas AS (
-	SELECT ta.id_type, type_code, ta.ref_version, id_area, a_1.area_code, a_1.area_name 
+	SELECT ta.id_type, type_code, ta.ref_version, id_area, a_1.area_code, a_1.area_name
 	FROM ref_geo.bib_areas_types ta
 	JOIN ref_geo.l_areas a_1 ON ta.id_type = a_1.id_type
 	WHERE  ta.type_code in ('DEP', 'COM', 'M1')
@@ -434,14 +435,14 @@ WITH cda AS (
      JOIN gn_meta.t_acquisition_frameworks af ON d.id_acquisition_framework = af.id_acquisition_framework
      JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
      LEFT JOIN cda ON d.id_dataset = cda.id_dataset
-     LEFT JOIN LATERAL ( 
-		SELECT 
+     LEFT JOIN LATERAL (
+		SELECT
 			d_1.id_synthese,
 	        json_object_agg(d_1.type_code, d_1.o_name) AS jname,
 	        json_object_agg(d_1.type_code, d_1.o_code) AS jcode,
 	        json_object_agg(d_1.type_code, d_1.ref_version) AS jversion
-	   	FROM ( 
-	   		SELECT 
+	   	FROM (
+	   		SELECT
 	   			sa.id_synthese,
 				ta.type_code,
 				string_agg(ta.area_name, '|') AS o_name,

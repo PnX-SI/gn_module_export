@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+1.2.5 (2021-07-30)
+------------------
+
+**🐛 Corrections**
+
+* Compatibilité avec GéoNature 2.7.x
+* Supression des exports: cascade sur cor_roles et schedules (#93)
+
+
 1.2.4 (2021-01-05)
 ------------------
 
@@ -43,7 +52,7 @@ Nécessite la version 2.5.0 minimum de GeoNature, du fait de la mise à jour du 
 
 **🚀 Nouveautés**
 
-* Compatibilité avec GeoNature 2.5 et + 
+* Compatibilité avec GeoNature 2.5 et +
 * Révision de la vue d'export fournie par défaut (``gn_exports.v_synthese_sinp``) suite à la mise de la Synthèse en version 2.0 du standard Occurrences de taxon du SINP et passage des noms de champs en minusucule (#82)
 * Révision de la vue permettant de faire les exports sémantiques au format RDF (``gn_exports.v_exports_synthese_sinp_rdf``) suite à la mise de la Synthèse en version 2.0 du standard Occurrences de taxon du SINP (#82)
 * Création d'une vue complémentaire (``gn_exports.v_synthese_sinp_dee``) au format DEE (Données Elementaires d'Echange) du SINP (#80 par @alainlaupinmnhn)
