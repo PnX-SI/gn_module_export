@@ -7,9 +7,12 @@ CHANGELOG
 
 **🐛 Corrections**
 
-* Compatibilité avec GéoNature 2.7.x
-* Supression des exports: cascade sur cor_roles et schedules (#93)
+* Compatibilité avec GeoNature 2.7.x (#100)
+* Suppression des exports avec cascade sur les tables ``cor_roles`` et ``schedules`` (#93)
 
+**⚠️ Notes de version**
+
+* Si vous mettez à jour le module, exécutez le script SQL de mise à jour ``data/migrations/1.2.4to1.2.5.sql``
 
 1.2.4 (2021-01-05)
 ------------------
