@@ -14,20 +14,15 @@ from geonature.utils.env import ROOT_DIR
 # Test if directory exists
 LOG_DIR = ROOT_DIR / "var/log/gn_export"
 
-Path(LOG_DIR).mkdir(
-    parents=True, exist_ok=True
-)
-gne_handler = logging.FileHandler(
-    str(LOG_DIR / "cron.log"), mode="w"
-)
+Path(LOG_DIR).mkdir(parents=True, exist_ok=True)
+gne_handler = logging.FileHandler(str(LOG_DIR / "cron.log"), mode="w")
 formatter = logging.Formatter(
-    fmt='%(asctime)s %(levelname)-8s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    fmt="%(asctime)s %(levelname)-8s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
 )
 gne_handler.setLevel(logging.INFO)
 gne_handler.setFormatter(formatter)
 
-gne_logger = logging.getLogger('gn_export')
+gne_logger = logging.getLogger("gn_export")
 gne_logger.addHandler(gne_handler)
 
 
@@ -39,30 +34,132 @@ def gn_exports_run_cron_export():
        Lance les exports planifiés
     """
     gne_logger.info("START schedule export task")
-    from ..utils_export import export_data_file, schedule_export_filename
+    from ..utils_export import (
+        export_data_file,
+        export_data_file2,
+        schedule_export_filename,
+        export_pg_table,
+        decompose_database_uri,
+    )
     from ..repositories import get_export_schedules
+    from ..models import Export
 
     # Liste des exports automatiques
     try:
         export_schedules = get_export_schedules()
-
         for schedule in export_schedules:
             # Generation nom du fichier export
             schedule_filename = schedule_export_filename(schedule.export.as_dict())
-
+            print(schedule.__dict__)
             # Test si le fichier doit être regénéré
             filename = "{}.{}".format(schedule_filename, schedule.format)
             file_is_to_updated = is_to_updated(schedule.frequency, filename)
-
-            if file_is_to_updated:
+            export_data_file2(
+                id_export=schedule.id_export,
+                export_format="gpkg",
+                filters={},
+                isScheduler=True,
+            )
+            if False:
+                # if file_is_to_updated:
                 # Fonction qui permet de générer un export fichier
                 try:
-                    export_data_file(
-                        id_export=schedule.id_export,
-                        export_format=schedule.format,
-                        filters={},
-                        isScheduler=True
+                    # export_data_file(
+                    #     id_export=schedule.id_export,
+                    #     export_format=schedule.format,
+                    #     filters={},
+                    #     isScheduler=True,
+                    # )
+                    #### Export paramaters
+
+                    export = Export.query.filter_by(id=schedule.id_export).one()
+                    exp_query = f"SELECT * FROM {export.schema_name}.{export.view_name}"
+
+                    export_path = "/tmp/"
+
+                    # Get connexion
+
+                    print(
+                        "decompose_database_uri",
+                        db_host,
+                        db_port,
+                        db_user,
+                        db_pass,
+                        db_name,
                     )
+                    file_name = filename
+
+                    where = ""
+                    limit = ""
+                    select = ""
+
+                    # Query
+                    pg_sql_select = (
+                        """SELECT *   {SELECT}
+                                FROM ( """
+                        + exp_query
+                        + """ ) d
+                                {WHERE}
+                                {LIMIT}
+                        """
+                    )
+                    # limit = "LIMIT 1000"
+                    print(pg_sql_select.format(WHERE=where, LIMIT=limit, SELECT=select))
+                    # gpkg
+                    # export_pg_table(
+                    #     "gpkg",
+                    #     export_path,
+                    #     file_name,
+                    #     db_host,
+                    #     db_user,
+                    #     db_pass,
+                    #     db_name,
+                    #     pg_sql_select.format(WHERE=where, LIMIT=limit, SELECT=select),
+                    # )
+                    # # geojson
+                    # export_pg_table(
+                    #     "geojson",
+                    #     export_path,
+                    #     file_name,
+                    #     host,
+                    #     username,
+                    #     password,
+                    #     db,
+                    #     pg_sql_select.format(WHERE=where, LIMIT=limit, SELECT=select),
+                    # )
+                    # # CSV
+                    # select = ", st_astext(the_geom_local) as wkb"
+                    # export_pg_table(
+                    #     "csv",
+                    #     export_path,
+                    #     file_name,
+                    #     host,
+                    #     username,
+                    #     password,
+                    #     db,
+                    #     pg_sql_select.format(WHERE=where, LIMIT=limit, SELECT=select),
+                    # )
+
+                    # # SHP
+                    # geometry_type = ["POINT", "LINE", "POLYGON"]
+                    # select = ""
+                    # for geotype in geometry_type:
+                    #     where = (
+                    #         f"WHERE st_geometrytype(the_geom_local) ilike '%{geotype}'"
+                    #     )
+                    #     export_pg_table(
+                    #         "shp",
+                    #         export_path,
+                    #         f"{file_name}_{geotype}",
+                    #         host,
+                    #         username,
+                    #         password,
+                    #         db,
+                    #         pg_sql_select.format(
+                    #             WHERE=where, LIMIT=limit, SELECT=select
+                    #         ),
+                    #     )
+
                     gne_logger.info(
                         "Export {} with frequency {} day is done".format(
                             schedule.export.label, schedule.frequency
@@ -88,13 +185,13 @@ def gn_exports_run_cron_export():
 @with_appcontext
 def gn_exports_run_cron_export_dsw(limit, offset):
     """
-        Export des données de la synthese au format Darwin-SW (ttl)
+    Export des données de la synthese au format Darwin-SW (ttl)
 
-        Exemples
+    Exemples
 
-        - geonature gn_exports_run_cron_export_dsw
+    - geonature gn_exports_run_cron_export_dsw
 
-        - geonature gn_exports_run_cron_export_dsw --limit=2 --offset=1
+    - geonature gn_exports_run_cron_export_dsw --limit=2 --offset=1
     """
 
     gne_logger.info("START schedule Darwin-SW export task")
@@ -104,34 +201,28 @@ def gn_exports_run_cron_export_dsw(limit, offset):
 
     try:
 
-        conf = current_app.config.get('EXPORTS')
-        export_dsw_dir = str(Path(
-            conf.get('export_dsw_dir'),
-            conf.get('export_dsw_filename')
-        ))
+        conf = current_app.config.get("EXPORTS")
+        export_dsw_dir = str(
+            Path(conf.get("export_dsw_dir"), conf.get("export_dsw_filename"))
+        )
 
         # Get data and generate semantic data structure
         store = generate_store_dws(limit=limit, offset=offset, filters={})
 
         # Store file
         try:
-            Path(conf.get('export_dsw_dir')).mkdir(
-                parents=True, exist_ok=True
-            )
-            with open(export_dsw_dir, 'w+b') as xp:
+            Path(conf.get("export_dsw_dir")).mkdir(parents=True, exist_ok=True)
+            with open(export_dsw_dir, "w+b") as xp:
                 store.save(store_uri=xp)
         except FileNotFoundError as exception:
             gne_logger.error(
-                "Exception when saving file {}: ".format(
-                    export_dsw_dir
-                ),
-                exception
-                )
+                "Exception when saving file {}: ".format(export_dsw_dir), exception
+            )
 
         gne_logger.info(
             "Export done with success data are available here: {}".format(
                 export_dsw_dir
-                )
+            )
         )
         gne_logger.info("END schedule export task")
     except Exception as exception:
@@ -141,8 +232,9 @@ def gn_exports_run_cron_export_dsw(limit, offset):
 @with_appcontext
 def modification_date(filename):
     from flask import current_app
-    conf = current_app.config.get('EXPORTS')
-    EXPORT_SCHEDULES_DIR = conf.get('export_schedules_dir')
+
+    conf = current_app.config.get("EXPORTS")
+    EXPORT_SCHEDULES_DIR = conf.get("export_schedules_dir")
     try:
         full_path = os.path.join(EXPORT_SCHEDULES_DIR, filename)
         t = os.path.getmtime(full_path)
@@ -156,8 +248,9 @@ def modification_date(filename):
 @with_appcontext
 def check_file_exists(filename):
     from flask import current_app
-    conf = current_app.config.get('EXPORTS')
-    EXPORT_SCHEDULES_DIR = conf.get('export_schedules_dir')
+
+    conf = current_app.config.get("EXPORTS")
+    EXPORT_SCHEDULES_DIR = conf.get("export_schedules_dir")
     try:
         full_path = os.path.join(EXPORT_SCHEDULES_DIR, filename)
         exists = os.path.exists(full_path)
@@ -175,7 +268,9 @@ def is_to_updated(frequency, schedule_filename):
         file_date = modification_date(schedule_filename)
         # Vérifie si la date du fichier
         #           est inférieure à la date courante + frequency
-        file_is_to_updated = file_date and file_date + timedelta(days=frequency) < datetime.now()  # noqa E501
+        file_is_to_updated = (
+            file_date and file_date + timedelta(days=frequency) < datetime.now()
+        )  # noqa E501
     return file_is_to_updated
 
 commands = [
