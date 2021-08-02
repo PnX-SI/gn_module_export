@@ -338,97 +338,87 @@ class GenerateExport2:
         if self.format not in format_list:
             raise Exception("Unsupported format")
 
+        print("generate_data_export", self.format)
+        
         if self.format == "shp" and self.has_geometry:
-            self.generate_shp("shp")
+            self.export_with_ogr()
             return self.file_name + ".zip"
         if self.format == "gpkg" and self.has_geometry:
-            self.generate_gpkg()
+            self.export_with_ogr()
             return self.file_name + ".gpkg"
         elif self.format == "geojson" and self.has_geometry:
-            self.data = self.data["items"]
-            out = self.generate_json()
+            self.export_with_ogr()
         elif self.format == "json":
-            out = self.generate_json()
+            self.generate_json()
         elif self.format == "csv":
-            out = self.generate_csv()
+            self.export_with_ogr()
         else:
             raise Exception(
                 "Export generation is impossible with the specified format"
             )  # noqa E501
-
-        if out:
-            with open(
-                "{}/{}.{}".format(self.export_dir, self.file_name, self.format), "w"
-            ) as file:
-                file.write(out)
+ 
         return self.file_name + "." + self.format
 
-    def generate_gpkg(self):
+    def export_with_ogr(self,file_name=None, custom_where=None):
 
+        if not file_name:
+            file_name = self.file_name
+
+        if custom_where:
+            where_clause = f" WHERE {custom_where}"
+        else:
+            where_clause = ""
         db_host, db_port, db_user, db_pass, db_name = decompose_database_uri()
-        exp_query = "SELECT * FROM {schema}.{view} LIMIT 10".format(
-            schema=self.export["schema_name"], view=self.export["view_name"]
+        exp_query = "SELECT * FROM {schema}.{view} {where} LIMIT 10".format(
+            schema=self.export["schema_name"], 
+            view=self.export["view_name"],
+            where=where_clause
         )
-        export_pg_table(
+        ogr_export_pg_table(
             self.format,
             export_path=self.export_dir,
-            file_name=self.file_name,
+            file_name=file_name,
             host=db_host,
             username=db_user,
             password=db_pass,
             db=db_name,
             pg_sql_select=exp_query,
         )
-        return True
-
-    def generate_csv(self):
-        """
-        Transformation des données au format CSV
-        """
-        return generate_csv_content(
-            columns=[c.name for c in self.columns],
-            data=self.data.get("items"),
-            separator=current_app.config["EXPORTS"]["csv_separator"],
-        )
+        return True 
 
     def generate_json(self):
         """
         Transformation des données au format JSON/GeoJSON
         """
-        return json.dumps(self.data, ensure_ascii=False, indent=4)
+        columns, data = self.exprep._get_data(filters=None, limit=-1, offset=0, format="json")
+        out = json.dumps(data, ensure_ascii=False, indent=4)
+        
+        if out:
+            with open(
+                "{}/{}.{}".format(self.export_dir, self.file_name, self.format), "w"
+            ) as file:
+                file.write(out)
 
-    def generate_shp(self, export_format):
+    def generate_shp(self):
         """
         Transformation des données au format SHP
         et sauvegarde sous forme d'une archive
-        """
-
-        if export_format == "shp":
-            fionaService = FionaShapeService
-        else:
-            fionaService = FionaGpkgService
-
-        fionaService.create_fiona_struct(
-            db_cols=self.columns,
-            srid=self.export.get("geometry_srid"),
-            dir_path=self.export_dir,
-            file_name=self.file_name,
-        )
-
-        items = self.data.get("items")
-
-        for feature in items["features"]:
-            geom, props = (feature.get(field) for field in ("geometry", "properties"))
-
-            fionaService.create_feature(
-                props, from_shape(asShape(geom), self.export.get("geometry_srid"))
-            )
-
-        fionaService.save_files()
-
+        """ 
+        import zipfile
+        self.file_name + ".zip"
+        zip_shp = zipfile.ZipFile("{}/{}.{}".format(self.export_dir, self.file_name, "zip"), 'w')
+        
         # Suppression des fichiers générés et non compressés
         for gtype in ["POINT", "POLYGON", "POLYLINE"]:
+
+
             file_path = Path(self.export_dir, gtype + "_" + self.file_name)
+
+            zip_shp.write('eggs.txt')
+            self.export_with_ogr(
+                file_name="{self.file_name}_{gtype}", 
+                custom_where="st_geometrytype({self.has_geometry}) ilike '%{gtype}%'"
+            ) 
             if file_path.is_dir():
                 shutil.rmtree(str(file_path))
 
@@ -468,13 +458,14 @@ EXPORT_FORMAT = {
     "gpkg": "GPKG",
     "shp": "ESRI Shapefile",
     "geojson": "GeoJSON",
+    "json": "GeoJSON",
     "csv": "CSV",
 }
 
 import subprocess
 
 
-def export_pg_table(
+def ogr_export_pg_table(
     format, export_path, file_name, host, username, password, db, pg_sql_select
 ):
 
@@ -489,7 +480,7 @@ def export_pg_table(
         "-sql",
         f"{pg_sql_select}",
     ]
-
+    print(" ".join(cmd))
     output = subprocess.run(cmd, capture_output=True)
 
     # # TODO process output

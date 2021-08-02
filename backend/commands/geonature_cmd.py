@@ -38,7 +38,7 @@ def gn_exports_run_cron_export():
         export_data_file,
         export_data_file2,
         schedule_export_filename,
-        export_pg_table,
+        ogr_export_pg_table,
         decompose_database_uri,
     )
     from ..repositories import get_export_schedules
@@ -54,111 +54,15 @@ def gn_exports_run_cron_export():
             # Test si le fichier doit être regénéré
             filename = "{}.{}".format(schedule_filename, schedule.format)
             file_is_to_updated = is_to_updated(schedule.frequency, filename)
-            export_data_file2(
-                id_export=schedule.id_export,
-                export_format="gpkg",
-                filters={},
-                isScheduler=True,
-            )
-            if False:
-                # if file_is_to_updated:
-                # Fonction qui permet de générer un export fichier
+            file_is_to_updated = True
+            if file_is_to_updated:
                 try:
-                    # export_data_file(
-                    #     id_export=schedule.id_export,
-                    #     export_format=schedule.format,
-                    #     filters={},
-                    #     isScheduler=True,
-                    # )
-                    #### Export paramaters
-
-                    export = Export.query.filter_by(id=schedule.id_export).one()
-                    exp_query = f"SELECT * FROM {export.schema_name}.{export.view_name}"
-
-                    export_path = "/tmp/"
-
-                    # Get connexion
-
-                    print(
-                        "decompose_database_uri",
-                        db_host,
-                        db_port,
-                        db_user,
-                        db_pass,
-                        db_name,
+                    export_data_file2(
+                        id_export=schedule.id_export,
+                        export_format=schedule.format,
+                        filters={},
+                        isScheduler=True,
                     )
-                    file_name = filename
-
-                    where = ""
-                    limit = ""
-                    select = ""
-
-                    # Query
-                    pg_sql_select = (
-                        """SELECT *   {SELECT}
-                                FROM ( """
-                        + exp_query
-                        + """ ) d
-                                {WHERE}
-                                {LIMIT}
-                        """
-                    )
-                    # limit = "LIMIT 1000"
-                    print(pg_sql_select.format(WHERE=where, LIMIT=limit, SELECT=select))
-                    # gpkg
-                    # export_pg_table(
-                    #     "gpkg",
-                    #     export_path,
-                    #     file_name,
-                    #     db_host,
-                    #     db_user,
-                    #     db_pass,
-                    #     db_name,
-                    #     pg_sql_select.format(WHERE=where, LIMIT=limit, SELECT=select),
-                    # )
-                    # # geojson
-                    # export_pg_table(
-                    #     "geojson",
-                    #     export_path,
-                    #     file_name,
-                    #     host,
-                    #     username,
-                    #     password,
-                    #     db,
-                    #     pg_sql_select.format(WHERE=where, LIMIT=limit, SELECT=select),
-                    # )
-                    # # CSV
-                    # select = ", st_astext(the_geom_local) as wkb"
-                    # export_pg_table(
-                    #     "csv",
-                    #     export_path,
-                    #     file_name,
-                    #     host,
-                    #     username,
-                    #     password,
-                    #     db,
-                    #     pg_sql_select.format(WHERE=where, LIMIT=limit, SELECT=select),
-                    # )
-
-                    # # SHP
-                    # geometry_type = ["POINT", "LINE", "POLYGON"]
-                    # select = ""
-                    # for geotype in geometry_type:
-                    #     where = (
-                    #         f"WHERE st_geometrytype(the_geom_local) ilike '%{geotype}'"
-                    #     )
-                    #     export_pg_table(
-                    #         "shp",
-                    #         export_path,
-                    #         f"{file_name}_{geotype}",
-                    #         host,
-                    #         username,
-                    #         password,
-                    #         db,
-                    #         pg_sql_select.format(
-                    #             WHERE=where, LIMIT=limit, SELECT=select
-                    #         ),
-                    #     )
 
                     gne_logger.info(
                         "Export {} with frequency {} day is done".format(
