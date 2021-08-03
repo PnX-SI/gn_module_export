@@ -215,7 +215,7 @@ class GenerateExport:
             where_clause = ""
 
         db_host, db_port, db_user, db_pass, db_name = decompose_database_uri()
-        exp_query = "SELECT * FROM {schema}.{view} {where} LIMIT 10".format(
+        exp_query = "SELECT * FROM {schema}.{view} {where}".format(
             schema=self.export["schema_name"],
             view=self.export["view_name"],
             where=where_clause
@@ -322,7 +322,7 @@ def ogr_export_pg_table(
 ):
     cmd = [
         "ogr2ogr",
-        "-overwre",
+        "-overwrite",
         "-f",
         f"{EXPORT_FORMAT[format]}",
         f"{export_path}/{file_name}.{format}",
