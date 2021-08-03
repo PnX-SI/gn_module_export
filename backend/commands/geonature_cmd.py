@@ -36,10 +36,7 @@ def gn_exports_run_cron_export():
     gne_logger.info("START schedule export task")
     from ..utils_export import (
         export_data_file,
-        export_data_file2,
         schedule_export_filename,
-        ogr_export_pg_table,
-        decompose_database_uri,
     )
     from ..repositories import get_export_schedules
     from ..models import Export
@@ -49,15 +46,16 @@ def gn_exports_run_cron_export():
         export_schedules = get_export_schedules()
         for schedule in export_schedules:
             # Generation nom du fichier export
-            schedule_filename = schedule_export_filename(schedule.export.as_dict())
-            print(schedule.__dict__)
+            schedule_filename = schedule_export_filename(
+                schedule.export.as_dict(["licence"])
+            )
             # Test si le fichier doit être regénéré
             filename = "{}.{}".format(schedule_filename, schedule.format)
             file_is_to_updated = is_to_updated(schedule.frequency, filename)
             file_is_to_updated = True
             if file_is_to_updated:
                 try:
-                    export_data_file2(
+                    export_data_file(
                         id_export=schedule.id_export,
                         export_format=schedule.format,
                         filters={},

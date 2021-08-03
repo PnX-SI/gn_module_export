@@ -109,7 +109,7 @@ class ExportRepository:
             data = query.return_query()
         # Ajout licence
         if self.export:
-            export_license = (self.export.as_dict(True)).get("licence", None)
+            export_license = (self.export.as_dict(fields=["licence"])).get("licence", None)
             data["license"] = dict()
             data["license"]["name"] = export_license.get("name_licence", None)
             data["license"]["href"] = export_license.get("url_licence", None)
@@ -173,7 +173,7 @@ class ExportRepository:
                 raise
 
             if not with_data or not export_format:
-                return self.export.as_dict(True)
+                return self.export.as_dict(fields=["licence"])
 
             columns, data = self._get_data(
                 filters=filters, limit=limit, offset=offset, format=export_format
@@ -188,21 +188,19 @@ class ExportRepository:
 
             status = 0
 
-            result = (self.export.as_dict(True), columns, data)
+            result = (self.export.as_dict(fields=["licence"]), columns, data)
 
             end_time = datetime.utcnow()
 
-            ExportLog.record(
-                {
-                    "id_role": info_role.id_role,
-                    "id_export": self.export.id,
-                    "format": export_format,
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "status": status,
-                    "log": log,
-                }
+            self.log_export(
+                id_role=info_role.id_role,
+                export_format=export_format,
+                start_time=start_time,
+                end_time=end_time,
+                status=status,
+                log=log
             )
+
             return result
         except (InsufficientRightsError, NoResultFound, EmptyDataSetError) as e:
             LOGGER.warn("repository.get_by_id(): %s", str(e))
@@ -210,6 +208,17 @@ class ExportRepository:
         except Exception as e:
             LOGGER.critical("exception: %s", e)
             raise
+
+    def log_export(self, id_role, export_format, start_time, end_time, status, log=None):
+        ExportLog.record({
+                "id_role": id_role,
+                "id_export": self.export.id,
+                "format": export_format,
+                "start_time": start_time,
+                "end_time": end_time,
+                "status": status,
+                "log": log,
+        })
 
     def get_export_is_allowed(self, info_role):
         """

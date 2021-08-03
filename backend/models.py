@@ -86,7 +86,7 @@ class ExportLog(DB.Model):
             DB.session.commit()
         except Exception as e:
             DB.session.rollback()
-            # raise Exception('Echec de journalisation.')
+            # raise Exception('Echec de journalisation.', repr(e))
 
 
 class CorExportsRoles(DB.Model):
