@@ -1,4 +1,5 @@
 
+from sqlalchemy.orm import relationship
 from geonature.utils.env import DB
 
 from utils_flask_sqla.serializers import serializable
@@ -53,11 +54,7 @@ class Export(DB.Model):
         primary_key=True, nullable=False
     )
 
-    licence = DB.relationship(
-        'Licences',
-        primaryjoin='Export.id_licence==Licences.id_licence',
-        backref='exports'
-    )
+    licence = DB.relationship("Licences")
 
     def __str__(self):
         return "{}".format(self.label)
@@ -97,10 +94,19 @@ class CorExportsRoles(DB.Model):
     __table_args__ = {'schema': 'gn_exports'}
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id),
                           primary_key=True, nullable=False)
-    export = DB.relationship('Export', foreign_keys=[id_export], lazy='joined')
+
     id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role),
                         primary_key=True, nullable=False)
-    role = DB.relationship('UserRepr', foreign_keys=[id_role], lazy='joined')
+
+    export = DB.relationship(
+        "Export",
+        lazy='joined',
+        cascade="all,delete"
+    )
+    role = DB.relationship(
+        "UserRepr",
+        lazy='joined'
+    )
 
 
 class ExportSchedules(DB.Model):
@@ -112,8 +118,7 @@ class ExportSchedules(DB.Model):
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
 
     export = DB.relationship(
-        'Export',
-        primaryjoin='Export.id==ExportSchedules.id_export',
-        backref='exports',
-        lazy='subquery'
+        "Export",
+        lazy='subquery',
+        cascade="all,delete"
     )

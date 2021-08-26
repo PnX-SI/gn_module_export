@@ -12,6 +12,9 @@ from datetime import datetime
 from urllib.parse import urlparse
 
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError
+from psycopg2.errors import ForeignKeyViolation
+
 from flask import (
     Blueprint,
     request,
@@ -26,11 +29,12 @@ from flask import (
 from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
+from flask_admin.babel import gettext
 from wtforms import validators, IntegerField
 
 from pypnusershub.db.models import User
 
-from geonature.core.admin.admin import flask_admin
+from geonature.core.admin.admin import admin as flask_admin
 from utils_flask_sqla.response import json_resp, to_json_resp
 
 
@@ -194,6 +198,18 @@ class ExportView(ModelView):
 
         return super(ExportView, self).validate_form(form)
 
+    def handle_view_exception(self, exc):
+        """
+            Customisation du message d'erreur en cas de suppresion de l'export
+            s'il est toujours référencé dans les tables de logs
+        """
+        if isinstance(exc, IntegrityError):
+            if isinstance(exc.orig, ForeignKeyViolation):
+                flash(gettext("L'export ne peut pas être supprimé car il est toujours référencé (table de log)"), 'error')
+                return True
+
+        return super(ModelView, self).handle_view_exception(exc)
+
 
 class ExportSchedulesView(ModelView):
     """
@@ -331,9 +347,7 @@ def swagger_ressources(id_export=None):
 @permissions.check_cruved_scope(
     "E",
     True,
-    module_code="EXPORTS",
-    redirect_on_expiration=current_app.config.get("URL_APPLICATION"),
-    redirect_on_invalid_token=current_app.config.get("URL_APPLICATION"),
+    module_code="EXPORTS"
 )
 def getOneExportThread(id_export, export_format, info_role):
     """
@@ -424,9 +438,7 @@ def getOneExportThread(id_export, export_format, info_role):
 @permissions.check_cruved_scope(
     "R",
     True,
-    module_code="EXPORTS",
-    redirect_on_expiration=current_app.config.get("URL_APPLICATION"),
-    redirect_on_invalid_token=current_app.config.get("URL_APPLICATION"),
+    module_code="EXPORTS"
 )
 @json_resp
 def getExports(info_role):
@@ -445,16 +457,15 @@ def getExports(info_role):
         LOGGER.critical("%s", str(e))
         return {"api_error": "logged_error"}, 400
     else:
-        return [export.as_dict(recursif=True) for export in exports]
+
+        return [export.as_dict(fields=["licence"]) for export in exports]
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
 @permissions.check_cruved_scope(
     "R",
     True,
-    module_code="EXPORTS",
-    redirect_on_expiration=current_app.config.get("URL_APPLICATION"),
-    redirect_on_invalid_token=current_app.config.get("URL_APPLICATION"),
+    module_code="EXPORTS"
 )
 @json_resp
 def get_one_export_api(id_export, info_role):
