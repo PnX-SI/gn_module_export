@@ -14,7 +14,9 @@
         <div *ngIf="exports">
           <div class="card export-card mb-3" *ngFor="let export of exports">
             <div class="card-body">
-              <h5 class="card-title">{{export.label}}</h5>
+              <h5 class="card-title">
+                <span class="badge badge-info" title="ID de l'export" data-toggle="tooltip">{{export.id}}</span> {{export.label}}
+              </h5>
               <p class="card-text">{{export.desc}}</p>
               <div class="d-flex justify-content-end">
                 <a class="btn btn-warning btn-sm" href="{{api_endpoint}}/swagger/{{export.id}}" target="_blank"
