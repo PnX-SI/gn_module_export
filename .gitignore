@@ -49,6 +49,3 @@ frontend/app/module.config.ts
 
 # logs
 var/
-
-# tests
-scripts/geonature2geonature/config.py
