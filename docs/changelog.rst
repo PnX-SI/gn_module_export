@@ -8,6 +8,7 @@ CHANGELOG
 **🐛 Corrections**
 
 * Compatibilité avec GeoNature 2.7.x (#100)
+* Compatibilité avec Marshmallow 3 / GeoNature 2.8.0
 * Suppression des exports avec cascade sur les tables ``cor_roles`` et ``schedules`` (#93)
 
 **⚠️ Notes de version**

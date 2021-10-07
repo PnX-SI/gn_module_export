@@ -20,12 +20,12 @@ export_dsw_filename = "export_dsw.ttl"
 
 
 class GnModuleSchemaConf(Schema):
-    export_format_map = fields.Dict(missing=export_format_map)
-    export_schedules_dir = fields.String(missing=export_schedules_dir)
-    export_dsw_dir = fields.String(missing=export_dsw_dir)
-    export_dsw_filename = fields.String(missing=export_dsw_filename)
-    nb_days_keep_file = fields.Int(missing=15)
+    export_format_map = fields.Dict(load_default=export_format_map)
+    export_schedules_dir = fields.String(load_default=export_schedules_dir)
+    export_dsw_dir = fields.String(load_default=export_dsw_dir)
+    export_dsw_filename = fields.String(load_default=export_dsw_filename)
+    nb_days_keep_file = fields.Int(load_default=15)
     export_web_url = fields.String()
-    usr_generated_dirname = fields.String(missing="usr_generated")
-    csv_separator = fields.String(missing=";")
-    expose_dsw_api = fields.Boolean(missing=False)
+    usr_generated_dirname = fields.String(load_default="usr_generated")
+    csv_separator = fields.String(load_default=";")
+    expose_dsw_api = fields.Boolean(load_default=False)
