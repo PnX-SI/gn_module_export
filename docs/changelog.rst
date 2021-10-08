@@ -2,13 +2,22 @@
 CHANGELOG
 =========
 
+1.2.6 (2021-10-08)
+------------------
+
+Nécessite la version 2.8.0 (ou plus) de GeoNature
+
+**🚀 Nouveautés**
+
+* Compatibilité avec Marshmallow 3 / GeoNature 2.8.0
+* Ajout des ID dans la liste des exports (#103)
+
 1.2.5 (2021-07-30)
 ------------------
 
 **🐛 Corrections**
 
 * Compatibilité avec GeoNature 2.7.x (#100)
-* Compatibilité avec Marshmallow 3 / GeoNature 2.8.0
 * Suppression des exports avec cascade sur les tables ``cor_roles`` et ``schedules`` (#93)
 
 **⚠️ Notes de version**
