@@ -6,7 +6,6 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from flask.cli import with_appcontext
 
-from geonature.core.command import main
 from geonature.utils.env import ROOT_DIR
 
 # #######################
@@ -32,11 +31,12 @@ gne_logger = logging.getLogger('gn_export')
 gne_logger.addHandler(gne_handler)
 
 
-@main.command()
+
+@click.command('gn_exports_run_cron_export')
 @with_appcontext
 def gn_exports_run_cron_export():
     """
-        Export planifié d'un fichier
+       Lance les exports planifiés
     """
     gne_logger.info("START schedule export task")
     from ..utils_export import export_data_file, schedule_export_filename
@@ -82,9 +82,9 @@ def gn_exports_run_cron_export():
         gne_logger.error("exception export auto: {}".format(exception))
 
 
-@main.command()
-@click.option("--limit", required=False, default=-1)
-@click.option("--offset", required=False, default=0)
+@click.command('gn_exports_run_cron_export_dsw')
+@click.option("--limit", required=False, default=-1, help='Nombre de résultats à retourner')
+@click.option("--offset", required=False, default=0, help='Numéro du premier enregistrement à retourner')
 @with_appcontext
 def gn_exports_run_cron_export_dsw(limit, offset):
     """
@@ -177,3 +177,8 @@ def is_to_updated(frequency, schedule_filename):
         #           est inférieure à la date courante + frequency
         file_is_to_updated = file_date and file_date + timedelta(days=frequency) < datetime.now()  # noqa E501
     return file_is_to_updated
+
+commands = [
+    gn_exports_run_cron_export,
+    gn_exports_run_cron_export_dsw
+]
