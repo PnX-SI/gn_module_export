@@ -2,6 +2,22 @@
 CHANGELOG
 =========
 
+
+1.2.7 (unreleased)
+------------------
+
+Nécessite la version 2.8.0 (ou plus) de GeoNature
+
+**🚀 Nouveautés**
+
+* Les commandes sont accéssibles via la commande `geonature exports`
+
+```
+  gn_exports_run_cron_export      Lance les exports planifiés
+  gn_exports_run_cron_export_dsw  Export des données de la synthese au format...
+```
+
+
 1.2.6 (2021-10-08)
 ------------------
 
