@@ -1,2 +1,2 @@
 MODULE_CODE = 'EXPORT'
-MODULE_PICTO = 'fa-map-marker'
+MODULE_PICTO = 'fa-download'
