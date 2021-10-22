@@ -70,9 +70,9 @@ blueprint.static_folder = os.path.join(blueprint.root_path, "static")
 """
 
 
-blueprint.cli.short_help = "Commandes du module export"
-for cmd in commands:
-    blueprint.cli.add_command(cmd)
+# blueprint.cli.short_help = "Commandes du module export"
+# for cmd in commands:
+#     blueprint.cli.add_command(cmd)
 
 
 
