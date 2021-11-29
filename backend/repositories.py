@@ -253,7 +253,6 @@ def get_filter_corexportsroles_clause(info_role):
     """
     return DB.or_(
         CorExportsRoles.id_role == info_role.id_role,
-        CorExportsRoles.id_role == info_role.id_organisme,
         CorExportsRoles.id_role.in_(
             User.query.with_entities(User.id_role)
             .join(CorRole, CorRole.id_role_groupe == User.id_role)
