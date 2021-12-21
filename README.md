@@ -168,7 +168,7 @@ Il est possible de lancer manuellement cette commande.
 ```
 cd GN2_HOME
 source backend/venv/bin/activate
-geonature gn_exports_run_cron_export
+geonature exports gn_exports_run_cron_export
 ```
 
 Par défaut, le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
@@ -240,7 +240,7 @@ Fichier .ttl, généré par la commande :
 ```
 cd GN2_HOME
 source backend/venv/bin/activate
-geonature gn_exports_run_cron_export_dsw --limit 10 --offset=0
+geonature exports gn_exports_run_cron_export_dsw --limit 10 --offset=0
 ```
 
 Le fichier est alors disponible à l'adresse <URL_GEONATURE>/api/static/exports/dsw/export_dsw.ttl.

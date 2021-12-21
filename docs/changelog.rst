@@ -2,7 +2,6 @@
 CHANGELOG
 =========
 
-
 1.2.7 (2021-12-21)
 ------------------
 
@@ -10,13 +9,16 @@ Nécessite la version 2.8.0 (ou plus) de GeoNature
 
 **🚀 Nouveautés**
 
-* Les commandes sont accéssibles via la commande `geonature exports`
+* Suite aux évolutions des commandes de GeoNature, les commandes du module sont désormais accessibles via la commande ``geonature exports`` suivie de la commande de l'action :
 
-```
-  gn_exports_run_cron_export      Lance les exports planifiés
-  gn_exports_run_cron_export_dsw  Export des données de la synthese au format...
-```
+::
 
+   gn_exports_run_cron_export      # Lance les exports planifiés
+   gn_exports_run_cron_export_dsw  # Export des données de la synthese au format Darwin-SW
+   
+**🐛 Corrections**
+
+* Correction du conflit de permissions entre rôle et organisme (#108)
 
 1.2.6 (2021-10-08)
 ------------------
