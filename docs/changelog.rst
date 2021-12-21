@@ -3,7 +3,7 @@ CHANGELOG
 =========
 
 
-1.2.7 (unreleased)
+1.2.7 (2021-12-21)
 ------------------
 
 Nécessite la version 2.8.0 (ou plus) de GeoNature
