@@ -13,10 +13,10 @@ Nécessite la version 2.8.0 (ou plus) de GeoNature
 
 ::
 
-   gn_exports_run_cron_export      Lance les exports planifiés
-   gn_exports_run_cron_export_dsw  Export des données de la synthese au format Darwin-SW
+   gn_exports_run_cron_export      # Lance les exports planifiés
+   gn_exports_run_cron_export_dsw  # Export des données de la synthese au format Darwin-SW
    
-**Corrections**
+**🐛 Corrections**
 
 * Correction du conflit de permissions entre rôle et organisme (#108)
 
