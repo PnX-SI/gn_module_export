@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+1.2.8 (unreeased)
+------------------
+
+Nécessite la version 2.9.0 (ou plus) de GeoNature
+
+**🐛 Corrections**
+
+* Sécurisation de l'administration des exports
+
 1.2.7 (2021-12-21)
 ------------------
 
