@@ -249,7 +249,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     )
 
     form_args = {
-        "export": {"validators": [validators.Required()]},
+        "export": {"validators": [validators.DataRequired()]},
         "frequency": {"validators": [validators.NumberRange(1, 365)]},
     }
 
