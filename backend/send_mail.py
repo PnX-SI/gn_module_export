@@ -27,7 +27,8 @@ def export_send_mail(mail_to, export, file_name):
     else:
         url = url_for(
             'static',
-            filename='exports/' + module_conf.get('usr_generated_dirname') + '/' + file_name
+            filename='exports/' + module_conf.get('usr_generated_dirname') + '/' + file_name,
+            _external=True,
         )
 
 
