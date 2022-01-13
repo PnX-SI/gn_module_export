@@ -53,12 +53,14 @@ from .repositories import (
 )
 from .models import Export, CorExportsRoles, Licences, ExportSchedules, UserRepr
 from .utils_export import thread_export_data
-from .commands.geonature_cmd import commands
+
+from .commands import commands
 
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
 
-blueprint = Blueprint("exports", __name__)
+blueprint = Blueprint("exports", __name__, cli_group='exports')
+
 blueprint.template_folder = os.path.join(blueprint.root_path, "templates")
 blueprint.static_folder = os.path.join(blueprint.root_path, "static")
 
@@ -69,10 +71,9 @@ blueprint.static_folder = os.path.join(blueprint.root_path, "static")
 #################################################################
 """
 
-
-# blueprint.cli.short_help = "Commandes du module export"
-# for cmd in commands:
-#     blueprint.cli.add_command(cmd)
+blueprint.cli.short_help = "Commandes du module export"
+for cmd in commands:
+    blueprint.cli.add_command(cmd)
 
 
 
