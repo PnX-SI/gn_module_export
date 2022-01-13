@@ -2,6 +2,17 @@
 CHANGELOG
 =========
 
+1.2.8 (2022-01-13)
+------------------
+
+Nécessite la version 2.9.0 (ou plus) de GeoNature
+
+**🐛 Corrections**
+
+* Compatibilité avec la version 2.9.0 de GeoNature
+* Sécurisation de l'administration des exports
+* Correction de l'URL générée par défaut pour l'envoi des emails des fichiers exportés
+
 1.2.7 (2021-12-21)
 ------------------
 

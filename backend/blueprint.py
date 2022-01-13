@@ -34,7 +34,7 @@ from wtforms import validators, IntegerField
 
 from pypnusershub.db.models import User
 
-from geonature.core.admin.admin import admin as flask_admin
+from geonature.core.admin.admin import admin as flask_admin, CruvedProtectedMixin
 from utils_flask_sqla.response import json_resp, to_json_resp
 
 
@@ -83,10 +83,12 @@ for cmd in commands:
 """
 
 
-class LicenceView(ModelView):
+class LicenceView(CruvedProtectedMixin, ModelView):
     """
     Surcharge de l'administration des licences
     """
+    module_code = "EXPORTS"
+    object_code = None
 
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
@@ -105,10 +107,12 @@ class LicenceView(ModelView):
     )
 
 
-class ExportRoleView(ModelView):
+class ExportRoleView(CruvedProtectedMixin, ModelView):
     """
     Surcharge de l'administration de l'association role/export
     """
+    module_code = "EXPORTS"
+    object_code = None
 
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
@@ -128,10 +132,12 @@ class ExportRoleView(ModelView):
     }
 
 
-class ExportView(ModelView):
+class ExportView(CruvedProtectedMixin, ModelView):
     """
     Surcharge du formulaire d'administration Export
     """
+    module_code = "EXPORTS"
+    object_code = None
 
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
@@ -224,10 +230,12 @@ class ExportView(ModelView):
         return super(ModelView, self).handle_view_exception(exc)
 
 
-class ExportSchedulesView(ModelView):
+class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     """
     Surcharge de l'administration de l'export Schedules
     """
+    module_code = "EXPORTS"
+    object_code = None
 
     def __init__(self, session, **kwargs):
         # Référence au model utilisé
@@ -241,7 +249,7 @@ class ExportSchedulesView(ModelView):
     )
 
     form_args = {
-        "export": {"validators": [validators.Required()]},
+        "export": {"validators": [validators.DataRequired()]},
         "frequency": {"validators": [validators.NumberRange(1, 365)]},
     }
 
