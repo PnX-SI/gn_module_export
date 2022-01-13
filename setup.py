@@ -26,10 +26,10 @@ setuptools.setup(
     install_requires=requirements,
     entry_points={
         'gn_module': [
-            'code = export:MODULE_CODE',
-            'picto = export:MODULE_PICTO',
-            'blueprint = export.blueprint:blueprint',
-            'config_schema = export.conf_schema_toml:GnModuleSchemaConf',
+            'code = gn_module_export:MODULE_CODE',
+            'picto = gn_module_export:MODULE_PICTO',
+            'blueprint = gn_module_export.blueprint:blueprint',
+            'config_schema = gn_module_export.conf_schema_toml:GnModuleSchemaConf',
         ],
     },
     classifiers=['Development Status :: 1 - Planning',
