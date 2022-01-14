@@ -153,17 +153,12 @@ Il est possible de surcharger la documentation Swagger de chaque API en respecta
 
 # Export planifié
 
-Lors de l'installation du module, une commande cron est créée. Elle se lance tous les jours à minuit.
+Pour réaliser les exports planifiés une commande est disponible `geonature exports gn_exports_run_cron_export`. 
 
-```
-0 0 * * * MODULE_EXPORT_HOME/gn_export_cron.sh GN2_HOME # gn_export cron job
-```
+Cette commande liste des exports planifiés dans la table ``gn_exports.t_export_schedules`` et les exécute si besoin. La fonction considère qu'un export doit être réalisé à partir du moment où le fichier généré précedemment est plus ancien (en jours) que la fréquence définie (dans ``gn_exports.t_export_schedules.frequency``).
+Par défaut, le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
 
-Cette commande liste des exports planifiés dans la table ``gn_exports.t_export_schedules`` et les exécute si besoin.
-
-La fonction considère qu'un export doit être réalisé à partir du moment où le fichier généré précedemment est plus ancien (en jours) que la fréquence définie (dans ``gn_exports.t_export_schedules.frequency``).
-
-Il est possible de lancer manuellement cette commande.
+Pour lancer les exports il faut utiliser les instructions suivantes :
 
 ```
 cd GN2_HOME
@@ -171,7 +166,9 @@ source backend/venv/bin/activate
 geonature exports gn_exports_run_cron_export
 ```
 
-Par défaut, le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
+Vous pouvez automatiser les exports en configurant une tache cron.  
+Pour aller voir le CRON  : ``crontab -e``
+ 
 
 # URL des fichiers
 
