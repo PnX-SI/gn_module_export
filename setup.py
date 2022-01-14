@@ -22,7 +22,7 @@ setuptools.setup(
     url='https://github.com/PnX-SI/gn_module_export/',
     packages=setuptools.find_packages('backend'),
     package_dir={'': 'backend'},
-    package_data={},
+    package_data={'gn_module_export.migrations': ['data/*.sql']},
     install_requires=requirements,
     entry_points={
         'gn_module': [
@@ -30,6 +30,7 @@ setuptools.setup(
             'picto = gn_module_export:MODULE_PICTO',
             'blueprint = gn_module_export.blueprint:blueprint',
             'config_schema = gn_module_export.conf_schema_toml:GnModuleSchemaConf',
+            'migrations = gn_module_export:migrations',
         ],
     },
     classifiers=['Development Status :: 1 - Planning',
