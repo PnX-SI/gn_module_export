@@ -28,17 +28,18 @@ export interface ApiErrorResponse extends HttpErrorResponse {
 
 @Injectable()
 export class ExportService {
-  constructor(private _api: HttpClient) {}
+  constructor(private _api: HttpClient) { }
 
   getExports() {
+    console.log(AppConfig.API_ENDPOINT, ModuleConfig.MODULE_URL)
     return this._api.get(
-      `${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}/`
+      `${AppConfig.API_ENDPOINT}${ModuleConfig.MODULE_URL}/`
     );
   }
 
   downloadExport(x: Export, format: string, data: any) {
     return this._api.post<any>(
-      `${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}/${x.id}/${format}`,
+      `${AppConfig.API_ENDPOINT}${ModuleConfig.MODULE_URL}/${x.id}/${format}`,
       data
     );
   }
