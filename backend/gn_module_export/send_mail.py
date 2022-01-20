@@ -28,7 +28,6 @@ def export_send_mail(mail_to, export, file_name):
             _external=True,
         )
 
-    # ERREUR export['licence']
     msg = """
             Bonjour,
             <p>
