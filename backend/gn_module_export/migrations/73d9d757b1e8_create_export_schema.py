@@ -7,14 +7,14 @@ Create Date: 2022-01-13 16:32:22.721296
 """
 import importlib
 
-from alembic import op 
+from alembic import op
 from sqlalchemy.sql import text
 
 
 # revision identifiers, used by Alembic.
 revision = '73d9d757b1e8'
 down_revision = None
-branch_labels = ('gn_module_exports',)
+branch_labels = ('exports',)
 depends_on =(
     'dde31e76ce45'  # GeoNature 2.9.0
 )
@@ -25,4 +25,4 @@ def upgrade():
 
 
 def downgrade():
-    op.execute("DROP SCHEMA gn_exports CASCADE") 
+    op.execute("DROP SCHEMA gn_exports CASCADE")
