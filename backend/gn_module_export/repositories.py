@@ -102,7 +102,7 @@ class ExportObjectQueryRepository:
 
         """
 
-        # Export différent selon le format demandé
+        # Export dilimitfférent selon le format demandé
         #   shp ou geojson => geo_feature
         #   json =>
 
@@ -148,7 +148,6 @@ class ExportObjectQueryRepository:
 
 
         """
-        result = None
         log = None
         status = -2
         start_time = datetime.utcnow()
@@ -235,6 +234,18 @@ def generate_swagger_spec(id_export):
             "description": "Nombre maximum de résultats à retourner",
         },
         {"in": "query", "name": "offset", "type": "int", "description": "Numéro de page"},
+        {
+            "in": "query",
+            "name": "orderby",
+            "type": "varchar",
+            "description": "Nom d'un champ de la vue qui sera utilisé comme variable de tri",
+        },
+        {
+            "in": "query",
+            "name": "order",
+            "type": "varchar (desc/asc)",
+            "description": "Spécifie si le tri doit se faire de façon ascendante ou descendante",
+        },
     ]
     return general_params + swagger_parameters
 
