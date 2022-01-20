@@ -2,6 +2,25 @@
 CHANGELOG
 =========
 
+1.3.1 ???? a voir si on sort tout avec la 1.3.0 (unreleased)
+------------------
+
+Nécessite la version 2.10.0 (ou plus) de GeoNature
+
+**Evolutions**
+
+* Packaging du module
+* Passage à alembic
+* Ajout des paramètres d'ordonancement (ordreby et order) à la documentation swagger
+
+
+**⚠️ Notes de version**
+
+* Exécuter la commande suivante afin d’indiquer à Alembic l’état de votre base de données :
+```
+geonature db stamp 73d9d757b1e8
+````
+
 1.3.0 (unreleased)
 ------------------
 
@@ -35,7 +54,7 @@ Nécessite la version 2.8.0 (ou plus) de GeoNature
 
    gn_exports_run_cron_export      # Lance les exports planifiés
    gn_exports_run_cron_export_dsw  # Export des données de la synthese au format Darwin-SW
-   
+
 **🐛 Corrections**
 
 * Correction du conflit de permissions entre rôle et organisme (#108)
