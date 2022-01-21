@@ -25,4 +25,4 @@ def upgrade():
 
 
 def downgrade():
-    op.execute("DROP SCHEMA gn_exports CASCADE")
+    op.execute("DROP SCHEMA gn_exports CASCADE;")

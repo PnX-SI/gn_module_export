@@ -7,7 +7,7 @@ SET client_min_messages = warning;
 
 BEGIN;
 
-CREATE SCHEMA gn_exports;
+CREATE SCHEMA IF NOT EXISTS gn_exports;
 
 -- Table listant les exports
 CREATE TABLE gn_exports.t_exports
