@@ -10,16 +10,16 @@ Nécessite la version 2.10.0 (ou plus) de GeoNature
 **Evolutions**
 
 * Packaging du module
-* Passage à alembic
-* Ajout d'un paramètre d'ordonancement à la documentation swagger : orderby=nom_col[ASC|DESC]. Ce paramètre est utile lors des appels à l'API pour récupérer les données, il faut cependant que la colonne de tri pointe vers des valeurs uniques.
-
+* Passage à Alembic
+* Ajout d'un paramètre d'ordonancement à la documentation Swagger (``orderby=nom_col[ASC|DESC]``). Ce paramètre est utile lors des appels à l'API pour récupérer les données, il faut cependant que la colonne de tri pointe vers des valeurs uniques (#101).
 
 **⚠️ Notes de version**
 
-* Exécuter la commande suivante afin d’indiquer à Alembic l’état de votre base de données :
-```
-geonature db stamp 73d9d757b1e8
-````
+* Après la procédure classique de mise à jour, exécuter la commande suivante afin d’indiquer à Alembic l’état de votre base de données :
+
+  ::
+
+   geonature db stamp 73d9d757b1e8
 
 1.3.0 (unreleased)
 ------------------
