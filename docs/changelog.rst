@@ -11,7 +11,7 @@ Nécessite la version 2.10.0 (ou plus) de GeoNature
 
 * Packaging du module
 * Passage à alembic
-* Ajout des paramètres d'ordonancement (ordreby et order) à la documentation swagger
+* Ajout d'un paramètre d'ordonancement à la documentation swagger : orderby=nom_col[ASC|DESC]. Ce paramètre est utile lors des appels à l'API pour récupérer les données, il faut cependant que la colonne de tri pointe vers des valeurs uniques.
 
 
 **⚠️ Notes de version**

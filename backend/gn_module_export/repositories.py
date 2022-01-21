@@ -238,14 +238,8 @@ def generate_swagger_spec(id_export):
             "in": "query",
             "name": "orderby",
             "type": "varchar",
-            "description": "Nom d'un champ de la vue qui sera utilisé comme variable de tri",
-        },
-        {
-            "in": "query",
-            "name": "order",
-            "type": "varchar (desc/asc)",
-            "description": "Spécifie si le tri doit se faire de façon ascendante ou descendante",
-        },
+            "description": "Nom d'un champ de la vue qui sera utilisé comme variable de tri. Une mention au sens du tri peut être ajoutée en utilisant la syntaxe suivante : nom_col[:ASC|DESC]",
+        }
     ]
     return general_params + swagger_parameters
 
