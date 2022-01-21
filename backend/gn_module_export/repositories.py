@@ -21,14 +21,6 @@ from utils_flask_sqla_geo.generic import GenericQueryGeo, GenericTableGeo
 from .models import Export, ExportLog, ExportSchedules
 
 
-class EmptyDataSetError(Exception):
-    """
-    Erreur : Pas de données pour le jeu de données en question
-    """
-
-    def __init__(self, message=None):
-        self.message = message
-
 
 class ExportObjectQueryRepository:
     def __init__(self, id_export, info_role=None, filters=None, limit=1000, offset=0):
@@ -154,12 +146,6 @@ class ExportObjectQueryRepository:
         end_time = None
 
         data = self._get_data(format=export_format)
-        if len(data.get("items")) == 0:
-            raise EmptyDataSetError(
-                "Empty dataset for export id {} with id_role {}.".format(
-                    self.id_export, g.user.id_role
-                )
-            )
 
         status = 0
 
@@ -206,10 +192,8 @@ def generate_swagger_spec(id_export):
     les spécifications Swagger d'un export
     """
     swagger_parameters = []
-    try:
-        export = Export.query.filter(Export.id == id_export).one()
-    except (NoResultFound, EmptyDataSetError) as e:
-        raise e
+
+    export = Export.query.filter(Export.id == id_export).one()
 
     export_table = GenericTableGeo(
         tableName=export.view_name,

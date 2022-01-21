@@ -42,7 +42,7 @@ from geonature.core.gn_permissions import decorators as permissions
 from geonature.utils.env import DB
 
 
-from .repositories import ExportObjectQueryRepository, EmptyDataSetError, generate_swagger_spec
+from .repositories import ExportObjectQueryRepository, generate_swagger_spec
 from .models import Export, CorExportsRoles, Licences, ExportSchedules, UserRepr
 from .utils_export import thread_export_data
 
@@ -306,7 +306,7 @@ def swagger_ressources(id_export=None):
     # Si l'id export existe et que les droits sont définis
     try:
         export = Export.query.filter(Export.id == id_export).one()
-    except (NoResultFound, EmptyDataSetError):
+    except (NoResultFound):
         return jsonify({"message": "no export with this id"}), 404
 
     # Si un fichier de surcouche est défini
