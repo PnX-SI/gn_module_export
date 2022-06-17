@@ -6,12 +6,14 @@ CHANGELOG
 ------------------
 
 Nécessite la version 2.10.0 (ou plus) de GeoNature
+?? A mettre à jour avant de passer GeoNature en 2.10.0 qui supprime la vue ``gn_sensitivity.cor_sensitivity_synthese``, auparavant utilisée dans une vue par défaut fournie par le module Export. Du coup, en effet, à voir si on sort d'abord une 1.3.0 d'abord avec juste le passage à Angular 12 pour le passage à Angular où si o inclut tout ça dans une seule version. Vu le contexte, je pense qu'on peut tout mettre (Angular 12 et packahing+alembic) dans une version 1.3.0
 
 **Evolutions**
 
 * Packaging du module
 * Passage à Alembic
 * Ajout d'un paramètre d'ordonancement à la documentation Swagger (``orderby=nom_col[ASC|DESC]``). Ce paramètre est utile lors des appels à l'API pour récupérer les données, il faut cependant que la colonne de tri pointe vers des valeurs uniques (#101).
+* Révision de la vue ``gn_exports.v_synthese_sinp_dee`` pour ne plus utiliser la table ``gn_sensitivity.cor_sensitivity_synthese`` (supprimée dans GeoNature 2.10.0)
 
 **⚠️ Notes de version**
 
