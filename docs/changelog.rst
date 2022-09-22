@@ -2,35 +2,33 @@
 CHANGELOG
 =========
 
-1.3.1 ???? a voir si on sort tout avec la 1.3.0 (unreleased)
+1.3.0 (unreleased)
 ------------------
 
-Nécessite la version 2.10.0 (ou plus) de GeoNature
-?? A mettre à jour avant de passer GeoNature en 2.10.0 qui supprime la vue ``gn_sensitivity.cor_sensitivity_synthese``, auparavant utilisée dans une vue par défaut fournie par le module Export. Du coup, en effet, à voir si on sort d'abord une 1.3.0 d'abord avec juste le passage à Angular 12 pour le passage à Angular où si o inclut tout ça dans une seule version. Vu le contexte, je pense qu'on peut tout mettre (Angular 12 et packahing+alembic) dans une version 1.3.0
+Nécessite la version 2.10.0 (ou plus) de GeoNature.
 
-**Evolutions**
+**🚀 Nouveautés**
 
+* Compatibilité avec Angular version 12, mis à jour dans la version 2.10.0 de GeoNature (#111)
 * Packaging du module
-* Passage à Alembic
+
+  * Gestion de la base de données avec Alembic
+
 * Ajout d'un paramètre d'ordonancement à la documentation Swagger (``orderby=nom_col[ASC|DESC]``). Ce paramètre est utile lors des appels à l'API pour récupérer les données, il faut cependant que la colonne de tri pointe vers des valeurs uniques (#101).
 * Révision de la vue ``gn_exports.v_synthese_sinp_dee`` pour ne plus utiliser la table ``gn_sensitivity.cor_sensitivity_synthese`` (supprimée dans GeoNature 2.10.0)
 
 **⚠️ Notes de version**
 
-* Après la procédure classique de mise à jour, exécuter la commande suivante afin d’indiquer à Alembic l’état de votre base de données :
+Après la procédure classique de mise à jour, il faut :
 
-  ::
+* Exécuter le script SQL de mise à jour ``data/migrations/1.2.8to1.3.0.sql``
 
-   geonature db stamp 73d9d757b1e8
+* Exécuter la commande suivante afin d’indiquer à Alembic l’état de votre base de données :
 
-1.3.0 (unreleased)
-------------------
+::
 
-Nécessite la version 2.10.0 (ou plus) de GeoNature
+   geonature db stamp c2d02e345a06
 
-**Evolutions**
-
-- Compatibilité avec Angular version 12, mis à jour dans la version 2.10.0 de GeoNature (#111)
 
 1.2.8 (2022-01-13)
 ------------------
