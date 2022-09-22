@@ -399,13 +399,7 @@ WITH cda AS (
     s.meta_update_date AS "dEEDateTransformation",
     COALESCE(s.meta_update_date, s.meta_create_date) AS "dEEDateDerniereModification",
     s.reference_biblio AS "referenceBiblio",
-    (
-    	SELECT meta_create_date
-	     FROM gn_sensitivity.cor_sensitivity_synthese css
-	     WHERE css.uuid_attached_row = s.unique_id_sinp
-	     ORDER BY meta_create_date DESC
-	     LIMIT 1
-     ) AS "sensiDateAttribution",
+    s.meta_update_date AS "sensiDateAttribution",
     n1.label_default AS "natureObjetGeo",
     n2.label_default AS "methodeRegroupement",
     n4.label_default AS "obsTechnique",

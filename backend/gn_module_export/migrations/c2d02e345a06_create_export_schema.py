@@ -1,7 +1,6 @@
 """create export schema
 
-Revision ID: 73d9d757b1e8
-Revises: dde31e76ce45
+Revision ID: c2d02e345a06
 Create Date: 2022-01-13 16:32:22.721296
 
 """
@@ -12,7 +11,7 @@ from sqlalchemy.sql import text
 
 
 # revision identifiers, used by Alembic.
-revision = '73d9d757b1e8'
+revision = 'c2d02e345a06'
 down_revision = None
 branch_labels = ('exports',)
 depends_on =(
