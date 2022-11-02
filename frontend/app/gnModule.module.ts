@@ -26,7 +26,7 @@ const routes: Routes = [{ path: "", component: ExportListComponent }];
     }),
     CommonModule,
     GN2CommonModule,
-    NgbModule.forRoot(),
+    NgbModule,
     RouterModule.forChild(routes)
   ],
   declarations: [ExportListComponent],

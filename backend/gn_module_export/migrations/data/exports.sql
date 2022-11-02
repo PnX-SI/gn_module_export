@@ -6,13 +6,9 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 
 BEGIN;
-DROP SCHEMA IF EXISTS gn_exports CASCADE;
-CREATE SCHEMA gn_exports;
-COMMIT;
 
-SET search_path = gn_exports, pg_catalog;
+CREATE SCHEMA IF NOT EXISTS gn_exports;
 
-BEGIN;
 -- Table listant les exports
 CREATE TABLE gn_exports.t_exports
 (
@@ -403,13 +399,7 @@ WITH cda AS (
     s.meta_update_date AS "dEEDateTransformation",
     COALESCE(s.meta_update_date, s.meta_create_date) AS "dEEDateDerniereModification",
     s.reference_biblio AS "referenceBiblio",
-    (
-    	SELECT meta_create_date
-	     FROM gn_sensitivity.cor_sensitivity_synthese css
-	     WHERE css.uuid_attached_row = s.unique_id_sinp
-	     ORDER BY meta_create_date DESC
-	     LIMIT 1
-     ) AS "sensiDateAttribution",
+    s.meta_update_date AS "sensiDateAttribution",
     n1.label_default AS "natureObjetGeo",
     n2.label_default AS "methodeRegroupement",
     n4.label_default AS "obsTechnique",

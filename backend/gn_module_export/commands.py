@@ -30,8 +30,6 @@ gne_handler.setFormatter(formatter)
 gne_logger = logging.getLogger('gn_export')
 gne_logger.addHandler(gne_handler)
 
-
-
 @click.command('gn_exports_run_cron_export')
 @with_appcontext
 def gn_exports_run_cron_export():
@@ -39,8 +37,8 @@ def gn_exports_run_cron_export():
        Lance les exports planifiés
     """
     gne_logger.info("START schedule export task")
-    from ..utils_export import export_data_file, schedule_export_filename
-    from ..repositories import get_export_schedules
+    from .utils_export import export_data_file, schedule_export_filename
+    from .repositories import get_export_schedules
 
     # Liste des exports automatiques
     try:
@@ -100,7 +98,7 @@ def gn_exports_run_cron_export_dsw(limit, offset):
     gne_logger.info("START schedule Darwin-SW export task")
 
     from flask import current_app
-    from ..rdf import generate_store_dws
+    from .rdf import generate_store_dws
 
     try:
 

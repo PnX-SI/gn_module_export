@@ -41,12 +41,16 @@ Les paramètres du module surcouchables concernent les dossiers d'export et se c
 
 Voir le fichier ``gn_module_export/config/conf_gn_module.toml.example`` d'exemple des paramètres.
 
-Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier ``gn_module_export/config/conf_gn_module.toml``, vous devez lancer une commande pour appliquer les modifications des paramètres : 
+Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier ``gn_module_export/config/conf_gn_module.toml``, vous devez lancer une commande pour appliquer les modifications des paramètres :
 
 ```
-cd /home/`whoami`/geonature/backend
+cd ~/geonature/backend
 source venv/bin/activate
-geonature update_module_configuration EXPORTS
+geonature update-module-configuration EXPORTS
+sudo systemctl restart geonature
+cd ~/geonature/frontend
+nvm use
+npm run build
 ```
 
 ## Commande d'installation
@@ -68,9 +72,14 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Lancez l'installation du module
 
 ```
+cd
 source geonature/backend/venv/bin/activate
-geonature install_gn_module /PATH_TO_MODULE/gn_module_export exports
+geonature install-packaged-gn-module gn_module_export EXPORTS
 deactivate
+sudo systemctl restart geonature
+cd geonature/frontend
+nvm use
+npm run build
 ```
 
 ## Mise à jour du module
@@ -103,9 +112,13 @@ cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami
 - Relancez la compilation en mettant à jour la configuration
 
 ```
-cd /home/`whoami`/geonature/backend
+cd ~/geonature/backend
 source venv/bin/activate
-geonature update_module_configuration EXPORTS
+geonature update-module-configuration EXPORTS
+sudo systemctl restart geonature
+cd ~/geonature/frontend
+nvm use
+npm run build
 ```
 
 # Administration du module
@@ -142,28 +155,23 @@ Chaque fois qu'un export de fichier est réalisé depuis le module, celui-ci est
 
 # API JSON et documentation Swagger d'un export
 
-Pour chaque export créé, une API JSON filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API JSON de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles. 
+Pour chaque export créé, une API JSON filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API JSON de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles.
 
-Par défaut une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres. 
+Par défaut une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres.
 
-Il est possible de surcharger la documentation Swagger de chaque API en respectant certaines conventions : 
+Il est possible de surcharger la documentation Swagger de chaque API en respectant certaines conventions :
 
 1. Créer un fichier au format OpenAPI décrivant votre export
 2. Sauvegarder le fichier ``geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json``
 
 # Export planifié
 
-Lors de l'installation du module, une commande cron est créée. Elle se lance tous les jours à minuit.
+Pour réaliser les exports planifiés une commande est disponible `geonature exports gn_exports_run_cron_export`.
 
-```
-0 0 * * * MODULE_EXPORT_HOME/gn_export_cron.sh GN2_HOME # gn_export cron job
-```
+Cette commande liste des exports planifiés dans la table ``gn_exports.t_export_schedules`` et les exécute si besoin. La fonction considère qu'un export doit être réalisé à partir du moment où le fichier généré précedemment est plus ancien (en jours) que la fréquence définie (dans ``gn_exports.t_export_schedules.frequency``).
+Par défaut, le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
 
-Cette commande liste des exports planifiés dans la table ``gn_exports.t_export_schedules`` et les exécute si besoin.
-
-La fonction considère qu'un export doit être réalisé à partir du moment où le fichier généré précedemment est plus ancien (en jours) que la fréquence définie (dans ``gn_exports.t_export_schedules.frequency``).
-
-Il est possible de lancer manuellement cette commande.
+Pour lancer les exports il faut utiliser les instructions suivantes :
 
 ```
 cd GN2_HOME
@@ -171,7 +179,9 @@ source backend/venv/bin/activate
 geonature exports gn_exports_run_cron_export
 ```
 
-Par défaut, le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/static/exports/schedules/Nom_Export.Format``.
+Vous pouvez automatiser les exports en configurant une tache cron.
+Pour aller voir le CRON  : ``crontab -e``
+
 
 # URL des fichiers
 
@@ -183,7 +193,7 @@ Pour cela, modifier la configuration Apache de GeoNature et ajouter un alias ver
 sudo nano /etc/apache2/sites-available/geonature.conf
 ```
 
-Ajoutez ces lignes au milieu de la configuration Apache de GeoNature (en adaptant le chemin absolu et le nom de l'alias comme vous le souhaitez). Exemple pour les exports planifiés : 
+Ajoutez ces lignes au milieu de la configuration Apache de GeoNature (en adaptant le chemin absolu et le nom de l'alias comme vous le souhaitez). Exemple pour les exports planifiés :
 
 ```
 Alias "/exportschedules" "/home/myuser/geonature/backend/static/exports/schedules"
@@ -225,16 +235,16 @@ L'export est accessible de deux façons :
 
 * API (si ``expose_dsw_api = true``)
 * Fichier .ttl généré par une commande GeoNature
- 
-API : 
+
+API :
 
   ``<URL_GEONATURE>/api/exports/semantic_dsw``
 
-    Paramètres : 
+    Paramètres :
         - limit
         - offset
         - champs présents dans la vue v_exports_synthese_sinp_rdf
-        
+
 Fichier .ttl, généré par la commande :
 
 ```
@@ -257,7 +267,7 @@ Exemple de graphe représentant l'export d'une seule donnée de la synthèse sel
 
 ![Exemple de graph pour une donnée](docs/semantic/sample_semantic_dsw.png)
 
-Bibliographie : 
+Bibliographie :
 
  * Darwin-SW : http://www.semantic-web-journal.net/system/files/swj635.pdf
  * Adding Biodiversity Datasets from Argentinian Patagonia to the Web of Data: http://ceur-ws.org/Vol-1933/paper-6.pdf
@@ -270,7 +280,7 @@ Bibliographie :
 * Biodiversité et linked data (Présentation d'Amandine Sahl au Forum TIC 2018) : https://geonature.fr/documents/2018-06-forum-tic-biodiversite-linkeddata-sahl.pdf
 * OPENDATA ET BIODIVERSITÉ (Pourquoi et comment publier ses données de biodiversité en opendata ?) : https://geonature.fr/documents/2019-04-biodiversite-opendata.pdf
 
-A voir aussi : 
+A voir aussi :
 
 * https://www.indigo-datacloud.eu
 * https://fr.wikipedia.org/wiki/Syst%C3%A8me_d'information_taxonomique_int%C3%A9gr%C3%A9

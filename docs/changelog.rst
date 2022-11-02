@@ -2,10 +2,38 @@
 CHANGELOG
 =========
 
+1.3.0 (2022-11-02)
+------------------
+
+Nécessite la version 2.10.0 (ou plus) de GeoNature.
+
+**🚀 Nouveautés**
+
+* Compatibilité avec Angular version 12, mis à jour dans la version 2.10.0 de GeoNature (#111)
+* Packaging du module
+* Gestion de la base de données avec Alembic
+* Ajout d'un paramètre d'ordonancement à la documentation Swagger (``orderby=nom_col[ASC|DESC]``). Ce paramètre est utile lors des appels à l'API pour récupérer les données, il faut cependant que la colonne de tri pointe vers des valeurs uniques (#101).
+* Révision de la vue ``gn_exports.v_synthese_sinp_dee`` pour ne plus utiliser la table ``gn_sensitivity.cor_sensitivity_synthese`` (supprimée dans GeoNature 2.10.0)
+* Le cron générant les exports planifiés chaque nuit n'est plus mis en place automatiquement lors de l'installation du module. Libre à chacun de le mettre en place.
+
+**⚠️ Notes de version**
+
+Après la procédure classique de mise à jour du module, il faut :
+
+* Exécuter le script SQL de mise à jour ``data/migrations/1.2.8to1.3.0.sql``
+* Exécuter la commande suivante afin d’indiquer à Alembic l’état de votre base de données :
+
+  ::
+
+     cd
+     source geonature/backend/venv/bin/activate
+     geonature db stamp c2d02e345a06
+     deactivate
+
 1.2.8 (2022-01-13)
 ------------------
 
-Nécessite la version 2.9.0 (ou plus) de GeoNature
+Nécessite la version 2.9 de GeoNature. Non compatible avec les versions 2.10 et supérieures de GeoNature.
 
 **🐛 Corrections**
 
@@ -22,11 +50,11 @@ Nécessite la version 2.8.0 (ou plus) de GeoNature
 
 * Suite aux évolutions des commandes de GeoNature, les commandes du module sont désormais accessibles via la commande ``geonature exports`` suivie de la commande de l'action :
 
-::
+  ::
 
    gn_exports_run_cron_export      # Lance les exports planifiés
    gn_exports_run_cron_export_dsw  # Export des données de la synthese au format Darwin-SW
-   
+
 **🐛 Corrections**
 
 * Correction du conflit de permissions entre rôle et organisme (#108)

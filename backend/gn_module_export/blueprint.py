@@ -5,10 +5,8 @@
 import os
 import logging
 import threading
-import json
 
 from pathlib import Path
-from datetime import datetime
 from urllib.parse import urlparse
 
 from sqlalchemy.orm.exc import NoResultFound
@@ -30,7 +28,7 @@ from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
 from flask_admin.babel import gettext
-from wtforms import validators, IntegerField
+from wtforms import validators
 
 from pypnusershub.db.models import User
 
@@ -38,27 +36,23 @@ from geonature.core.admin.admin import admin as flask_admin, CruvedProtectedMixi
 from utils_flask_sqla.response import json_resp, to_json_resp
 
 
-from utils_flask_sqla.generic import GenericQuery
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.utils.env import DB
 
 
-from .repositories import (
-    ExportRepository,
-    EmptyDataSetError,
-    generate_swagger_spec,
-    get_allowed_exports,
-)
+from .repositories import ExportObjectQueryRepository, generate_swagger_spec
 from .models import Export, CorExportsRoles, Licences, ExportSchedules, UserRepr
 from .utils_export import thread_export_data
-from .commands.geonature_cmd import commands
+
+from .commands import commands
 
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
 
-blueprint = Blueprint("exports", __name__)
+blueprint = Blueprint("exports", __name__, cli_group="exports")
+
 blueprint.template_folder = os.path.join(blueprint.root_path, "templates")
 blueprint.static_folder = os.path.join(blueprint.root_path, "static")
 
@@ -69,11 +63,9 @@ blueprint.static_folder = os.path.join(blueprint.root_path, "static")
 #################################################################
 """
 
-
 blueprint.cli.short_help = "Commandes du module export"
 for cmd in commands:
     blueprint.cli.add_command(cmd)
-
 
 
 """
@@ -87,6 +79,7 @@ class LicenceView(CruvedProtectedMixin, ModelView):
     """
     Surcharge de l'administration des licences
     """
+
     module_code = "EXPORTS"
     object_code = None
 
@@ -97,9 +90,7 @@ class LicenceView(CruvedProtectedMixin, ModelView):
     # exclusion du champ exports
     form_excluded_columns = "exports"
     # Nom de colonne user friendly
-    column_labels = dict(
-        name_licence="Nom de la licence", url_licence="Description de la licence"
-    )
+    column_labels = dict(name_licence="Nom de la licence", url_licence="Description de la licence")
     # Description des colonnes
     column_descriptions = dict(
         name_licence="Nom de la licence",
@@ -111,6 +102,7 @@ class ExportRoleView(CruvedProtectedMixin, ModelView):
     """
     Surcharge de l'administration de l'association role/export
     """
+
     module_code = "EXPORTS"
     object_code = None
 
@@ -136,6 +128,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
     """
     Surcharge du formulaire d'administration Export
     """
+
     module_code = "EXPORTS"
     object_code = None
 
@@ -198,9 +191,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         if is_form_submitted() and view_name and schema_name:
             try:
                 if geometry_field.data and geometry_srid.data is None:
-                    raise KeyError(
-                        "Field Geometry SRID is mandatory with Geometry field"
-                    )
+                    raise KeyError("Field Geometry SRID is mandatory with Geometry field")
 
                 query = GenericQueryGeo(
                     DB,
@@ -219,12 +210,17 @@ class ExportView(CruvedProtectedMixin, ModelView):
 
     def handle_view_exception(self, exc):
         """
-            Customisation du message d'erreur en cas de suppresion de l'export
-            s'il est toujours référencé dans les tables de logs
+        Customisation du message d'erreur en cas de suppresion de l'export
+        s'il est toujours référencé dans les tables de logs
         """
         if isinstance(exc, IntegrityError):
             if isinstance(exc.orig, ForeignKeyViolation):
-                flash(gettext("L'export ne peut pas être supprimé car il est toujours référencé (table de log)"), 'error')
+                flash(
+                    gettext(
+                        "L'export ne peut pas être supprimé car il est toujours référencé (table de log)"
+                    ),
+                    "error",
+                )
                 return True
 
         return super(ModelView, self).handle_view_exception(exc)
@@ -234,6 +230,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     """
     Surcharge de l'administration de l'export Schedules
     """
+
     module_code = "EXPORTS"
     object_code = None
 
@@ -254,9 +251,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     }
 
     if "EXPORTS" in current_app.config:
-        format_list = [
-            (k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()
-        ]
+        format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
         form_choices = {"format": format_list}
 
 
@@ -290,8 +285,7 @@ def swagger_ui(id_export=None):
     return render_template(
         "index.html",
         API_ENDPOINT=(
-            current_app.config["API_ENDPOINT"]
-            + current_app.config["EXPORTS"]["MODULE_URL"]
+            current_app.config["API_ENDPOINT"] + current_app.config["EXPORTS"]["MODULE_URL"]
         ),
         id_export=id_export,
     )
@@ -312,7 +306,7 @@ def swagger_ressources(id_export=None):
     # Si l'id export existe et que les droits sont définis
     try:
         export = Export.query.filter(Export.id == id_export).one()
-    except (NoResultFound, EmptyDataSetError):
+    except (NoResultFound):
         return jsonify({"message": "no export with this id"}), 404
 
     # Si un fichier de surcouche est défini
@@ -338,9 +332,7 @@ def swagger_ressources(id_export=None):
         "/swagger/generic_swagger_doc.json",
         export_nom=export.label,
         export_description=export.desc,
-        export_path="{}/api/{}".format(
-            current_app.config["EXPORTS"]["MODULE_URL"], id_export
-        ),
+        export_path="{}/api/{}".format(current_app.config["EXPORTS"]["MODULE_URL"], id_export),
         export_parameters=export_parameters,
         licence_nom=export.licence.name_licence,
         licence_description=export.licence.url_licence,
@@ -365,20 +357,13 @@ def swagger_ressources(id_export=None):
     allow_headers=["content-type", "content-disposition"],
     expose_headers=["Content-Type", "Content-Disposition", "Authorization"],
 )
-@permissions.check_cruved_scope(
-    "E",
-    True,
-    module_code="EXPORTS"
-)
+@permissions.check_cruved_scope("E", True, module_code="EXPORTS")
 def getOneExportThread(id_export, export_format, info_role):
     """
     Run export with thread
     """
     # Test if export exists
-    if (
-        id_export < 1
-        or export_format not in current_app.config["EXPORTS"]["export_format_map"]
-    ):
+    if id_export < 1 or export_format not in current_app.config["EXPORTS"]["export_format_map"]:
         return to_json_resp(
             {
                 "api_error": "invalid_export",
@@ -401,18 +386,15 @@ def getOneExportThread(id_export, export_format, info_role):
         def get_data(id_export, export_format, info_role, filters, email_to):
             thread_export_data(id_export, export_format, info_role, filters, email_to)
 
-        exp = ExportRepository(id_export)
         # Test if export is allowed
         try:
-            exp.get_export_is_allowed(info_role)
+            exp = ExportObjectQueryRepository(id_export=id_export, info_role=info_role)
         except Exception as e:
             return to_json_resp({"message": "Not Allowed"}, status=403)
 
         # Test if user have an email
         try:
-            user = (
-                DB.session.query(User).filter(User.id_role == info_role.id_role).one()
-            )
+            user = DB.session.query(User).filter(User.id_role == info_role.id_role).one()
             if not user.email and not email_to:  # TODO add more test
                 return to_json_resp(
                     {
@@ -456,38 +438,25 @@ def getOneExportThread(id_export, export_format, info_role):
 
 
 @blueprint.route("/", methods=["GET"])
-@permissions.check_cruved_scope(
-    "R",
-    True,
-    module_code="EXPORTS"
-)
+@permissions.check_cruved_scope("R", True, module_code="EXPORTS")
 @json_resp
-def getExports(info_role):
+def get_exports(info_role):
     """
     Fonction qui renvoie la liste des exports
     accessibles pour un role donné
     """
     try:
-        exports = get_allowed_exports(info_role)
+        exports = Export.query.get_allowed_exports().all()
     except NoResultFound:
         return {
             "api_error": "no_result_found",
             "message": "Configure one or more export",
         }, 404
-    except Exception as e:
-        LOGGER.critical("%s", str(e))
-        return {"api_error": "logged_error"}, 400
-    else:
-
-        return [export.as_dict(fields=["licence"]) for export in exports]
+    return [export.as_dict(fields=["licence"]) for export in exports]
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
-@permissions.check_cruved_scope(
-    "R",
-    True,
-    module_code="EXPORTS"
-)
+@permissions.check_cruved_scope("R", True, module_code="EXPORTS")
 @json_resp
 def get_one_export_api(id_export, info_role):
     """
@@ -544,13 +513,6 @@ def get_one_export_api(id_export, info_role):
 
         order by : @TODO
     """
-    exprep = ExportRepository(id_export)
-
-    # Test if export is allowed
-    try:
-        exprep.get_export_is_allowed(info_role)
-    except Exception:
-        return ({"message": "Not Allowed"}, 403)
 
     limit = request.args.get("limit", default=1000, type=int)
     offset = request.args.get("offset", default=0, type=int)
@@ -562,9 +524,10 @@ def get_one_export_api(id_export, info_role):
         args.pop("offset")
     filters = {f: args.get(f) for f in args}
 
-    (export, columns, data) = exprep.get_export_with_logging(
-        info_role, with_data=True, filters=filters, limit=limit, offset=offset
+    exprep = ExportObjectQueryRepository(
+        id_export=id_export, info_role=info_role, filters=filters, limit=limit, offset=offset
     )
+    data = exprep.get_export_with_logging()
     return data
 
 
