@@ -44,9 +44,13 @@ Voir le fichier ``gn_module_export/config/conf_gn_module.toml.example`` d'exempl
 Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier ``gn_module_export/config/conf_gn_module.toml``, vous devez lancer une commande pour appliquer les modifications des paramètres :
 
 ```
-cd /home/`whoami`/geonature/backend
+cd ~/geonature/backend
 source venv/bin/activate
-geonature update_module_configuration EXPORTS
+geonature update-module-configuration EXPORTS
+sudo systemctl restart geonature
+cd ~/geonature/frontend
+nvm use
+npm run build
 ```
 
 ## Commande d'installation
@@ -68,9 +72,14 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Lancez l'installation du module
 
 ```
+cd
 source geonature/backend/venv/bin/activate
-geonature install_packaged_gn_module /PATH_TO_MODULE/gn_module_export EXPORTS
+geonature install-packaged-gn-module gn_module_export EXPORTS
 deactivate
+sudo systemctl restart geonature
+cd geonature/frontend
+nvm use
+npm run build
 ```
 
 ## Mise à jour du module
@@ -103,9 +112,13 @@ cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami
 - Relancez la compilation en mettant à jour la configuration
 
 ```
-cd /home/`whoami`/geonature/backend
+cd ~/geonature/backend
 source venv/bin/activate
-geonature update_module_configuration EXPORTS
+geonature update-module-configuration EXPORTS
+sudo systemctl restart geonature
+cd ~/geonature/frontend
+nvm use
+npm run build
 ```
 
 # Administration du module
