@@ -12,7 +12,7 @@ Nécessite la version 2.10.0 (ou plus) de GeoNature.
 * Compatibilité avec Angular version 12, mis à jour dans la version 2.10.0 de GeoNature (#111)
 * Packaging du module
 * Gestion de la base de données avec Alembic
-* Ajout d'un paramètre d'ordonancement à la documentation Swagger (``orderby=nom_col[ASC|DESC]``). Ce paramètre est utile lors des appels à l'API pour récupérer les données, il faut cependant que la colonne de tri pointe vers des valeurs uniques (#101).
+* Ajout d'un paramètre d'ordonnancement à la documentation Swagger (``orderby=nom_col[ASC|DESC]``). Ce paramètre est utile lors des appels à l'API pour récupérer les données, il faut cependant que la colonne de tri pointe vers des valeurs uniques (#101).
 * Révision de la vue ``gn_exports.v_synthese_sinp_dee`` pour ne plus utiliser la table ``gn_sensitivity.cor_sensitivity_synthese`` (supprimée dans GeoNature 2.10.0)
 * Le cron générant les exports planifiés chaque nuit n'est plus mis en place automatiquement lors de l'installation du module. Libre à chacun de le mettre en place.
 
