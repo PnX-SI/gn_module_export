@@ -20,6 +20,7 @@ export_dsw_filename = "export_dsw.ttl"
 
 
 class GnModuleSchemaConf(Schema):
+    MODULE_URL = fields.String(load_default="/exports")
     export_format_map = fields.Dict(load_default=export_format_map)
     export_schedules_dir = fields.String(load_default=export_schedules_dir)
     export_dsw_dir = fields.String(load_default=export_dsw_dir)
