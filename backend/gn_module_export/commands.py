@@ -6,29 +6,9 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from flask.cli import with_appcontext
 
-from geonature.utils.env import ROOT_DIR
-
-# #######################
-#  Configuration logger
-# #######################
-# Test if directory exists
-LOG_DIR = ROOT_DIR / "var/log/gn_export"
-
-Path(LOG_DIR).mkdir(
-    parents=True, exist_ok=True
-)
-gne_handler = logging.FileHandler(
-    str(LOG_DIR / "cron.log"), mode="w"
-)
-formatter = logging.Formatter(
-    fmt='%(asctime)s %(levelname)-8s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-gne_handler.setLevel(logging.INFO)
-gne_handler.setFormatter(formatter)
 
 gne_logger = logging.getLogger('gn_export')
-gne_logger.addHandler(gne_handler)
+
 
 @click.command('gn_exports_run_cron_export')
 @with_appcontext
@@ -175,6 +155,7 @@ def is_to_updated(frequency, schedule_filename):
         #           est inférieure à la date courante + frequency
         file_is_to_updated = file_date and file_date + timedelta(days=frequency) < datetime.now()  # noqa E501
     return file_is_to_updated
+
 
 commands = [
     gn_exports_run_cron_export,
