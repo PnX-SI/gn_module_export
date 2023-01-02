@@ -44,13 +44,10 @@ Voir le fichier ``gn_module_export/config/conf_gn_module.toml.example`` d'exempl
 Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier ``gn_module_export/config/conf_gn_module.toml``, vous devez lancer une commande pour appliquer les modifications des paramètres :
 
 ```
-cd ~/geonature/backend
-source venv/bin/activate
-geonature update-module-configuration EXPORTS
-sudo systemctl restart geonature
-cd ~/geonature/frontend
-nvm use
-npm run build
+source ~/geonature/backend/venv/bin/activate
+geonature update-configuration
+sudo systemctl reload geonature
+deactivate
 ```
 
 ## Commande d'installation
@@ -72,14 +69,10 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Lancez l'installation du module
 
 ```
-cd
-source geonature/backend/venv/bin/activate
-geonature install-packaged-gn-module gn_module_export EXPORTS
-deactivate
+source ~/geonature/backend/venv/bin/activate
+geonature install-gn-module ~/gn_module_export EXPORTS
 sudo systemctl restart geonature
-cd geonature/frontend
-nvm use
-npm run build
+deactivate
 ```
 
 ## Mise à jour du module
@@ -109,16 +102,11 @@ cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami
 
 - Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports depuis le dossier ``/home/`whoami`/gn_module_export_old/backend/templates/swagger/``.
 
-- Relancez la compilation en mettant à jour la configuration
+- Lancez la mise à jour du module
 
 ```
-cd ~/geonature/backend
-source venv/bin/activate
-geonature update-module-configuration EXPORTS
-sudo systemctl restart geonature
-cd ~/geonature/frontend
-nvm use
-npm run build
+source ~/geonature/backend/venv/bin/activate
+geonature install-gn-module ~/gn_module_export EXPORTS
 ```
 
 # Administration du module
