@@ -2,6 +2,15 @@
 CHANGELOG
 =========
 
+1.3.1 (unreleased)
+------------------
+
+**🐛 Corrections**
+
+* Add MODULE_URL in schema as not generated anymore
+* Suppression de l'usage de ``MODULE_URL`` dans la configuration du module (https://github.com/PnX-SI/GeoNature/issues/2165) ???
+* Remove fileHandler logger. This handler wrongly use ``ROOT_DIR`` and is not docker-ready.
+
 1.3.0 (2022-11-02)
 ------------------
 
