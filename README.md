@@ -107,6 +107,7 @@ cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami
 ```
 source ~/geonature/backend/venv/bin/activate
 geonature install-gn-module ~/gn_module_export EXPORTS
+sudo systemctl restart geonature
 ```
 
 # Administration du module
