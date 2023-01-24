@@ -2,9 +2,9 @@ import { Component, OnInit } from "@angular/core";
 import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { NgbModal, NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 import { CommonService } from "@geonature_common/service/common.service";
-import { AppConfig } from "@geonature_config/app.config";
 import { ModuleConfig } from "../module.config";
 import { AuthService, User } from '@geonature/components/auth/auth.service';
+import { ConfigService } from '@geonature/services/config.service';
 
 import {
   Export,
@@ -21,7 +21,7 @@ import { UserDataService } from "@geonature/userModule/services/user-data.servic
 })
 export class ExportListComponent implements OnInit {
   exports: Export[];
-  public api_endpoint = `${AppConfig.API_ENDPOINT}/${ModuleConfig.MODULE_URL}`;
+  public api_endpoint = null;
   public modalForm: FormGroup;
   public buttonDisabled = false;
   public downloading = false;
@@ -41,8 +41,10 @@ export class ExportListComponent implements OnInit {
     private _commonService: CommonService,
     private _userService: UserDataService,
     public _authService: AuthService,
-
-  ) { }
+    public cs: ConfigService
+  ) {
+    this.api_endpoint = `${this.cs.API_ENDPOINT}/${ModuleConfig.MODULE_URL}`;
+  }
 
   ngOnInit() {
     this.modalForm = this._fb.group({
