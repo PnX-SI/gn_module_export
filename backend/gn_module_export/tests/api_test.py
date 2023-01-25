@@ -297,14 +297,11 @@ class TestApiModuleExports:
         import rdflib.compare
 
         conf = current_app.config.get('EXPORTS')
-        export_dsw_dir = conf.get('export_dsw_dir') + conf.get('export_dsw_filename')
-
-        if (export_dsw_dir, False)
-                not in (None, False, 0, '')):
-            try:
-                os.unlink(conf.get('export_dsw_dir'))
-            except FileNotFoundError:
-                pass
+        export_dsw_dir = os.path.join(
+            current_app.config["MEDIA_FOLDER"],
+            conf.get('export_dsw_dir'),
+            conf.get('export_dsw_filename'),
+        )
 
         response = self.client.get(url_for('exports.export_dsw_dir'))
 

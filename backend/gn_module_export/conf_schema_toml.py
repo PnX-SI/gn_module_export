@@ -13,20 +13,15 @@ export_format_map = {
     "gpkg": {"mime": "application/zip", "geofeature": True, "label": "GeoPackage"},
 }  # noqa: E133
 
-base_export_dir = str(ROOT_DIR) + "/backend/static/exports/"
-export_schedules_dir = base_export_dir + "schedules/"
-export_dsw_dir = base_export_dir + "dsw/"
-export_dsw_filename = "export_dsw.ttl"
-
 
 class GnModuleSchemaConf(Schema):
     MODULE_URL = fields.String(load_default="/exports")
     export_format_map = fields.Dict(load_default=export_format_map)
-    export_schedules_dir = fields.String(load_default=export_schedules_dir)
-    export_dsw_dir = fields.String(load_default=export_dsw_dir)
-    export_dsw_filename = fields.String(load_default=export_dsw_filename)
+    export_schedules_dir = fields.String(load_default="exports/schedules")
+    export_dsw_dir = fields.String(load_default="exports/dsw")
+    export_dsw_filename = fields.String(load_default="export_dsw.ttl")
     nb_days_keep_file = fields.Int(load_default=15)
     export_web_url = fields.String()
-    usr_generated_dirname = fields.String(load_default="usr_generated")
+    usr_generated_dirname = fields.String(load_default="exports/usr_generated")
     csv_separator = fields.String(load_default=";")
     expose_dsw_api = fields.Boolean(load_default=False)

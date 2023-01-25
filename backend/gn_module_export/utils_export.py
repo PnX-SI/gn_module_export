@@ -163,7 +163,7 @@ class GenerateExport:
             self.export_dir = conf.get("export_schedules_dir")
         else:
             self.export_dir = os.path.join(
-                current_app.static_folder, "exports", conf.get("usr_generated_dirname")
+                current_app.config["MEDIA_FOLDER"], conf.get("usr_generated_dirname")
             )
 
         os.makedirs(self.export_dir, exist_ok=True)

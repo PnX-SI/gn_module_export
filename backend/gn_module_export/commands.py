@@ -84,6 +84,7 @@ def gn_exports_run_cron_export_dsw(limit, offset):
 
         conf = current_app.config.get('EXPORTS')
         export_dsw_dir = str(Path(
+            current_app.config["MEDIA_FOLDER"],
             conf.get('export_dsw_dir'),
             conf.get('export_dsw_filename')
         ))
@@ -93,7 +94,7 @@ def gn_exports_run_cron_export_dsw(limit, offset):
 
         # Store file
         try:
-            Path(conf.get('export_dsw_dir')).mkdir(
+            Path(current_app.config["MEDIA_FOLDER"], conf.get('export_dsw_dir')).mkdir(
                 parents=True, exist_ok=True
             )
             with open(export_dsw_dir, 'w+b') as xp:
@@ -119,8 +120,11 @@ def gn_exports_run_cron_export_dsw(limit, offset):
 @with_appcontext
 def modification_date(filename):
     from flask import current_app
-    conf = current_app.config.get('EXPORTS')
-    EXPORT_SCHEDULES_DIR = conf.get('export_schedules_dir')
+
+    EXPORT_SCHEDULES_DIR = os.path.join(
+        current_app.config["MEDIA_FOLDER"],
+        current_app.config["EXPORTS"]["export_schedules_dir"],
+    )
     try:
         full_path = os.path.join(EXPORT_SCHEDULES_DIR, filename)
         t = os.path.getmtime(full_path)
@@ -134,8 +138,11 @@ def modification_date(filename):
 @with_appcontext
 def check_file_exists(filename):
     from flask import current_app
-    conf = current_app.config.get('EXPORTS')
-    EXPORT_SCHEDULES_DIR = conf.get('export_schedules_dir')
+
+    EXPORT_SCHEDULES_DIR = os.path.join(
+        current_app.config["MEDIA_FOLDER"],
+        current_app.config["EXPORTS"]["export_schedules_dir"],
+    )
     try:
         full_path = os.path.join(EXPORT_SCHEDULES_DIR, filename)
         exists = os.path.exists(full_path)

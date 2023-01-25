@@ -559,9 +559,9 @@ if public_config["EXPORTS"]["expose_dsw_api"]:
         turle
         """
         conf = current_app.config.get("EXPORTS")
-        export_dsw_dir = conf.get("export_dsw_dir")
+        export_dsw_dir = os.path.join(current_app.config["MEDIA_FOLDER"], conf.get("export_dsw_dir"))
         export_dsw_fullpath = str(
-            Path(conf.get("export_dsw_dir"), conf.get("export_dsw_filename"))
+            Path(export_dsw_dir, conf.get("export_dsw_filename"))
         )
         os.makedirs(export_dsw_dir, exist_ok=True)
 

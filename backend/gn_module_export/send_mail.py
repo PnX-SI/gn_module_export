@@ -23,8 +23,8 @@ def export_send_mail(mail_to, export, file_name):
         url = "{}/{}".format(module_conf.get("export_web_url"), file_name)
     else:
         url = url_for(
-            "static",
-            filename="exports/" + module_conf.get("usr_generated_dirname") + "/" + file_name,
+            "media",
+            filename=module_conf.get("usr_generated_dirname") + "/" + file_name,
             _external=True,
         )
 
