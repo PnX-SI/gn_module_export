@@ -41,9 +41,9 @@ export class ExportListComponent implements OnInit {
     private _commonService: CommonService,
     private _userService: UserDataService,
     public _authService: AuthService,
-    public cs: ConfigService
+    public config: ConfigService
   ) {
-    this.api_endpoint = `${this.cs.API_ENDPOINT}/${ModuleConfig.MODULE_URL}`;
+    this.api_endpoint = `${this.config.API_ENDPOINT}/${ModuleConfig.MODULE_URL}`;
   }
 
   ngOnInit() {
