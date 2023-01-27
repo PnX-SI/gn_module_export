@@ -3,7 +3,6 @@ import {
   HttpClient,
   HttpErrorResponse,
 } from "@angular/common/http";
-import { ModuleConfig } from "../module.config";
 import { ConfigService } from '@geonature/services/config.service';
 
 export interface Export {
@@ -26,15 +25,15 @@ export class ExportService {
   constructor(private _api: HttpClient, public config: ConfigService) {}
 
   getExports() {
-    console.log(this.config.API_ENDPOINT, ModuleConfig.MODULE_URL)
+    console.log(this.config.API_ENDPOINT, this.config.EXPORTS.MODULE_URL)
     return this._api.get(
-      `${this.config.API_ENDPOINT}${ModuleConfig.MODULE_URL}/`
+      `${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}/`
     );
   }
 
   downloadExport(x: Export, format: string, data: any) {
     return this._api.post<any>(
-      `${this.config.API_ENDPOINT}${ModuleConfig.MODULE_URL}/${x.id}/${format}`,
+      `${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}/${x.id}/${format}`,
       data
     );
   }

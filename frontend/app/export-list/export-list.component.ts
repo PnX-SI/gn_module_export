@@ -2,7 +2,6 @@ import { Component, OnInit } from "@angular/core";
 import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { NgbModal, NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
 import { CommonService } from "@geonature_common/service/common.service";
-import { ModuleConfig } from "../module.config";
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { ConfigService } from '@geonature/services/config.service';
 
@@ -30,7 +29,7 @@ export class ExportListComponent implements OnInit {
   private _export: Export;
   private _modalRef: NgbModalRef;
   private _emailPattern = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
-  public exportFormat: {} = ModuleConfig["export_format_map"];
+  public exportFormat: {} = null;
   private currentUser: User;
   private _fullUser: {};
 
@@ -43,7 +42,8 @@ export class ExportListComponent implements OnInit {
     public _authService: AuthService,
     public config: ConfigService
   ) {
-    this.api_endpoint = `${this.config.API_ENDPOINT}/${ModuleConfig.MODULE_URL}`;
+    this.exportFormat = this.config.EXPORTS["export_format_map"];
+    this.api_endpoint = `${this.config.API_ENDPOINT}/${this.config.EXPORTS.MODULE_URL}`;
   }
 
   ngOnInit() {
