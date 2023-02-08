@@ -37,7 +37,7 @@ def schedule_export_filename(export):
     return "{}".format(removeDisallowedFilenameChars(export.get("label")))
 
 
-def thread_export_data(id_export, export_format, info_role, filters, mail_to):
+def thread_export_data(id_export, export_format, role, filters, mail_to):
     """
     Lance un thread qui permet d'exécuter les fonctions d'export
         en arrière plan
@@ -47,7 +47,7 @@ def thread_export_data(id_export, export_format, info_role, filters, mail_to):
 
     :query int id_export: Identifiant de l'export
     :query str export_format: Format de l'export (csv, json, shp)
-    :query {} info_role: Information du role
+    :query {} role: Role
     :query {} filters: Filtre à appliquer sur l'export
     :query [str] mail_to: Email de reception
 
@@ -57,7 +57,7 @@ def thread_export_data(id_export, export_format, info_role, filters, mail_to):
     """
 
     exprep = ExportObjectQueryRepository(
-        id_export=id_export, info_role=info_role, filters=filters, limit=-1, offset=0
+        id_export=id_export, role=role, filters=filters, limit=-1, offset=0
     )
 
     # export data
@@ -112,7 +112,7 @@ def export_data_file(id_export, export_format, filters, isScheduler=False):
     """
 
     exprep = ExportObjectQueryRepository(
-        id_export=id_export, info_role=None, filters=filters, limit=-1, offset=0
+        id_export=id_export, role=None, filters=filters, limit=-1, offset=0
     )
 
     # export data

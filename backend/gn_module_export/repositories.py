@@ -23,7 +23,7 @@ from .models import Export, ExportLog, ExportSchedules
 
 
 class ExportObjectQueryRepository:
-    def __init__(self, id_export, info_role=None, filters=None, limit=1000, offset=0):
+    def __init__(self, id_export, role=None, filters=None, limit=1000, offset=0):
         """
             Classe permettant de manipuler l'objet export
             Permet d'interroger la vue définie par l'export
@@ -38,10 +38,10 @@ class ExportObjectQueryRepository:
         """
         # Test si l'export est autorisé
         self.id_export = id_export
-        self.info_role = info_role
+        self.role = role
         try:
             self.export = Export.query.get(self.id_export)
-            if self.info_role:
+            if self.role:
                 self.export = self.get_export_is_allowed()
         except NoResultFound:
             raise Forbidden(
@@ -153,7 +153,7 @@ class ExportObjectQueryRepository:
 
         ExportLog.record(
             {
-                "id_role": self.info_role.id_role,
+                "id_role": self.role.id_role,
                 "id_export": self.export.id,
                 "format": export_format,
                 "start_time": start_time,
@@ -169,7 +169,7 @@ class ExportObjectQueryRepository:
         Test si un role a les droits sur un export
         """
         q = Export.query.filter(Export.id == self.id_export).get_allowed_exports(
-            user=self.info_role
+            user=self.role
         )
         return q.one()
 

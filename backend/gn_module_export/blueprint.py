@@ -23,6 +23,7 @@ from flask import (
     jsonify,
     flash,
     copy_current_request_context,
+    g,
 )
 from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
@@ -358,8 +359,8 @@ def swagger_ressources(id_export=None):
     allow_headers=["content-type", "content-disposition"],
     expose_headers=["Content-Type", "Content-Disposition", "Authorization"],
 )
-@permissions.check_cruved_scope("E", True, module_code="EXPORTS")
-def getOneExportThread(id_export, export_format, info_role):
+@permissions.check_cruved_scope("E", module_code="EXPORTS")
+def getOneExportThread(id_export, export_format):
     """
     Run export with thread
     """
@@ -384,18 +385,18 @@ def getOneExportThread(id_export, export_format, info_role):
     try:
 
         @copy_current_request_context
-        def get_data(id_export, export_format, info_role, filters, email_to):
-            thread_export_data(id_export, export_format, info_role, filters, email_to)
+        def get_data(id_export, export_format, role, filters, email_to):
+            thread_export_data(id_export, export_format, role, filters, email_to)
 
         # Test if export is allowed
         try:
-            exp = ExportObjectQueryRepository(id_export=id_export, info_role=info_role)
+            exp = ExportObjectQueryRepository(id_export=id_export, role=role)
         except Exception as e:
             return to_json_resp({"message": "Not Allowed"}, status=403)
 
         # Test if user have an email
         try:
-            user = DB.session.query(User).filter(User.id_role == info_role.id_role).one()
+            user = g.current_user
             if not user.email and not email_to:  # TODO add more test
                 return to_json_resp(
                     {
@@ -416,7 +417,7 @@ def getOneExportThread(id_export, export_format, info_role):
             kwargs={
                 "id_export": id_export,
                 "export_format": export_format,
-                "info_role": info_role,
+                "role": g.current_user,
                 "filters": filters,
                 "email_to": [email_to] if (email_to) else [user.email],
             },
@@ -439,9 +440,9 @@ def getOneExportThread(id_export, export_format, info_role):
 
 
 @blueprint.route("/", methods=["GET"])
-@permissions.check_cruved_scope("R", True, module_code="EXPORTS")
+@permissions.check_cruved_scope("R", module_code="EXPORTS")
 @json_resp
-def get_exports(info_role):
+def get_exports():
     """
     Fonction qui renvoie la liste des exports
     accessibles pour un role donné
@@ -457,9 +458,9 @@ def get_exports(info_role):
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
-@permissions.check_cruved_scope("R", True, module_code="EXPORTS")
+@permissions.check_cruved_scope("R", module_code="EXPORTS")
 @json_resp
-def get_one_export_api(id_export, info_role):
+def get_one_export_api(id_export):
     """
     Fonction qui expose les exports disponibles à un role
         sous forme d'api
@@ -526,7 +527,7 @@ def get_one_export_api(id_export, info_role):
     filters = {f: args.get(f) for f in args}
 
     exprep = ExportObjectQueryRepository(
-        id_export=id_export, info_role=info_role, filters=filters, limit=limit, offset=offset
+        id_export=id_export, role=g.current_user, filters=filters, limit=limit, offset=offset
     )
     data = exprep.get_export_with_logging()
     return data
