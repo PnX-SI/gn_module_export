@@ -1,17 +1,23 @@
-from flask import g
-from flask_sqlalchemy import BaseQuery
+from packaging import version
 
+from flask import g
 from sqlalchemy import or_
 from sqlalchemy.orm import relationship
-from geonature.utils.env import DB
+import flask_sqlalchemy
 
+if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
+    from flask_sqlalchemy.query import Query
+else:  # retro-compatibility Flask-SQLAlchemy 2 / SQLAlchemy 1.3
+    from flask_sqlalchemy import BaseQuery as Query
+
+from geonature.utils.env import DB
 from utils_flask_sqla.serializers import serializable
 
 from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
 
 
-class ExportsQuery(BaseQuery):
+class ExportsQuery(Query):
     def get_allowed_exports(self, user=None):
         """
         Liste des exports autorisés pour un role
