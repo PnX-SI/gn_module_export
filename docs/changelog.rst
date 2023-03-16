@@ -2,8 +2,17 @@
 CHANGELOG
 =========
 
-1.3.1 (unreleased)
+1.4.0 (unreleased)
 ------------------
+
+Nécessite la version 2.12.0 (ou plus) de GeoNature.
+
+**🚀 Nouveautés**
+
+* Compatibilité avec Angular version 15, mis à jour dans la version 2.12.0 de GeoNature
+* Utilisation de la configuration dynamique (ne nécessitant plus de rebuilder le frontend à chaque modification de la configuration du module)
+* Répercussion de la refactorisation des permissions réalisée dans GeoNature 2.12.0
+* Compatibilité avec SQLAlchemy 1.4 et Flask-SQLAlchemy 1.4
 
 **🐛 Corrections**
 
