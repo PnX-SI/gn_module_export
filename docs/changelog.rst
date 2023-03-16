@@ -20,6 +20,10 @@ Nécessite la version 2.12.0 (ou plus) de GeoNature.
 * Suppression de l'usage de ``MODULE_URL`` dans la configuration du module (https://github.com/PnX-SI/GeoNature/issues/2165) ???
 * Remove fileHandler logger. This handler wrongly use ``ROOT_DIR`` and is not docker-ready.
 
+**⚠️ Notes de version**
+
+Le dossier de stockage des exports a été modifié de ``geonature/backend/static/exports/`` à ``geonature/backend/media/exports/``. Répercutez éventuellement ce changement si vous aviez modifié la configuration Apache de GeoNature pour servir les fichiers exportés avec Apache (https://github.com/PnX-SI/gn_module_export/#url-des-fichiers)
+
 1.3.0 (2022-11-02)
 ------------------
 
