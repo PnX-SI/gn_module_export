@@ -31,7 +31,7 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
 
 ### Autres paramètres
 
-Les paramètres du module surcouchables concernent les dossiers d'export et se configurent dans le fichier ``gn_module_export/config/conf_gn_module.toml`` du module Export (ou dans ``geonature/config/exports_config.toml``, recommandé depuis GeoNature 2.12.0) :
+Les paramètres du module surcouchables concernent les dossiers d'export et se configurent dans le fichier `geonature/config/exports_config.toml` :
 
 * ``export_schedules_dir`` : chemin absolu du dossier où les exports programmés seront déposés lors de la réalisation de la commande ``gn_exports_run_cron_export``
 * ``export_dsw_dir`` : chemin absolu du dossier où l'export sémantique au format Darwin-SW sera réalisé
@@ -41,7 +41,7 @@ Les paramètres du module surcouchables concernent les dossiers d'export et se c
 
 Voir le fichier ``gn_module_export/config/conf_gn_module.toml.example`` d'exemple des paramètres.
 
-Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier ``gn_module_export/config/conf_gn_module.toml`` (ou dans ``geonature/config/exports_config.toml``), vous devez recharger GeoNature pour appliquer les modifications des paramètres :
+Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier `geonature/config/exports_config.toml`, vous devez recharger GeoNature pour appliquer les modifications des paramètres :
 
 ```
 sudo systemctl reload geonature
@@ -91,10 +91,11 @@ mv /home/`whoami`/gn_module_export /home/`whoami`/gn_module_export_old
 mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 ```
 
-- Rapatriez le fichier de configuration (pas nécessaire si vous avez configuré le module dans ``geonature/config/exports_config.toml``)
+- Si vous avez encore votre configuration du module dans les dossiers du module, rapatriez le fichier de configuration dans le dossier
+  de configuration centralisée de GeoNature (depuis sa version 2.11) :
 
 ```
-cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami`/gn_module_export/config/conf_gn_module.toml
+cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami`/geonature/config/exports_conf.toml
 ```
 
 - Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports depuis le dossier ``/home/`whoami`/gn_module_export_old/backend/templates/swagger/``.
@@ -199,7 +200,7 @@ Alias "/exportfiles" "/home/myuser/geonature/backend/media/exports/usr_generated
 </Directory>
 ```
 
-Renseignez le paramètre ``export_web_url`` en cohérence dans le fichier ``config/conf_gn_module.toml`` du module (``export_web_url=<URL_GEONATURE>/exportfiles`` dans cet exemple) ou dans ``geonature/config/exports_config.toml`` (depuis GeoNature 2.12.0).
+Renseignez le paramètre ``export_web_url`` en cohérence dans le fichier ``geonature/config/exports_config.toml`` (``export_web_url=<URL_GEONATURE>/exportfiles`` dans cet exemple).
 
 Rechargez la configuration Apache pour prendre en compte les modifications :
 
@@ -209,7 +210,7 @@ sudo /etc/init.d/apache2 reload
 
 Dans cet exemple les fichiers des exports planifiés seront accessibles à l'adresse ``<URL_GEONATURE>/exportschedules/Nom_Export.Format``. Le chemin ``/exportschedules/`` est adaptable bien entendu au niveau de l'alias de la configuration Apache. Les fichiers des exports générés à la demande par les utilisateurs seront disponibles à l'adresse ``<URL_GEONATURE>/exportfiles/Date_Nom_Export.Format``
 
-Une autre solution plus globale serait de compléter la configuration Apache de GeoNature pour que l'ensemble de son répertoire ``backend/media`` soit servi en mode fichier par Apache. Voir http://docs.geonature.fr/conf-apache.html.
+Une autre solution plus globale serait de compléter la configuration Apache de GeoNature pour que l'ensemble de son répertoire ``backend/media`` soit servi en mode fichier par Apache.
 
 # Export RDF au format sémantique Darwin-SW
 
@@ -261,7 +262,7 @@ Bibliographie :
 
 # Autres
 
-* CCTP de définition du projet : http://geonature.fr/documents/cctp/2017-10-CCTP-GeoNature-interoperabilite.pdf
+* CCTP de définition du projet : https://geonature.fr/documents/cctp/2017-10-CCTP-GeoNature-interoperabilite.pdf
 * Biodiversité et opendata (Présentation d'Olivier Rovellotti au Forum TIC 2018) : https://geonature.fr/documents/2018-06-forum-tic-biodiversite-opendata-rovellotti.pdf
 * Biodiversité et linked data (Présentation d'Amandine Sahl au Forum TIC 2018) : https://geonature.fr/documents/2018-06-forum-tic-biodiversite-linkeddata-sahl.pdf
 * OPENDATA ET BIODIVERSITÉ (Pourquoi et comment publier ses données de biodiversité en opendata ?) : https://geonature.fr/documents/2019-04-biodiversite-opendata.pdf
