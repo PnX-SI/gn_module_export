@@ -29,6 +29,7 @@ from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
 from flask_admin.babel import gettext
+from werkzeug.exceptions import NotFound, BadRequest
 from wtforms import validators
 
 from pypnusershub.db.models import User
@@ -382,61 +383,41 @@ def getOneExportThread(id_export, export_format):
     if "email" in data:
         email_to = data["email"]
 
+    @copy_current_request_context
+    def get_data(id_export, export_format, role, filters, email_to):
+        thread_export_data(id_export, export_format, role, filters, email_to)
+
+    exp = ExportObjectQueryRepository(id_export=id_export, role=role)
+
+    # Test if user have an email
     try:
+        user = g.current_user
+        if not user.email and not email_to:  # TODO add more test
+            raise BadRequest("User doesn't have email")
+    except NoResultFound:
+        raise NotFound("User doesn't exist")
 
-        @copy_current_request_context
-        def get_data(id_export, export_format, role, filters, email_to):
-            thread_export_data(id_export, export_format, role, filters, email_to)
+    # Run export
+    a = threading.Thread(
+        name="export_data",
+        target=get_data,
+        kwargs={
+            "id_export": id_export,
+            "export_format": export_format,
+            "role": g.current_user,
+            "filters": filters,
+            "email_to": [email_to] if (email_to) else [user.email],
+        },
+    )
+    a.start()
 
-        # Test if export is allowed
-        try:
-            exp = ExportObjectQueryRepository(id_export=id_export, role=role)
-        except Exception as e:
-            return to_json_resp({"message": "Not Allowed"}, status=403)
-
-        # Test if user have an email
-        try:
-            user = g.current_user
-            if not user.email and not email_to:  # TODO add more test
-                return to_json_resp(
-                    {
-                        "api_error": "no_email",
-                        "message": "User doesn't have email",
-                    },  # noqa 501
-                    status=500,
-                )
-        except NoResultFound:
-            return to_json_resp(
-                {"api_error": "no_user", "message": "User doesn't exist"}, status=404
-            )
-
-        # Run export
-        a = threading.Thread(
-            name="export_data",
-            target=get_data,
-            kwargs={
-                "id_export": id_export,
-                "export_format": export_format,
-                "role": g.current_user,
-                "filters": filters,
-                "email_to": [email_to] if (email_to) else [user.email],
-            },
-        )
-        a.start()
-
-        return to_json_resp(
-            {
-                "api_success": "in_progress",
-                "message": "The Process is in progress ! You will receive an email shortly",  # noqa 501
-            },
-            status=200,
-        )
-
-    except Exception as e:
-        LOGGER.critical("%s", e)
-        if current_app.config["DEBUG"]:
-            raise
-        return to_json_resp({"api_error": "logged_error"}, status=400)
+    return to_json_resp(
+        {
+            "api_success": "in_progress",
+            "message": "The Process is in progress ! You will receive an email shortly",  # noqa 501
+        },
+        status=200,
+    )
 
 
 @blueprint.route("/", methods=["GET"])
