@@ -387,7 +387,7 @@ def getOneExportThread(id_export, export_format):
     def get_data(id_export, export_format, role, filters, email_to):
         thread_export_data(id_export, export_format, role, filters, email_to)
 
-    exp = ExportObjectQueryRepository(id_export=id_export, role=role)
+    exp = ExportObjectQueryRepository(id_export=id_export, role=g.current_user)
 
     # Test if user have an email
     try:
