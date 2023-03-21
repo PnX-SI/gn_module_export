@@ -11,6 +11,7 @@ Nécessite la version 2.12.0 (ou plus) de GeoNature.
 
 * Compatibilité avec Angular version 15, mis à jour dans la version 2.12.0 de GeoNature
 * Utilisation de la configuration dynamique (ne nécessitant plus de rebuilder le frontend à chaque modification de la configuration du module)
+* Répercussion de la réorganisation des dossiers dans GeoNature. Les exports sont désormais stockés dans ``geonature/backend/media/exports``
 * Répercussion de la refactorisation des permissions réalisée dans GeoNature 2.12.0
 * Compatibilité avec SQLAlchemy 1.4 et Flask-SQLAlchemy 1.4
 
@@ -22,7 +23,7 @@ Nécessite la version 2.12.0 (ou plus) de GeoNature.
 
 **⚠️ Notes de version**
 
-Le dossier de stockage des exports a été modifié de ``geonature/backend/static/exports/`` à ``geonature/backend/media/exports/``. Répercutez éventuellement ce changement si vous aviez modifié la configuration Apache de GeoNature pour servir les fichiers exportés avec Apache (https://github.com/PnX-SI/gn_module_export/#url-des-fichiers)
+Le dossier de stockage des exports a été modifié de ``geonature/backend/static/exports/`` à ``geonature/backend/media/exports/``. Répercutez éventuellement ce changement si vous aviez modifié la configuration du module ainsi que la configuration Apache de GeoNature (pour servir les fichiers exportés avec Apache - https://github.com/PnX-SI/gn_module_export/#url-des-fichiers).
 
 1.3.0 (2022-11-02)
 ------------------
