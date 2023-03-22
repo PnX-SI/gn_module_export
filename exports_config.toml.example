@@ -5,7 +5,7 @@ nb_days_keep_file = 15
 export_schedules_dir = 'exports/schedules/'
 export_dsw_dir = 'exports/dsw/'
 export_dsw_filename = 'export_dsw.ttl'
-
+usr_generated_dirname = 'exports/usr_generated'
 
 ## URL des exports générés par les utilisateurs
 # export_web_url : paramètre optionel. Correspond à une url pour les fichiers générés lors des exports utilisateurs
