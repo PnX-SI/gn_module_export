@@ -20,7 +20,7 @@ Le module d'export envoie des emails indiquant que l'export demandé est prêt. 
 
 La configuration des emails utilise les paramètres définis par Flask_mail. Pour avoir accès à l'ensemble des paramètres se référer à la [documentation complète](https://flask-mail.readthedocs.io/en/latest/).
 
-```
+```toml
 [MAIL_CONFIG]
     MAIL_SERVER = "monserver.mail"
     MAIL_PORT = 465 # Si différent de 465 en SSL
@@ -31,7 +31,7 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
 
 ### Autres paramètres
 
-Les paramètres du module surcouchables concernent les dossiers d'export et se configurent dans le fichier `geonature/config/exports_config.toml` :
+Les paramètres du module surcouchables concernent les dossiers d'export et se configurent dans le fichier `exports_config.toml` dans le dossier de configuration de GeoNature (`geonature/config/`) :
 
 * ``export_schedules_dir`` : chemin absolu du dossier où les exports programmés seront déposés lors de la réalisation de la commande ``gn_exports_run_cron_export``
 * ``export_dsw_dir`` : chemin absolu du dossier où l'export sémantique au format Darwin-SW sera réalisé
@@ -39,11 +39,17 @@ Les paramètres du module surcouchables concernent les dossiers d'export et se c
 * ``export_web_url`` : URL des fichiers exportés à la demande par les utilisateurs
 * ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
 
-Voir le fichier ``gn_module_export/config/conf_gn_module.toml.example`` d'exemple des paramètres.
+Voir le fichier ``exports_config.toml.example`` d'exemple des paramètres.
+
+Pour créer le fichier de configuration du module, à partir du fichier d'exemple : 
+
+```bash
+cp ~/gn_module_export/exports_config.toml.example ~/geonature/config/exports_config.toml
+```
 
 Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier `geonature/config/exports_config.toml`, vous devez recharger GeoNature pour appliquer les modifications des paramètres :
 
-```
+```bash
 sudo systemctl reload geonature
 ```
 
@@ -51,7 +57,7 @@ sudo systemctl reload geonature
 
 - Téléchargez le module dans ``/home/<myuser>/``, en remplacant ``X.Y.Z`` par la version souhaitée
 
-```
+```bash
 wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
 unzip X.Y.Z.zip
 rm X.Y.Z.zip
@@ -59,13 +65,13 @@ rm X.Y.Z.zip
 
 - Renommez le répertoire du module
 
-```
+```bash
 mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 ```
 
 - Lancez l'installation du module
 
-```
+```bash
 source ~/geonature/backend/venv/bin/activate
 geonature install-gn-module ~/gn_module_export EXPORTS
 sudo systemctl restart geonature
@@ -78,7 +84,7 @@ deactivate
 
 - Téléchargez la nouvelle version du module
 
-```
+```bash
 wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
 unzip X.Y.Z.zip
 rm X.Y.Z.zip
@@ -86,7 +92,7 @@ rm X.Y.Z.zip
 
 - Renommez l'ancien et le nouveau répertoire
 
-```
+```bash
 mv /home/`whoami`/gn_module_export /home/`whoami`/gn_module_export_old
 mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 ```
@@ -94,7 +100,7 @@ mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
 - Si vous avez encore votre configuration du module dans les dossiers du module, rapatriez le fichier de configuration dans le dossier
   de configuration centralisée de GeoNature (depuis sa version 2.11) :
 
-```
+```bash
 cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami`/geonature/config/exports_conf.toml
 ```
 
@@ -102,7 +108,7 @@ cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami
 
 - Lancez la mise à jour du module
 
-```
+```bash
 source ~/geonature/backend/venv/bin/activate
 geonature install-gn-module ~/gn_module_export EXPORTS
 sudo systemctl restart geonature
@@ -160,7 +166,7 @@ Par défaut, le fichier généré par un export planifié est disponible à l'ad
 
 Pour lancer les exports il faut utiliser les instructions suivantes :
 
-```
+```bash
 cd GN2_HOME
 source backend/venv/bin/activate
 geonature exports gn_exports_run_cron_export
@@ -176,7 +182,7 @@ Par défaut les fichiers sont servis par le serveur web Gunicorn qui a un timeou
 
 Pour cela, modifier la configuration Apache de GeoNature et ajouter un alias vers le dossier où sont générés les fichiers exportés :
 
-```
+```bash
 sudo nano /etc/apache2/sites-available/geonature.conf
 ```
 
@@ -204,7 +210,7 @@ Renseignez le paramètre ``export_web_url`` en cohérence dans le fichier ``geon
 
 Rechargez la configuration Apache pour prendre en compte les modifications :
 
-```
+```bash
 sudo /etc/init.d/apache2 reload
 ```
 
@@ -234,7 +240,7 @@ API :
 
 Fichier .ttl, généré par la commande :
 
-```
+```bash
 cd GN2_HOME
 source backend/venv/bin/activate
 geonature exports gn_exports_run_cron_export_dsw --limit 10 --offset=0
