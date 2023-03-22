@@ -11,6 +11,7 @@ Nécessite la version 2.12.0 (ou plus) de GeoNature.
 
 * Compatibilité avec Angular version 15, mis à jour dans la version 2.12.0 de GeoNature
 * Utilisation de la configuration dynamique (ne nécessitant plus de rebuilder le frontend à chaque modification de la configuration du module)
+* Centralisation de la configuration du module dans le dossier de configuration de GeoNature
 * Répercussion de la réorganisation des dossiers dans GeoNature. Les exports sont désormais stockés dans ``geonature/backend/media/exports``
 * Répercussion de la refactorisation des permissions réalisée dans GeoNature 2.12.0
 * Compatibilité avec SQLAlchemy 1.4 et Flask-SQLAlchemy 1.4
