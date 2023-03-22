@@ -26,7 +26,8 @@ def export_filename(export):
     Génération du nom horodaté du fichier d'export
     """
     return "{}_{}".format(
-        time.strftime("%Y-%m-%d_%H-%M-%S"), removeDisallowedFilenameChars(export.get("label"))
+        time.strftime("%Y-%m-%d_%H-%M-%S"),
+        removeDisallowedFilenameChars(export.get("label")),
     )
 
 
@@ -66,7 +67,9 @@ def thread_export_data(id_export, export_format, role, filters, mail_to):
         columns = exprep._get_export_columns_definition()
         export_dict = exprep.export.as_dict(fields=["licence"])
     except Exception as exp:
-        export_send_mail_error(mail_to, None, "Error when exporting data : {}".format(repr(exp)))
+        export_send_mail_error(
+            mail_to, None, "Error when exporting data : {}".format(repr(exp))
+        )
         return
 
     # Generate and store export file
@@ -82,7 +85,9 @@ def thread_export_data(id_export, export_format, role, filters, mail_to):
 
     except Exception as exp:
         export_send_mail_error(
-            mail_to, export_dict, "Error when creating the export file : {}".format(repr(exp))
+            mail_to,
+            export_dict,
+            "Error when creating the export file : {}".format(repr(exp)),
         )
         raise exp
         return
@@ -96,7 +101,7 @@ def thread_export_data(id_export, export_format, role, filters, mail_to):
         )
 
 
-def export_data_file(id_export, export_format, filters, isScheduler=False):
+def export_data_file(id_export, export_format, filters={}, isScheduler=False):
     """
     Fonction qui permet de générer un export fichier
 
@@ -116,31 +121,25 @@ def export_data_file(id_export, export_format, filters, isScheduler=False):
     )
 
     # export data
-    try:
-        data = exprep._get_data(format=export_format)
-        columns = exprep._get_export_columns_definition()
-    except Exception as exp:
-        raise (exp)
+    data = exprep._get_data(format=export_format)
+    columns = exprep._get_export_columns_definition()
 
     # Generate and store export file
     export_def = exprep.export.as_dict()
-    try:
-        if isScheduler:
-            file_name = schedule_export_filename(export_def)
-        else:
-            file_name = export_filename(export_def)
+    if isScheduler:
+        file_name = schedule_export_filename(export_def)
+    else:
+        file_name = export_filename(export_def)
 
-        full_file_name = GenerateExport(
-            file_name=file_name,
-            format=export_format,
-            data=data,
-            columns=columns,
-            export=export_def,
-            isScheduler=isScheduler,
-        ).generate_data_export()
+    full_file_name = GenerateExport(
+        file_name=file_name,
+        format=export_format,
+        data=data,
+        columns=columns,
+        export=export_def,
+        isScheduler=isScheduler,
+    ).generate_data_export()
 
-    except Exception as exp:
-        raise (exp)
     return full_file_name
 
 
@@ -160,7 +159,10 @@ class GenerateExport:
         conf = current_app.config.get("EXPORTS")
 
         if isScheduler:
-            self.export_dir = conf.get("export_schedules_dir")
+            self.export_dir = os.path.join(
+                current_app.config["MEDIA_FOLDER"],
+                conf.get("export_schedules_dir"),
+            )
         else:
             self.export_dir = os.path.join(
                 current_app.config["MEDIA_FOLDER"], conf.get("usr_generated_dirname")
@@ -170,7 +172,8 @@ class GenerateExport:
 
         # Nettoyage des anciens exports clean_export_file()
         clean_export_file(
-            dir_to_del=self.export_dir, nb_days=current_app.config["EXPORTS"]["nb_days_keep_file"]
+            dir_to_del=self.export_dir,
+            nb_days=current_app.config["EXPORTS"]["nb_days_keep_file"],
         )
 
     def generate_data_export(self):
@@ -179,7 +182,9 @@ class GenerateExport:
         """
         out = None
 
-        format_list = [k for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
+        format_list = [
+            k for k in current_app.config["EXPORTS"]["export_format_map"].keys()
+        ]
 
         if self.format not in format_list:
             raise Exception("Unsupported format")
@@ -203,7 +208,10 @@ class GenerateExport:
             )  # noqa E501
 
         if out:
-            with open("{}/{}.{}".format(self.export_dir, self.file_name, self.format), "w") as file:
+            with open(
+                "{}/{}.{}".format(self.export_dir, self.file_name, self.format), "w"
+            ) as file:
+                print(file)
                 file.write(out)
         return self.file_name + "." + self.format
 
