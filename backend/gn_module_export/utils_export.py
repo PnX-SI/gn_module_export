@@ -21,6 +21,10 @@ from .repositories import ExportObjectQueryRepository
 from .send_mail import export_send_mail, export_send_mail_error
 
 
+class ExportGenerationNotNeeded(Exception):
+    pass
+
+
 def export_filename(export):
     """
     Génération du nom horodaté du fichier d'export
@@ -101,7 +105,9 @@ def thread_export_data(id_export, export_format, role, filters, mail_to):
         )
 
 
-def export_data_file(id_export, export_format, filters={}, isScheduler=False):
+def export_data_file(
+    id_export, export_format, filters={}, isScheduler=False, skip_newer_than=None
+):
     """
     Fonction qui permet de générer un export fichier
 
@@ -138,7 +144,9 @@ def export_data_file(id_export, export_format, filters={}, isScheduler=False):
         columns=columns,
         export=export_def,
         isScheduler=isScheduler,
-    ).generate_data_export()
+    ).generate_data_export(
+        skip_newer_than=skip_newer_than,
+    )
 
     return full_file_name
 
@@ -176,11 +184,16 @@ class GenerateExport:
             nb_days=current_app.config["EXPORTS"]["nb_days_keep_file"],
         )
 
-    def generate_data_export(self):
+    def generate_data_export(self, skip_newer_than=None):
         """
         Génération des fichiers d'export en fonction du format demandé
         """
         out = None
+        file_path = Path(self.export_dir) / "{}.{}".format(self.file_name, self.format)
+        if skip_newer_than is not None and file_path.exists():
+            age = datetime.now() - datetime.fromtimestamp(file_path.stat().st_mtime)
+            if age < skip_newer_than:
+                raise ExportGenerationNotNeeded(self.export['id'], skip_newer_than - age)
 
         format_list = [
             k for k in current_app.config["EXPORTS"]["export_format_map"].keys()
@@ -208,10 +221,7 @@ class GenerateExport:
             )  # noqa E501
 
         if out:
-            with open(
-                "{}/{}.{}".format(self.export_dir, self.file_name, self.format), "w"
-            ) as file:
-                print(file)
+            with file_path.open("w") as file:
                 file.write(out)
         return self.file_name + "." + self.format
 

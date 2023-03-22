@@ -226,15 +226,3 @@ def generate_swagger_spec(id_export):
         }
     ]
     return general_params + swagger_parameters
-
-
-def get_export_schedules():
-    """
-    Liste des exports automatiques
-    """
-    try:
-        q = DB.session.query(ExportSchedules)
-        result = q.all()
-    except Exception as exception:
-        raise
-    return result

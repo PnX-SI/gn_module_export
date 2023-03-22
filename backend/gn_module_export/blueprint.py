@@ -45,10 +45,10 @@ from geonature.core.gn_permissions import decorators as permissions
 from geonature.utils.env import DB
 
 
+import gn_module_export.tasks  # noqua: F401
 from .repositories import ExportObjectQueryRepository, generate_swagger_spec
 from .models import Export, CorExportsRoles, Licences, ExportSchedules, UserRepr
 from .utils_export import thread_export_data
-
 from .commands import commands
 
 LOGGER = current_app.logger
