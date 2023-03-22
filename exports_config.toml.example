@@ -9,7 +9,7 @@ usr_generated_dirname = 'exports/usr_generated'
 
 ## URL des exports générés par les utilisateurs
 # export_web_url : paramètre optionel. Correspond à une url pour les fichiers générés lors des exports utilisateurs
-# cette adresse doit être reliée au répertoire '{GN_HOME}/backend/static/exports/usr_generated/'
+# cette adresse doit être reliée au répertoire '{GN_HOME}/backend/media/exports/usr_generated/'
 # La configuration Apache pour GeoNature doit être modifiée avec les directives '<Directory>' et 'Alias' pour créer ce lien.
 export_web_url='http://geonature.mondomaine.fr/dataexport'
 
