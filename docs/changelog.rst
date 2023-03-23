@@ -14,6 +14,10 @@ Nécessite la version 2.12.0 (ou plus) de GeoNature.
 * Centralisation de la configuration du module dans le dossier de configuration de GeoNature
 * Répercussion de la réorganisation des dossiers dans GeoNature. Les exports sont désormais stockés dans ``geonature/backend/media/exports``
 * Répercussion de la refactorisation des permissions réalisée dans GeoNature 2.12.0
+* Le cron lançant automatiquement la tache de génération des exports planifiés a été remplacée par un tache Celery Beat, installée automatiquement avec le module (#125)
+* La fonction `gn_exports_run_cron_export()` est remplacée par `generate(export_id, export_format, scheduled, skip_newer_than)` (#125)
+* La fonction `gn_exports_run_cron_export_dsw()` est remplacée par `generate_dsw()` (#125)
+* Le script `gn_export_cron.sh` a été supprimé (#125)
 * Compatibilité avec SQLAlchemy 1.4 et Flask-SQLAlchemy 1.4
 
 **🐛 Corrections**
@@ -24,7 +28,8 @@ Nécessite la version 2.12.0 (ou plus) de GeoNature.
 
 **⚠️ Notes de version**
 
-Le dossier de stockage des exports a été modifié de ``geonature/backend/static/exports/`` à ``geonature/backend/media/exports/``. Répercutez éventuellement ce changement si vous aviez modifié la configuration du module ainsi que la configuration Apache de GeoNature (pour servir les fichiers exportés avec Apache - https://github.com/PnX-SI/gn_module_export/#url-des-fichiers).
+* Le dossier de stockage des exports a été modifié de ``geonature/backend/static/exports/`` à ``geonature/backend/media/exports/``. Répercutez éventuellement ce changement si vous aviez modifié la configuration du module ainsi que la configuration Apache de GeoNature (pour servir les fichiers exportés avec Apache - https://github.com/PnX-SI/gn_module_export/#url-des-fichiers).
+* Si vous aviez mis en place un cron système pour générer les exports planifiés (dans `/etc/cron/geonature` ou autre), vous pouvez le supprimer car ils sont désormais générés automatiquement avec Celery Beat.
 
 1.3.0 (2022-11-02)
 ------------------
