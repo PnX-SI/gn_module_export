@@ -18,7 +18,7 @@ Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNa
 
 Le module d'export envoie des emails indiquant que l'export demandé est prêt. Pour cela il est nécessaire d'avoir configuré au préalable les paramètres d'envoi d'emails dans la configuration générale de GeoNature (section ``[MAIL_CONFIG]`` de ``geonature/config/geonature_config.toml``).
 
-La configuration des emails utilise les paramètres définis par Flask_mail. Pour avoir accès à l'ensemble des paramètres se référer à la [documentation complète](https://flask-mail.readthedocs.io/en/latest/).
+La configuration des emails utilise les paramètres définis par Flask-Mail. Pour avoir accès à l'ensemble des paramètres se référer à la [documentation complète](https://flask-mail.readthedocs.io/en/latest/).
 
 ```toml
 [MAIL_CONFIG]
@@ -42,7 +42,7 @@ Les paramètres du module surcouchables concernent les dossiers d'export et se c
 
 Vous pouvez donc modifier la configuration du module en créant un fichier 
 `exports_config.toml` dans le dossier `config` de GeoNature, en vous inspirant 
-du fichier `exports_config.toml.example` et en surcouchant les paramètres que vous souhaitez
+du fichier `exports_config.toml.example` et en surcouchant les paramètres que vous souhaitez.
 
 Pour appliquer les modifications de la configuration du module, consultez 
 la [rubrique dédiée de la documentation de GeoNature](https://docs.geonature.fr/installation.html#module-config).
@@ -149,25 +149,23 @@ Par défaut une documentation Swagger est générée automatiquement pour chaque
 Il est possible de surcharger la documentation Swagger de chaque API en respectant certaines conventions :
 
 1. Créer un fichier au format OpenAPI décrivant votre export
-2. Sauvegarder le fichier ``geonature/external_modules/exports/backend/templates/swagger/api_specification_{id_export}.json``
+2. Sauvegarder le fichier ``~/gn_module_export/backend/templates/swagger/api_specification_{id_export}.json``
+
+# Générer un export
+
+Pour générer le ficheir d’un export, une commande est disponible : `geonature exports generate <ID_EXPORT>`
+Pour plus d’information sur l’utilisation de cette commande, lancer `geonature exports generate --help`.
 
 # Export planifié
 
-Pour réaliser les exports planifiés une commande est disponible `geonature exports gn_exports_run_cron_export`.
+Il est possible d’automatiser la génération des fichiers des exports.
+Ceci est configurable depuis la section « Planification des exports » dans le module Admin.
 
-Cette commande liste des exports planifiés dans la table ``gn_exports.t_export_schedules`` et les exécute si besoin. La fonction considère qu'un export doit être réalisé à partir du moment où le fichier généré précedemment est plus ancien (en jours) que la fréquence définie (dans ``gn_exports.t_export_schedules.frequency``).
+Les exports sont générés la nuit à 3 heures, selon la fréquence de génération configurée (en jours).
+
+Vous pouvez forcer la génération d’un export manuellement avec la commande de génération `geonature exports generate`.
+
 Par défaut, le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/media/exports/schedules/Nom_Export.Format``.
-
-Pour lancer les exports il faut utiliser les instructions suivantes :
-
-```bash
-cd GN2_HOME
-source backend/venv/bin/activate
-geonature exports gn_exports_run_cron_export
-```
-
-Vous pouvez automatiser les exports en configurant une tache cron.
-Pour aller voir le CRON  : ``crontab -e``
 
 
 # URL des fichiers
@@ -237,7 +235,7 @@ Fichier .ttl, généré par la commande :
 ```bash
 cd GN2_HOME
 source backend/venv/bin/activate
-geonature exports gn_exports_run_cron_export_dsw --limit 10 --offset=0
+geonature exports generate-dsw --limit 10 --offset=0
 ```
 
 Le fichier est alors disponible à l'adresse <URL_GEONATURE>/api/media/exports/dsw/export_dsw.ttl.
