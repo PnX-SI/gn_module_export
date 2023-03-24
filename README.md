@@ -31,27 +31,21 @@ La configuration des emails utilise les paramètres définis par Flask_mail. Pou
 
 ### Autres paramètres
 
-Les paramètres du module surcouchables concernent les dossiers d'export et se configurent dans le fichier `exports_config.toml` dans le dossier de configuration de GeoNature (`geonature/config/`) :
+Les paramètres du module surcouchables concernent les dossiers d'export et se configurent dans le fichier `exports_config.toml`,
+à créer dans le dossier de configuration de GeoNature (`geonature/config/`) :
 
-* ``export_schedules_dir`` : chemin absolu du dossier où les exports programmés seront déposés lors de la réalisation de la commande ``gn_exports_run_cron_export``
+* ``export_schedules_dir`` : chemin absolu du dossier où les exports programmés seront déposés
 * ``export_dsw_dir`` : chemin absolu du dossier où l'export sémantique au format Darwin-SW sera réalisé
 * ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
 * ``export_web_url`` : URL des fichiers exportés à la demande par les utilisateurs
 * ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
 
-Voir le fichier ``exports_config.toml.example`` d'exemple des paramètres.
+Vous pouvez donc modifier la configuration du module en créant un fichier 
+`exports_config.toml` dans le dossier `config` de GeoNature, en vous inspirant 
+du fichier `exports_config.toml.example` et en surcouchant les paramètres que vous souhaitez
 
-Pour créer le fichier de configuration du module, à partir du fichier d'exemple : 
-
-```bash
-cp ~/gn_module_export/exports_config.toml.example ~/geonature/config/exports_config.toml
-```
-
-Si vous modifiez les valeurs par défaut de ces paramètres en les renseignant dans le fichier `geonature/config/exports_config.toml`, vous devez recharger GeoNature pour appliquer les modifications des paramètres :
-
-```bash
-sudo systemctl reload geonature
-```
+Pour appliquer les modifications de la configuration du module, consultez 
+la [rubrique dédiée de la documentation de GeoNature](https://docs.geonature.fr/installation.html#module-config).
 
 ## Commande d'installation
 
@@ -66,7 +60,7 @@ rm X.Y.Z.zip
 - Renommez le répertoire du module
 
 ```bash
-mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
+mv ~/gn_module_export-X.Y.Z ~/gn_module_export
 ```
 
 - Lancez l'installation du module
@@ -93,18 +87,18 @@ rm X.Y.Z.zip
 - Renommez l'ancien et le nouveau répertoire
 
 ```bash
-mv /home/`whoami`/gn_module_export /home/`whoami`/gn_module_export_old
-mv /home/`whoami`/gn_module_export-X.Y.Z /home/`whoami`/gn_module_export
+mv ~/gn_module_export ~/gn_module_export_old
+mv ~/gn_module_export-X.Y.Z ~/gn_module_export
 ```
 
-- Si vous avez encore votre configuration du module dans les dossiers du module, rapatriez le fichier de configuration dans le dossier
-  de configuration centralisée de GeoNature (depuis sa version 2.11) :
+- Si vous avez encore votre configuration du module dans le dossier `config` du module, 
+  copiez le vers le dossier de configuration centralisée de GeoNature :
 
 ```bash
-cp /home/`whoami`/gn_module_export_old/config/conf_gn_module.toml  /home/`whoami`/geonature/config/exports_conf.toml
+cp ~/gn_module_export_old/config/conf_gn_module.toml  ~/geonature/config/exports_conf.toml
 ```
 
-- Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports depuis le dossier ``/home/`whoami`/gn_module_export_old/backend/templates/swagger/``.
+- Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports depuis le dossier `~/gn_module_export_old/backend/templates/swagger/`.
 
 - Lancez la mise à jour du module
 
