@@ -21,7 +21,6 @@ from utils_flask_sqla_geo.generic import GenericQueryGeo, GenericTableGeo
 from .models import Export, ExportLog, ExportSchedules
 
 
-
 class ExportObjectQueryRepository:
     def __init__(self, id_export, role=None, filters=None, limit=1000, offset=0):
         """
@@ -106,7 +105,9 @@ class ExportObjectQueryRepository:
         # Ajout licence
         if self.export:
             try:
-                export_license = (self.export.as_dict(fields=["licence"])).get("licence", None)
+                export_license = (self.export.as_dict(fields=["licence"])).get(
+                    "licence", None
+                )
                 data["license"] = dict()
                 data["license"]["name"] = export_license.get("name_licence", None)
                 data["license"]["href"] = export_license.get("url_licence", None)
@@ -217,12 +218,17 @@ def generate_swagger_spec(id_export):
             "type": "int",
             "description": "Nombre maximum de résultats à retourner",
         },
-        {"in": "query", "name": "offset", "type": "int", "description": "Numéro de page"},
+        {
+            "in": "query",
+            "name": "offset",
+            "type": "int",
+            "description": "Numéro de page",
+        },
         {
             "in": "query",
             "name": "orderby",
             "type": "varchar",
             "description": "Nom d'un champ de la vue qui sera utilisé comme variable de tri. Une mention au sens du tri peut être ajoutée en utilisant la syntaxe suivante : nom_col[:ASC|DESC]",
-        }
+        },
     ]
     return general_params + swagger_parameters

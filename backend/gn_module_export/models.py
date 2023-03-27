@@ -43,7 +43,9 @@ class UserRepr(User):
             val = "Groupe : {}".format(self.nom_role)
         else:
             val = "{nom} {prenom} - ({email})".format(
-                nom=self.nom_role, prenom=self.prenom_role or "", email=self.email or "no email"
+                nom=self.nom_role,
+                prenom=self.prenom_role or "",
+                email=self.email or "no email",
             )
         return val
 
@@ -77,7 +79,9 @@ class Export(DB.Model):
     geometry_field = DB.Column(DB.Text)
     geometry_srid = DB.Column(DB.Integer)
     public = DB.Column(DB.Boolean, nullable=False, default=False)
-    id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False)
+    id_licence = DB.Column(
+        DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False
+    )
     allowed_roles = DB.relationship("CorExportsRoles")
     licence = DB.relationship("Licences")
 
@@ -116,9 +120,13 @@ class ExportLog(DB.Model):
 class CorExportsRoles(DB.Model):
     __tablename__ = "cor_exports_roles"
     __table_args__ = {"schema": "gn_exports"}
-    id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id), primary_key=True, nullable=False)
+    id_export = DB.Column(
+        DB.Integer(), DB.ForeignKey(Export.id), primary_key=True, nullable=False
+    )
 
-    id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role), primary_key=True, nullable=False)
+    id_role = DB.Column(
+        DB.Integer, DB.ForeignKey(User.id_role), primary_key=True, nullable=False
+    )
 
     export = DB.relationship("Export", lazy="joined", cascade="all,delete")
     role = DB.relationship("UserRepr", lazy="joined")

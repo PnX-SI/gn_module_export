@@ -193,7 +193,9 @@ class GenerateExport:
         if skip_newer_than is not None and file_path.exists():
             age = datetime.now() - datetime.fromtimestamp(file_path.stat().st_mtime)
             if age < skip_newer_than:
-                raise ExportGenerationNotNeeded(self.export['id'], skip_newer_than - age)
+                raise ExportGenerationNotNeeded(
+                    self.export["id"], skip_newer_than - age
+                )
 
         format_list = [
             k for k in current_app.config["EXPORTS"]["export_format_map"].keys()

@@ -96,10 +96,14 @@ def export_send_mail_error(mail_to, export, error):
             type(current_app.config["ERROR_MAIL_TO"]) is list
             and current_app.config["ERROR_MAIL_TO"]
         ):
-            export_send_admin_mail_error(current_app.config["ERROR_MAIL_TO"], export, error)
+            export_send_admin_mail_error(
+                current_app.config["ERROR_MAIL_TO"], export, error
+            )
 
     send_mail(
-        recipients=mail_to, subject="[GeoNature][ERREUR] Export {}".format(label), msg_html=msg
+        recipients=mail_to,
+        subject="[GeoNature][ERREUR] Export {}".format(label),
+        msg_html=msg,
     )
 
 

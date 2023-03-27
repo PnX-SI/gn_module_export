@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 import pytest
 from flask import url_for, current_app
-from .bootstrap_test import (app, get_token)
+from .bootstrap_test import app, get_token
 
 
 assert app  # silence pyflake's unused import warning
@@ -12,7 +12,7 @@ assert app  # silence pyflake's unused import warning
 # Insert sample data in database
 #
 
-REFERENCE_GRAPH = '''\
+REFERENCE_GRAPH = """\
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
 @prefix dsw: <http://purl.org/dsw/> .
 @prefix dwc: <http://rs.tdwg.org/dwc/terms/> .
@@ -135,187 +135,186 @@ dsw:basisOfRecord [ a dwc:Occurrence ;
     dwc:georeferencedBy "Administrateur test|Autre" ;
     dwc:ownerInstitutionCode "NSP" ;
     dwc:samplingProtocol "23" ] .
-'''  # noqa: E501
+"""  # noqa: E501
 
 
-@pytest.mark.usefixtures('client_class')
+@pytest.mark.usefixtures("client_class")
 @pytest.mark.incremental
 class TestApiModuleExports:
-    mimetype = 'application/json'
-    headers = {
-        'Content-Type': mimetype,
-        'Accept': mimetype
-    }
+    mimetype = "application/json"
+    headers = {"Content-Type": mimetype, "Accept": mimetype}
 
     def test_getExports(self):
         token = get_token(self.client)
-        self.client.set_cookie('/', 'token', token)
-        response = self.client.get(url_for('exports.getExports'))
+        self.client.set_cookie("/", "token", token)
+        response = self.client.get(url_for("exports.getExports"))
         assert response.status_code == 200
 
     def test_getExports_roles_admin(self):
-        token = get_token(self.client, login='admin', password='admin')
-        self.client.set_cookie('/', 'token', token)
-        response = self.client.get(
-            url_for('exports.getExports'))
+        token = get_token(self.client, login="admin", password="admin")
+        self.client.set_cookie("/", "token", token)
+        response = self.client.get(url_for("exports.getExports"))
         assert response
-        print('data:', response.json)
+        print("data:", response.json)
         assert response.status_code == 200
         assert response.json == [
             {
-                'geometry_field': None,
-                'public': False,
-                'id': 3,
-                'label': 'TRoles',
-                'schema_name': 'utilisateurs',
-                'geometry_srid': None,
-                'view_name': 't_roles',
-                'desc': 'users'
-            }, {
-                'desc': 'SINP compliant dataset',
-                'id': 2, 'view_name':
-                'export_occtax_sinp',
-                'geometry_srid': None,
-                'label': 'OccTax - SINP',
-                'public': True,
-                'schema_name':
-                'pr_occtax',
-                'geometry_field': None
-            }, {
-                'desc': 'Dépôt Légal de Biodiversité',
-                'id': 1,
-                'view_name': 'export_occtax_dlb',
-                'geometry_srid': 4326,
-                'label': 'OccTax - DLB',
-                'public': True,
-                'schema_name': 'pr_occtax',
-                'geometry_field': 'geom_4326'
-            }]
+                "geometry_field": None,
+                "public": False,
+                "id": 3,
+                "label": "TRoles",
+                "schema_name": "utilisateurs",
+                "geometry_srid": None,
+                "view_name": "t_roles",
+                "desc": "users",
+            },
+            {
+                "desc": "SINP compliant dataset",
+                "id": 2,
+                "view_name": "export_occtax_sinp",
+                "geometry_srid": None,
+                "label": "OccTax - SINP",
+                "public": True,
+                "schema_name": "pr_occtax",
+                "geometry_field": None,
+            },
+            {
+                "desc": "Dépôt Légal de Biodiversité",
+                "id": 1,
+                "view_name": "export_occtax_dlb",
+                "geometry_srid": 4326,
+                "label": "OccTax - DLB",
+                "public": True,
+                "schema_name": "pr_occtax",
+                "geometry_field": "geom_4326",
+            },
+        ]
 
     def test_getExports_roles_agent(self):
-        token = get_token(self.client, login='agent', password='admin')
-        self.client.set_cookie('/', 'token', token)
-        response = self.client.get(
-            url_for('exports.getExports'))
+        token = get_token(self.client, login="agent", password="admin")
+        self.client.set_cookie("/", "token", token)
+        response = self.client.get(url_for("exports.getExports"))
         assert response.status_code == 200
         assert response.json == [
             {
-                'desc': 'SINP compliant dataset',
-                'id': 2, 'view_name':
-                'export_occtax_sinp',
-                'geometry_srid': None,
-                'label': 'OccTax - SINP',
-                'public': True,
-                'schema_name':
-                'pr_occtax',
-                'geometry_field': None
-            }, {
-                'desc': 'Dépôt Légal de Biodiversité',
-                'id': 1,
-                'view_name': 'export_occtax_dlb',
-                'geometry_srid': 4326,
-                'label': 'OccTax - DLB',
-                'public': True,
-                'schema_name': 'pr_occtax',
-                'geometry_field': 'geom_4326'
-            }]
+                "desc": "SINP compliant dataset",
+                "id": 2,
+                "view_name": "export_occtax_sinp",
+                "geometry_srid": None,
+                "label": "OccTax - SINP",
+                "public": True,
+                "schema_name": "pr_occtax",
+                "geometry_field": None,
+            },
+            {
+                "desc": "Dépôt Légal de Biodiversité",
+                "id": 1,
+                "view_name": "export_occtax_dlb",
+                "geometry_srid": 4326,
+                "label": "OccTax - DLB",
+                "public": True,
+                "schema_name": "pr_occtax",
+                "geometry_field": "geom_4326",
+            },
+        ]
 
     def test_getOneExport_roles_agent(self):
-        token = get_token(self.client, login='agent', password='admin')
-        self.client.set_cookie('/', 'token', token)
+        token = get_token(self.client, login="agent", password="admin")
+        self.client.set_cookie("/", "token", token)
         response = self.client.get(
-             url_for(
-                 'exports.getOneExport', id_export=3, export_format='json'))
+            url_for("exports.getOneExport", id_export=3, export_format="json")
+        )
         assert response
-        print('data:', response.json)
+        print("data:", response.json)
         assert response.status_code == 404
 
     def test_getOneExport_role_admin(self):
-        token = get_token(self.client, login='admin', password='admin')
-        self.client.set_cookie('/', 'token', token)
+        token = get_token(self.client, login="admin", password="admin")
+        self.client.set_cookie("/", "token", token)
         response = self.client.get(
-             url_for(
-                 'exports.getOneExport', id_export=3, export_format='json'))
+            url_for("exports.getOneExport", id_export=3, export_format="json")
+        )
         assert response
         assert response.status_code == 200
 
     def test_export_dlb_csv(self):
         token = get_token(self.client)
-        self.client.set_cookie('/', 'token', token)
+        self.client.set_cookie("/", "token", token)
         tick = datetime.now().replace(microsecond=0)
         response = self.client.get(
-            url_for('exports.getOneExport', id_export=1, export_format='csv'))
+            url_for("exports.getOneExport", id_export=1, export_format="csv")
+        )
         tock = datetime.now().replace(microsecond=0)
         assert response.status_code == 200
 
-        content_disposition = set(
-            response.headers['Content-Disposition'].split('; '))
-        assert 'attachment' in content_disposition
+        content_disposition = set(response.headers["Content-Disposition"].split("; "))
+        assert "attachment" in content_disposition
 
         content_disposition = list(content_disposition)
         filenames = [
-            item
-            for item in content_disposition
-            if item.startswith('filename=')]
+            item for item in content_disposition if item.startswith("filename=")
+        ]
         assert len(filenames) == 1
 
-        filename = filenames[0].replace('filename=', '')
-        assert filename.startswith('export_OccTax_-_DLB_')
-        assert filename.endswith('.csv')
+        filename = filenames[0].replace("filename=", "")
+        assert filename.startswith("export_OccTax_-_DLB_")
+        assert filename.endswith(".csv")
         ts = datetime.strptime(
-                filename, 'export_OccTax_-_DLB_%Y_%m_%d_%Hh%Mm%S.csv'
-            ).replace(microsecond=0)
-        assert (tick <= ts <= tock)
+            filename, "export_OccTax_-_DLB_%Y_%m_%d_%Hh%Mm%S.csv"
+        ).replace(microsecond=0)
+        assert tick <= ts <= tock
         # assert somecontent in response.data
 
     def test_export_dlb_json(self):
         token = get_token(self.client)
-        self.client.set_cookie('/', 'token', token)
+        self.client.set_cookie("/", "token", token)
         response = self.client.get(
-            url_for('exports.getOneExport', id_export=1, export_format='json'))
+            url_for("exports.getOneExport", id_export=1, export_format="json")
+        )
         assert response.status_code == 200
 
     def test_export_dlb_shp(self):
         # DLB has geom field
         token = get_token(self.client)
-        self.client.set_cookie('/', 'token', token)
+        self.client.set_cookie("/", "token", token)
         response = self.client.get(
-            url_for('exports.getOneExport', id_export=1, export_format='shp'))
+            url_for("exports.getOneExport", id_export=1, export_format="shp")
+        )
         assert response.status_code == 200
 
     def test_export_sinp_noshp(self):
         # SINP export has no geom field
         token = get_token(self.client)
-        self.client.set_cookie('/', 'token', token)
+        self.client.set_cookie("/", "token", token)
         response = self.client.get(
-            url_for('exports.getOneExport', id_export=2, export_format='shp'))
+            url_for("exports.getOneExport", id_export=2, export_format="shp")
+        )
         assert response.status_code == 404
-        assert response.json == {'api_error': 'NonTransformableError'}
+        assert response.json == {"api_error": "NonTransformableError"}
 
     def test_dws(self):
         import rdflib
         import rdflib.compare
 
-        conf = current_app.config.get('EXPORTS')
+        conf = current_app.config.get("EXPORTS")
         export_dsw_dir = os.path.join(
             current_app.config["MEDIA_FOLDER"],
-            conf.get('export_dsw_dir'),
-            conf.get('export_dsw_filename'),
+            conf.get("export_dsw_dir"),
+            conf.get("export_dsw_filename"),
         )
 
-        response = self.client.get(url_for('exports.export_dsw_dir'))
+        response = self.client.get(url_for("exports.export_dsw_dir"))
 
-        if (export_dsw_dir, False)
-                in (None, False, 0, '')):
+        if (export_dsw_dir, False) in (None, False, 0, ""):
             assert response.status_code == 501
             return
 
         assert response.status_code == 200
 
         g1 = rdflib.Graph()
-        g1 = g1.parse(data=REFERENCE_GRAPH, format='turtle')
+        g1 = g1.parse(data=REFERENCE_GRAPH, format="turtle")
         g2 = rdflib.Graph()
-        g2 = g2.parse(data=response.data, format='turtle')
+        g2 = g2.parse(data=response.data, format="turtle")
         # assert g2.isomorphic(g1)  # Ok if no BNodes are involved
         # See rdflib.compare for a correct implementation of isomorphism checks
         assert rdflib.compare.isomorphic(g1, g2)
