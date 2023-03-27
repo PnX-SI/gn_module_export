@@ -30,6 +30,8 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
+*.swp
+*.swo
 
 uninstall.sh
 
