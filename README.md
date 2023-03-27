@@ -170,45 +170,11 @@ Par défaut, le fichier généré par un export planifié est disponible à l'ad
 
 # URL des fichiers
 
-Par défaut les fichiers sont servis par le serveur web Gunicorn qui a un timeout limité qui s'applique aussi au téléchargement des fichiers. Si le fichier à télécharger est volumineux, il est possible que le téléchargement soit coupé avant de terminer au bout de quelques minutes. Même si il est possible de le reprendre pour le terminer (éventuellement en plusieurs fois), il est aussi possible (et conseillé) de servir les fichiers des exports par Apache (non concerné par un timeout pour le téléchargement), plutôt que par Gunicorn.
+Les fichiers servis par le serveur web Gunicorn sont soumis à un timeout pouvant interrompre le téléchargement des fichier volumineux.
+Il est donc conseillé de servir les fichiers des exports directement par Apache sans passer par Gunicorn.
 
-Pour cela, modifier la configuration Apache de GeoNature et ajouter un alias vers le dossier où sont générés les fichiers exportés :
+Ainsi, il est recommandé d’utiliser la configuration Apache fourni par GeoNature (``/etc/apache2/conf-available/geonature.conf``) qui sert les médias directement sans passer par Gunicorn.
 
-```bash
-sudo nano /etc/apache2/sites-available/geonature.conf
-```
-
-Ajoutez ces lignes au milieu de la configuration Apache de GeoNature (en adaptant le chemin absolu et le nom de l'alias comme vous le souhaitez). Exemple pour les exports planifiés :
-
-```
-Alias "/exportschedules" "/home/myuser/geonature/backend/media/exports/schedules"
-<Directory "/home/myuser/geonature/backend/media/exports/schedules">
-   AllowOverride None
-   Require all granted
-</Directory>
-```
-
-Pour les fichiers générés à la demande par les utilisateurs :
-
-```
-Alias "/exportfiles" "/home/myuser/geonature/backend/media/exports/usr_generated"
-<Directory "/home/myuser/geonature/backend/media/exports/usr_generated">
-   AllowOverride None
-   Require all granted
-</Directory>
-```
-
-Renseignez le paramètre ``export_web_url`` en cohérence dans le fichier ``geonature/config/exports_config.toml`` (``export_web_url=<URL_GEONATURE>/exportfiles`` dans cet exemple).
-
-Rechargez la configuration Apache pour prendre en compte les modifications :
-
-```bash
-sudo /etc/init.d/apache2 reload
-```
-
-Dans cet exemple les fichiers des exports planifiés seront accessibles à l'adresse ``<URL_GEONATURE>/exportschedules/Nom_Export.Format``. Le chemin ``/exportschedules/`` est adaptable bien entendu au niveau de l'alias de la configuration Apache. Les fichiers des exports générés à la demande par les utilisateurs seront disponibles à l'adresse ``<URL_GEONATURE>/exportfiles/Date_Nom_Export.Format``
-
-Une autre solution plus globale serait de compléter la configuration Apache de GeoNature pour que l'ensemble de son répertoire ``backend/media`` soit servi en mode fichier par Apache.
 
 # Export RDF au format sémantique Darwin-SW
 

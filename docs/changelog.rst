@@ -28,7 +28,9 @@ Nécessite la version 2.12.0 (ou plus) de GeoNature.
 
 **⚠️ Notes de version**
 
-* Le dossier de stockage des exports a été modifié de ``geonature/backend/static/exports/`` à ``geonature/backend/media/exports/``. Répercutez éventuellement ce changement si vous aviez modifié la configuration du module ainsi que la configuration Apache de GeoNature (pour servir les fichiers exportés avec Apache - https://github.com/PnX-SI/gn_module_export/#url-des-fichiers).
+* Le dossier de stockage des exports a été modifié de ``geonature/backend/static/exports/`` à ``geonature/backend/media/exports/``.
+  La configuration Apache fournie avec GeoNature 2.12 sert directement le dossier ``media`` sans passer par gunicorn.
+  Si vous aviez modifié votre configuration spécifiquement pour le module d’export, il est recommandé de retirer cette partie spécifique au profit de la configuration générique de GeoNature.
 * Si vous aviez mis en place un cron système pour générer les exports planifiés (dans `/etc/cron/geonature` ou autre), vous pouvez le supprimer car ils sont désormais générés automatiquement avec Celery Beat.
 
 1.3.0 (2022-11-02)
