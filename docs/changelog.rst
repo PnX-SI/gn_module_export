@@ -22,9 +22,9 @@ Nécessite la version 2.12.0 (ou plus) de GeoNature.
 
 **🐛 Corrections**
 
-* Add MODULE_URL in schema as not generated anymore
-* Suppression de l'usage de ``MODULE_URL`` dans la configuration du module (https://github.com/PnX-SI/GeoNature/issues/2165) ???
-* Remove fileHandler logger. This handler wrongly use ``ROOT_DIR`` and is not docker-ready.
+* Ajout du paramètre ``MODULE_URL`` dans le schéma de configuration du module
+* Suppression de l'usage de ``MODULE_URL`` dans la configuration du module (https://github.com/PnX-SI/GeoNature/issues/2165)
+* Suppression du logger fileHandler. Celui-ci utilisait le paramètre ``ROOT_DIR`` et n'était pas compatible avec Docker
 
 **⚠️ Notes de version**
 
