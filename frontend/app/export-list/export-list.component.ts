@@ -1,22 +1,18 @@
-import { Component, OnInit } from "@angular/core";
-import { FormGroup, FormBuilder, Validators } from "@angular/forms";
-import { NgbModal, NgbModalRef } from "@ng-bootstrap/ng-bootstrap";
-import { CommonService } from "@geonature_common/service/common.service";
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { CommonService } from '@geonature_common/service/common.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { ConfigService } from '@geonature/services/config.service';
 
-import {
-  Export,
-  ExportService,
-  ApiErrorResponse
-} from "../services/export.service";
+import { Export, ExportService, ApiErrorResponse } from '../services/export.service';
 
-import { UserDataService } from "@geonature/userModule/services/user-data.service";
+import { UserDataService } from '@geonature/userModule/services/user-data.service';
 @Component({
-  selector: "pnx-export-list",
-  templateUrl: "export-list.component.html",
-  styleUrls: ["./export-list.component.scss"],
-  providers: []
+  selector: 'pnx-export-list',
+  templateUrl: 'export-list.component.html',
+  styleUrls: ['./export-list.component.scss'],
+  providers: [],
 })
 export class ExportListComponent implements OnInit {
   exports: Export[];
@@ -28,7 +24,7 @@ export class ExportListComponent implements OnInit {
   public closeResult: string;
   private _export: Export;
   private _modalRef: NgbModalRef;
-  private _emailPattern = "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$";
+  private _emailPattern = '^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$';
   public exportFormat: {} = null;
   private currentUser: User;
   private _fullUser: {};
@@ -42,18 +38,18 @@ export class ExportListComponent implements OnInit {
     public _authService: AuthService,
     public config: ConfigService
   ) {
-    this.exportFormat = this.config.EXPORTS["export_format_map"];
+    this.exportFormat = this.config.EXPORTS['export_format_map'];
     this.api_endpoint = `${this.config.API_ENDPOINT}/${this.config.EXPORTS.MODULE_URL}`;
   }
 
   ngOnInit() {
     this.modalForm = this._fb.group({
-      formatSelection: ["", Validators.required],
-      exportLicence: ["", Validators.required],
-      emailInput: ["", Validators.compose([
-        Validators.required,
-        Validators.pattern(this._emailPattern)
-      ])]
+      formatSelection: ['', Validators.required],
+      exportLicence: ['', Validators.required],
+      emailInput: [
+        '',
+        Validators.compose([Validators.required, Validators.pattern(this._emailPattern)]),
+      ],
     });
 
     this.currentUser = this._authService.getCurrentUser();
@@ -64,27 +60,24 @@ export class ExportListComponent implements OnInit {
       (exports: Export[]) => {
         this.exports = exports;
         //Chargement des données de l'utilisateur
-        this._userService.getRole(parseInt(this.currentUser.id_role)).subscribe(res => {
+        this._userService.getRole(parseInt(this.currentUser.id_role)).subscribe((res) => {
           this._fullUser = res;
-          this.modalForm.patchValue({ emailInput: this._fullUser["email"] });
+          this.modalForm.patchValue({ emailInput: this._fullUser['email'] });
           this.loadingIndicator = false;
         });
-
       },
       (errorMsg: ApiErrorResponse) => {
         this._commonService.regularToaster(
-          "error",
+          'error',
           errorMsg.error.message ? errorMsg.error.message : errorMsg.message
         );
         this.loadingIndicator = false;
       }
     );
-
-
   }
 
   get formatSelection() {
-    return this.modalForm.get("formatSelection");
+    return this.modalForm.get('formatSelection');
   }
 
   open(modal_id) {
@@ -105,7 +98,7 @@ export class ExportListComponent implements OnInit {
   _resetModalForm() {
     // Reset form except email
     this.modalForm.reset({
-      emailInput: this.modalForm.get('emailInput').value
+      emailInput: this.modalForm.get('emailInput').value,
     });
   }
 
@@ -115,24 +108,24 @@ export class ExportListComponent implements OnInit {
 
       this._modalRef.close();
 
-      const emailparams = this.modalForm.get("emailInput").value
-        ? { email: this.modalForm.get("emailInput").value }
+      const emailparams = this.modalForm.get('emailInput').value
+        ? { email: this.modalForm.get('emailInput').value }
         : {};
 
       this._exportService
         .downloadExport(this._export, this.formatSelection.value, emailparams)
         .subscribe(
-          response => {
+          (response) => {
             this._resetModalForm();
             this._commonService.regularToaster(
-              "success",
-              response && response.message ? response.message : ""
+              'success',
+              response && response.message ? response.message : ''
             );
           },
           (response: ApiErrorResponse) => {
             this._resetModalForm();
             this._commonService.regularToaster(
-              "error",
+              'error',
               response.error.message ? response.error.message : response.message
             );
           }

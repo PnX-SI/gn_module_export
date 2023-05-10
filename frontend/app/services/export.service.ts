@@ -1,8 +1,5 @@
-import { Injectable } from "@angular/core";
-import {
-  HttpClient,
-  HttpErrorResponse,
-} from "@angular/common/http";
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ConfigService } from '@geonature/services/config.service';
 
 export interface Export {
@@ -25,10 +22,8 @@ export class ExportService {
   constructor(private _api: HttpClient, public config: ConfigService) {}
 
   getExports() {
-    console.log(this.config.API_ENDPOINT, this.config.EXPORTS.MODULE_URL)
-    return this._api.get(
-      `${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}/`
-    );
+    console.log(this.config.API_ENDPOINT, this.config.EXPORTS.MODULE_URL);
+    return this._api.get(`${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}/`);
   }
 
   downloadExport(x: Export, format: string, data: any) {
