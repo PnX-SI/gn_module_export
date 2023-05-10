@@ -1,9 +1,12 @@
 import pytest
-from geonature.utils.env import db
 from geonature.tests.fixtures import users
-
-from gn_module_export.models import Export, Licences, CorExportsRoles
+from geonature.utils.env import db
 from pypnusershub.db.models import User
+from utils_flask_sqla_geo.generic import GenericQueryGeo
+
+from gn_module_export.models import CorExportsRoles, Export, Licences
+
+EXPORT_SYNTHESE_NAME = "Synthese SINP"
 
 
 @pytest.fixture(scope="function")
@@ -56,3 +59,18 @@ def exports(group_and_user, users):
         "private_group_associated": export_private_group_associated,
         "private_user_associated": export_private_role_associated,
     }
+
+
+@pytest.fixture
+def export_synthese_sinp():
+    return Export.query.filter(Export.label == EXPORT_SYNTHESE_NAME).one()
+
+
+@pytest.fixture
+def export_synthese_sinp_query(export_synthese_sinp):
+    return GenericQueryGeo(
+        db,
+        export_synthese_sinp.view_name,
+        export_synthese_sinp.schema_name,
+        geometry_field=export_synthese_sinp.geometry_field,
+    )
