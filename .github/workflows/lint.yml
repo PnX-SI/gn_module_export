@@ -11,3 +11,14 @@ jobs:
         uses: psf/black@stable
         with:
           src: "setup.py ./backend/gn_module_export"
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Frontend code formatting check (Prettier)
+        uses: creyD/prettier_action@v4.3
+        with:
+          dry: True
+          prettier_options: --config frontend/.prettierrc --ignore-path frontend/.prettierignore --check frontend/**/*.ts
