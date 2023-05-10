@@ -24,7 +24,6 @@ export class ExportListComponent implements OnInit {
   public closeResult: string;
   private _export: Export;
   private _modalRef: NgbModalRef;
-  private _emailPattern = '^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,4}$';
   public exportFormat: {} = null;
   private currentUser: User;
   private _fullUser: {};
@@ -46,10 +45,6 @@ export class ExportListComponent implements OnInit {
     this.modalForm = this._fb.group({
       formatSelection: ['', Validators.required],
       exportLicence: ['', Validators.required],
-      emailInput: [
-        '',
-        Validators.compose([Validators.required, Validators.pattern(this._emailPattern)]),
-      ],
     });
 
     this.currentUser = this._authService.getCurrentUser();
@@ -59,12 +54,6 @@ export class ExportListComponent implements OnInit {
     this._exportService.getExports().subscribe(
       (exports: Export[]) => {
         this.exports = exports;
-        //Chargement des données de l'utilisateur
-        this._userService.getRole(parseInt(this.currentUser.id_role)).subscribe((res) => {
-          this._fullUser = res;
-          this.modalForm.patchValue({ emailInput: this._fullUser['email'] });
-          this.loadingIndicator = false;
-        });
       },
       (errorMsg: ApiErrorResponse) => {
         this._commonService.regularToaster(
@@ -95,48 +84,32 @@ export class ExportListComponent implements OnInit {
     });
   }
 
-  _resetModalForm() {
-    // Reset form except email
-    this.modalForm.reset({
-      emailInput: this.modalForm.get('emailInput').value,
-    });
-  }
-
   download() {
     if (this.modalForm.valid && this._export.id) {
       this.downloading = !this.downloading;
 
       this._modalRef.close();
 
-      const emailparams = this.modalForm.get('emailInput').value
-        ? { email: this.modalForm.get('emailInput').value }
-        : {};
-
-      this._exportService
-        .downloadExport(this._export, this.formatSelection.value, emailparams)
-        .subscribe(
-          (response) => {
-            this._resetModalForm();
-            this._commonService.regularToaster(
-              'success',
-              response && response.message ? response.message : ''
-            );
-          },
-          (response: ApiErrorResponse) => {
-            this._resetModalForm();
-            this._commonService.regularToaster(
-              'error',
-              response.error.message ? response.error.message : response.message
-            );
-          }
-        );
+      this._exportService.downloadExport(this._export, this.formatSelection.value).subscribe(
+        (response) => {
+          this._commonService.regularToaster(
+            'success',
+            response && response.message ? response.message : ''
+          );
+        },
+        (response: ApiErrorResponse) => {
+          this._commonService.regularToaster(
+            'error',
+            response.error.message ? response.error.message : response.message
+          );
+        }
+      );
     }
   }
 
   cancel_download() {
     // Annulation de l'action export (close modal)
     this._modalRef.close();
-    this._resetModalForm();
   }
 
   ngOnDestroy() {

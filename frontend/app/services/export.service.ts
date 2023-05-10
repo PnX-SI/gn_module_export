@@ -26,10 +26,10 @@ export class ExportService {
     return this._api.get(`${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}/`);
   }
 
-  downloadExport(x: Export, format: string, data: any) {
+  downloadExport(x: Export, format: string) {
     return this._api.post<any>(
       `${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}/${x.id}/${format}`,
-      data
+      {}
     );
   }
 }

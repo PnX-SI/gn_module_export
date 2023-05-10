@@ -24,6 +24,7 @@ from flask import (
     flash,
     copy_current_request_context,
     g,
+    url_for,
 )
 from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
@@ -396,18 +397,21 @@ def getOneExportThread(id_export, export_format):
     if not export.has_instance_permission(user.id_role):
         raise Forbidden
 
-    # Test email
-    # Alternative email in payload
-    email_to = None
-    if "email" in data:
-        email_to = data["email"]
-    # Test if user have an email
-    if not user.email and not email_to:  # TODO add more test
-        raise BadRequest("User doesn't have email")
+    module_conf = current_app.config["EXPORTS"]
+    if module_conf.get("export_web_url"):
+        export_url = "{}/{}".format(module_conf.get("export_web_url"))
+    else:
+        export_url = url_for(
+            "media",
+            filename=module_conf.get("usr_generated_dirname"),
+            _external=True,
+        )
 
     generate_export.delay(
         export_id=id_export,
         export_format=export_format,
+        filename=export_url,
+        user=user.id_role,
         scheduled=False,
         skip_newer_than=None,
     )

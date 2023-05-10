@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from flask import current_app
+from flask import current_app, g, url_for
 from geoalchemy2.shape import from_shape
 from shapely.geometry import asShape
 
@@ -18,11 +18,28 @@ from utils_flask_sqla_geo.utilsgeometry import FionaShapeService, FionaGpkgServi
 
 from geonature.utils.filemanager import removeDisallowedFilenameChars
 from .send_mail import export_send_mail, export_send_mail_error
+from geonature.utils.env import DB
+from geonature.core.notifications.utils import dispatch_notifications
 from .models import Export
 
 
 class ExportGenerationNotNeeded(Exception):
     pass
+
+
+def notify_export_file_generated(export, user, export_url, export_failed=False):
+    if user:
+        dispatch_notifications(
+            code_categories=["EXPORT-DONE"],
+            id_roles=[user],
+            url=export_url,
+            context={
+                "export": export,
+                "nb_keep_day": str(current_app.config["EXPORTS"]["nb_days_keep_file"]),
+                "export_failed": export_failed,
+            },
+        )
+        DB.session.commit()
 
 
 def export_filename(export):
@@ -43,7 +60,13 @@ def schedule_export_filename(export):
 
 
 def export_data_file(
-    id_export, export_format, filters={}, isScheduler=False, skip_newer_than=None
+    id_export,
+    export_format,
+    filename,
+    filters={},
+    user=None,
+    isScheduler=False,
+    skip_newer_than=None,
 ):
     """
     Fonction qui permet de générer un export fichier
@@ -84,16 +107,27 @@ def export_data_file(
     else:
         file_name = export_filename(export_def)
 
-    full_file_name = GenerateExport(
-        file_name=file_name,
-        format=export_format,
-        data=data,
-        columns=columns,
-        export=export_def,
-        isScheduler=isScheduler,
-    ).generate_data_export(
-        skip_newer_than=skip_newer_than,
-    )
+    try:
+        full_file_name = GenerateExport(
+            file_name=file_name,
+            format=export_format,
+            data=data,
+            columns=columns,
+            export=export_def,
+            isScheduler=isScheduler,
+        ).generate_data_export(
+            skip_newer_than=skip_newer_than,
+        )
+    except Exception as exp:
+        notify_export_file_generated(
+            export=export, user=user, export_url=export_url, export_failed=True
+        )
+        raise exp
+
+    # TODO export_url doit être passé de façon complete en incluant le nom de fichier
+    #       revoir la gestion de la génération des noms de fichiers
+    export_url = filename + "/" + full_file_name
+    notify_export_file_generated(export=export, user=user, export_url=export_url)
 
     return full_file_name
 

@@ -37,6 +37,8 @@ def generate(export_id, export_format, scheduled, skip_newer_than):
         generate_export(
             export_id,
             export_format,
+            filename="",
+            user=None,
             scheduled=scheduled,
             skip_newer_than=skip_newer_than,
         )
