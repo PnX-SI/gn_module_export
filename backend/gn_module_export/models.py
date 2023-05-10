@@ -1,3 +1,4 @@
+from secrets import token_hex
 from packaging import version
 
 from flask import g
@@ -127,6 +128,7 @@ class CorExportsRoles(DB.Model):
     id_role = DB.Column(
         DB.Integer, DB.ForeignKey(User.id_role), primary_key=True, nullable=False
     )
+    token = DB.Column(DB.String(80), nullable=False, default=token_hex(16))
 
     export = DB.relationship("Export", lazy="joined", cascade="all,delete")
     role = DB.relationship("UserRepr", lazy="joined")
