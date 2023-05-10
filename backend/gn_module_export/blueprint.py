@@ -502,7 +502,7 @@ def get_one_export_api(id_export):
     export = Export.query.get(id_export)
 
     if not export:
-        return jsonify([])
+        return []
     if not export.has_instance_permission(user.id_role):
         raise Forbidden
 
