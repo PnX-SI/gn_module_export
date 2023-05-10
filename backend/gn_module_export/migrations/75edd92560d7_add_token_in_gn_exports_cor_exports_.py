@@ -7,6 +7,8 @@ Create Date: 2023-05-10 10:28:04.138154
 """
 import uuid
 from alembic import op
+from secrets import token_hex
+
 import sqlalchemy as sa
 
 
@@ -28,7 +30,7 @@ def upgrade():
             UPDATE gn_exports.cor_exports_roles
             SET token = :token
         """,
-        ).bindparams(token=uuid.uuid4().hex)
+        ).bindparams(token=token_hex(16))
     )
     op.alter_column("cor_exports_roles", "token", nullable=False, schema="gn_exports")
 
