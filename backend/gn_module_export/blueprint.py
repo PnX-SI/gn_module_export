@@ -29,7 +29,7 @@ from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
 from flask_admin.babel import gettext
-from werkzeug.exceptions import NotFound, BadRequest
+from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from wtforms import validators
 
 from pypnusershub.db.models import User
@@ -46,10 +46,10 @@ from geonature.utils.env import DB
 
 
 import gn_module_export.tasks  # noqua: F401
-from .repositories import ExportObjectQueryRepository, generate_swagger_spec
+from .repositories import generate_swagger_spec
 from .models import Export, CorExportsRoles, Licences, ExportSchedules, UserRepr
-from .utils_export import thread_export_data
 from .commands import commands
+from .tasks import generate_export
 
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
@@ -374,54 +374,43 @@ def getOneExportThread(id_export, export_format):
     """
     Run export with thread
     """
-    # Test if export exists
-    if (
-        id_export < 1
-        or export_format not in current_app.config["EXPORTS"]["export_format_map"]
-    ):
-        return to_json_resp(
-            {
-                "api_error": "invalid_export",
-                "message": "Invalid export or export not found",
-            },
-            status=404,
-        )
 
     filters = {f: request.args.get(f) for f in request.args}
     data = dict(request.get_json())
+    user = g.current_user
 
+    # Test format
+    if export_format not in current_app.config["EXPORTS"]["export_format_map"]:
+        return to_json_resp(
+            {
+                "api_error": "invalid_export",
+                "message": "Invalid export format",
+            },
+            status=500,
+        )
+
+    export = Export.query.get(id_export)
+    if not export:
+        return jsonify([])
+
+    if not export.has_instance_permission(user.id_role):
+        raise Forbidden
+
+    # Test email
     # Alternative email in payload
     email_to = None
     if "email" in data:
         email_to = data["email"]
-
-    @copy_current_request_context
-    def get_data(id_export, export_format, role, filters, email_to):
-        thread_export_data(id_export, export_format, role, filters, email_to)
-
-    exp = ExportObjectQueryRepository(id_export=id_export, role=g.current_user)
-
     # Test if user have an email
-    try:
-        user = g.current_user
-        if not user.email and not email_to:  # TODO add more test
-            raise BadRequest("User doesn't have email")
-    except NoResultFound:
-        raise NotFound("User doesn't exist")
+    if not user.email and not email_to:  # TODO add more test
+        raise BadRequest("User doesn't have email")
 
-    # Run export
-    a = threading.Thread(
-        name="export_data",
-        target=get_data,
-        kwargs={
-            "id_export": id_export,
-            "export_format": export_format,
-            "role": g.current_user,
-            "filters": filters,
-            "email_to": [email_to] if (email_to) else [user.email],
-        },
+    generate_export.delay(
+        export_id=id_export,
+        export_format=export_format,
+        scheduled=False,
+        skip_newer_than=None,
     )
-    a.start()
 
     return to_json_resp(
         {
@@ -509,8 +498,19 @@ def get_one_export_api(id_export):
         order by : @TODO
     """
 
+    user = g.current_user
+    export = Export.query.get(id_export)
+
+    if not export:
+        return jsonify([])
+    if not export.has_instance_permission(user.id_role):
+        raise Forbidden
+
     limit = request.args.get("limit", default=1000, type=int)
     offset = request.args.get("offset", default=0, type=int)
+
+    if limit > 1000:
+        limit = 1000
 
     args = request.args.to_dict()
     if "limit" in args:
@@ -519,14 +519,15 @@ def get_one_export_api(id_export):
         args.pop("offset")
     filters = {f: args.get(f) for f in args}
 
-    exprep = ExportObjectQueryRepository(
-        id_export=id_export,
-        role=g.current_user,
-        filters=filters,
-        limit=limit,
-        offset=offset,
-    )
-    data = exprep.get_export_with_logging()
+    query = export.get_view_query(limit=limit, offset=offset, filters=filters)
+
+    data = query.return_query()
+
+    export_license = (export.as_dict(fields=["licence"])).get("licence", None)
+    data["license"] = dict()
+    data["license"]["name"] = export_license.get("name_licence", None)
+    data["license"]["href"] = export_license.get("url_licence", None)
+
     return data
 
 

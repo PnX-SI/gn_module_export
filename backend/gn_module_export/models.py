@@ -13,6 +13,8 @@ else:  # retro-compatibility Flask-SQLAlchemy 2 / SQLAlchemy 1.3
 from geonature.utils.env import DB
 from utils_flask_sqla.serializers import serializable
 
+from utils_flask_sqla_geo.generic import GenericQueryGeo
+
 from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
 
@@ -82,13 +84,54 @@ class Export(DB.Model):
     id_licence = DB.Column(
         DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False
     )
-    allowed_roles = DB.relationship("CorExportsRoles")
+
     licence = DB.relationship("Licences")
 
     def __str__(self):
         return "{}".format(self.label)
 
     __repr__ = __str__
+
+    def has_instance_permission(self, id_role=None):
+        if self.public:
+            return True
+
+        user = User.query.get(id_role)
+        if not user:
+            return False
+        if user in self.allowed_roles:
+            return True
+
+        return False
+
+    def get_view_query(self, limit, offset, filters=None):
+        return GenericQueryGeo(
+            DB,
+            self.view_name,
+            self.schema_name,
+            filters,
+            limit,
+            offset,
+            self.geometry_field,
+        )
+
+
+class CorExportsRoles(DB.Model):
+    __tablename__ = "cor_exports_roles"
+    __table_args__ = {"schema": "gn_exports"}
+    id_export = DB.Column(
+        DB.Integer, DB.ForeignKey(Export.id), primary_key=True, nullable=False
+    )
+
+    id_role = DB.Column(
+        DB.Integer, DB.ForeignKey(User.id_role), primary_key=True, nullable=False
+    )
+
+    # export = DB.relationship("Export", cascade="all,delete")
+    # role = DB.relationship("UserRepr")
+
+
+Export.allowed_roles = DB.relationship(User, secondary=CorExportsRoles.__table__)
 
 
 @serializable
@@ -115,21 +158,6 @@ class ExportLog(DB.Model):
             DB.session.commit()
         except Exception as e:
             DB.session.rollback()
-
-
-class CorExportsRoles(DB.Model):
-    __tablename__ = "cor_exports_roles"
-    __table_args__ = {"schema": "gn_exports"}
-    id_export = DB.Column(
-        DB.Integer(), DB.ForeignKey(Export.id), primary_key=True, nullable=False
-    )
-
-    id_role = DB.Column(
-        DB.Integer, DB.ForeignKey(User.id_role), primary_key=True, nullable=False
-    )
-
-    export = DB.relationship("Export", lazy="joined", cascade="all,delete")
-    role = DB.relationship("UserRepr", lazy="joined")
 
 
 class ExportSchedules(DB.Model):

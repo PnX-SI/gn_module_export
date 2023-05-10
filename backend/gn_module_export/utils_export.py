@@ -17,8 +17,8 @@ from utils_flask_sqla.response import generate_csv_content
 from utils_flask_sqla_geo.utilsgeometry import FionaShapeService, FionaGpkgService
 
 from geonature.utils.filemanager import removeDisallowedFilenameChars
-from .repositories import ExportObjectQueryRepository
 from .send_mail import export_send_mail, export_send_mail_error
+from .models import Export
 
 
 class ExportGenerationNotNeeded(Exception):
@@ -42,69 +42,6 @@ def schedule_export_filename(export):
     return "{}".format(removeDisallowedFilenameChars(export.get("label")))
 
 
-def thread_export_data(id_export, export_format, role, filters, mail_to):
-    """
-    Lance un thread qui permet d'exécuter les fonctions d'export
-        en arrière plan
-
-    .. :quickref: Lance un thread qui permet d'exécuter les fonctions
-        d'export en arrière plan
-
-    :query int id_export: Identifiant de l'export
-    :query str export_format: Format de l'export (csv, json, shp)
-    :query {} role: Role
-    :query {} filters: Filtre à appliquer sur l'export
-    :query [str] mail_to: Email de reception
-
-
-    **Returns:**
-    .. void
-    """
-
-    exprep = ExportObjectQueryRepository(
-        id_export=id_export, role=role, filters=filters, limit=-1, offset=0
-    )
-
-    # export data
-    try:
-        data = exprep.get_export_with_logging(export_format=export_format)
-        columns = exprep._get_export_columns_definition()
-        export_dict = exprep.export.as_dict(fields=["licence"])
-    except Exception as exp:
-        export_send_mail_error(
-            mail_to, None, "Error when exporting data : {}".format(repr(exp))
-        )
-        return
-
-    # Generate and store export file
-    try:
-        file_name = export_filename(export_dict)
-        full_file_name = GenerateExport(
-            file_name=file_name,
-            format=export_format,
-            data=data,
-            columns=columns,
-            export=export_dict,
-        ).generate_data_export()
-
-    except Exception as exp:
-        export_send_mail_error(
-            mail_to,
-            export_dict,
-            "Error when creating the export file : {}".format(repr(exp)),
-        )
-        raise exp
-        return
-
-    # Send mail
-    try:
-        export_send_mail(mail_to=mail_to, export=export_dict, file_name=full_file_name)
-    except Exception as exp:
-        export_send_mail_error(
-            mail_to, export_dict, "Error when sending email : {}".format(repr(exp))
-        )
-
-
 def export_data_file(
     id_export, export_format, filters={}, isScheduler=False, skip_newer_than=None
 ):
@@ -122,16 +59,26 @@ def export_data_file(
     .. str : nom du fichier
     """
 
-    exprep = ExportObjectQueryRepository(
-        id_export=id_export, role=None, filters=filters, limit=-1, offset=0
-    )
+    export = Export.query.get(id_export)
 
     # export data
-    data = exprep._get_data(format=export_format)
-    columns = exprep._get_export_columns_definition()
+    query = export.get_view_query(limit=-1, offset=0, filters=filters)
+
+    EXPORT_FORMAT = current_app.config["EXPORTS"]["export_format_map"]
+    if export.geometry_field and EXPORT_FORMAT[export_format]["geofeature"]:
+        data = query.as_geofeature()
+    else:
+        data = query.return_query()
+    # Ajout licence
+    export_license = (export.as_dict(fields=["licence"])).get("licence", None)
+    data["license"] = dict()
+    data["license"]["name"] = export_license.get("name_licence", None)
+    data["license"]["href"] = export_license.get("url_licence", None)
+
+    columns = query.view.db_cols
 
     # Generate and store export file
-    export_def = exprep.export.as_dict()
+    export_def = export.as_dict()
     if isScheduler:
         file_name = schedule_export_filename(export_def)
     else:
