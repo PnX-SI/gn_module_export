@@ -29,7 +29,7 @@ from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
 from flask_admin.babel import gettext
-from werkzeug.exceptions import NotFound, BadRequest,Forbidden
+from werkzeug.exceptions import NotFound, BadRequest, Forbidden
 from wtforms import validators
 
 from pypnusershub.db.models import User
@@ -509,7 +509,6 @@ def get_one_export_api(id_export, token=None):
 
         order by : @TODO
     """
-    print("YOLOOO")
     limit = request.args.get("limit", default=1000, type=int)
     offset = request.args.get("offset", default=0, type=int)
 
@@ -523,13 +522,16 @@ def get_one_export_api(id_export, token=None):
     export = Export.query.get(id_export)
     if not export:
         raise NotFound(f"The export with id {id_export} does not exist.")
-    
-    if not export.public :
-        if not g.current_user :
-            if not token : 
-                raise Forbidden()
-            DB.session.query(CorExportsRoles).filter_by(token = )
 
+    if not export.public:
+        if not g.current_user:
+            if not token:
+                raise Forbidden()
+            cor_role = (
+                DB.session.query(CorExportsRoles).filter_by(token=token).one_or_none()
+            )
+            if not cor_role:
+                raise Forbidden("This token does not exist")
 
     exprep = ExportObjectQueryRepository(
         id_export=id_export,
