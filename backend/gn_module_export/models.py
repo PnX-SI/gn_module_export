@@ -18,6 +18,28 @@ from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
 
 
+class CorExportsRoles(DB.Model):
+    __tablename__ = "cor_exports_roles"
+    __table_args__ = {"schema": "gn_exports"}
+    id_export = DB.Column(
+        DB.Integer(),
+        DB.ForeignKey("gn_exports.t_exports.id"),
+        primary_key=True,
+        nullable=False,
+    )
+
+    id_role = DB.Column(
+        DB.Integer,
+        DB.ForeignKey("utilisateurs.t_roles.id_role"),
+        primary_key=True,
+        nullable=False,
+    )
+    token = DB.Column(DB.String(80), nullable=False, default=token_hex(16))
+
+    export = DB.relationship("Export", lazy="joined", cascade="all,delete")
+    role = DB.relationship("UserRepr", lazy="joined")
+
+
 class ExportsQuery(Query):
     def get_allowed_exports(self, user=None):
         """
@@ -83,7 +105,7 @@ class Export(DB.Model):
     id_licence = DB.Column(
         DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False
     )
-    allowed_roles = DB.relationship("CorExportsRoles")
+    allowed_roles = DB.relationship(UserRepr, secondary=CorExportsRoles.__table__)
     licence = DB.relationship("Licences")
 
     def __str__(self):
@@ -116,22 +138,6 @@ class ExportLog(DB.Model):
             DB.session.commit()
         except Exception as e:
             DB.session.rollback()
-
-
-class CorExportsRoles(DB.Model):
-    __tablename__ = "cor_exports_roles"
-    __table_args__ = {"schema": "gn_exports"}
-    id_export = DB.Column(
-        DB.Integer(), DB.ForeignKey(Export.id), primary_key=True, nullable=False
-    )
-
-    id_role = DB.Column(
-        DB.Integer, DB.ForeignKey(User.id_role), primary_key=True, nullable=False
-    )
-    token = DB.Column(DB.String(80), nullable=False, default=token_hex(16))
-
-    export = DB.relationship("Export", lazy="joined", cascade="all,delete")
-    role = DB.relationship("UserRepr", lazy="joined")
 
 
 class ExportSchedules(DB.Model):
