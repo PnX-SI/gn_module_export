@@ -1,9 +1,12 @@
+from secrets import token_hex
 from packaging import version
 
 from flask import g
 from sqlalchemy import or_
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 import flask_sqlalchemy
+from sqlalchemy.ext.associationproxy import association_proxy
+
 
 if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
     from flask_sqlalchemy.query import Query
@@ -17,6 +20,35 @@ from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
+
+
+class CorExportsRoles(DB.Model):
+    __tablename__ = "cor_exports_roles"
+    __table_args__ = {"schema": "gn_exports"}
+    id_export = DB.Column(
+        DB.Integer(),
+        DB.ForeignKey("gn_exports.t_exports.id"),
+        primary_key=True,
+        nullable=False,
+    )
+
+    id_role = DB.Column(
+        DB.Integer,
+        DB.ForeignKey("utilisateurs.t_roles.id_role"),
+        primary_key=True,
+        nullable=False,
+    )
+    token = DB.Column(DB.String(80), nullable=False, default=token_hex(16))
+
+    export = DB.relationship(
+        "Export",
+        lazy="joined",
+        backref=backref("cor_roles_exports", cascade="all, delete-orphan"),
+    )
+    role = DB.relationship(
+        "UserRepr",
+        lazy="joined",
+    )
 
 
 class ExportsQuery(Query):
@@ -84,23 +116,25 @@ class Export(DB.Model):
     id_licence = DB.Column(
         DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False
     )
-
     licence = DB.relationship("Licences")
+    allowed_roles = association_proxy(
+        "cor_roles_exports", "role", creator=lambda role: CorExportsRoles(role=role)
+    )
+    # cor_role_token ajouter via une backref
 
     def __str__(self):
         return "{}".format(self.label)
 
     __repr__ = __str__
 
-    def has_instance_permission(self, id_role=None):
+    def has_instance_permission(self, user=None, token=None):
         if self.public:
             return True
+        if token:
+            return token in map(lambda cor: cor.token, self.cor_roles_exports)
 
-        user = User.query.get(id_role)
-        if not user:
-            return False
-        if user in self.allowed_roles:
-            return True
+        if user:
+            return user.id_role in map(lambda user: user.id_role, self.allowed_roles)
 
         return False
 
@@ -114,24 +148,6 @@ class Export(DB.Model):
             offset,
             self.geometry_field,
         )
-
-
-class CorExportsRoles(DB.Model):
-    __tablename__ = "cor_exports_roles"
-    __table_args__ = {"schema": "gn_exports"}
-    id_export = DB.Column(
-        DB.Integer, DB.ForeignKey(Export.id), primary_key=True, nullable=False
-    )
-
-    id_role = DB.Column(
-        DB.Integer, DB.ForeignKey(User.id_role), primary_key=True, nullable=False
-    )
-
-    # export = DB.relationship("Export", cascade="all,delete")
-    # role = DB.relationship("UserRepr")
-
-
-Export.allowed_roles = DB.relationship(User, secondary=CorExportsRoles.__table__)
 
 
 @serializable
