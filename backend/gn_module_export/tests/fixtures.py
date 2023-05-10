@@ -36,7 +36,4 @@ def exports(users):
     private_export.allowed_roles.append(users["admin_user"])
     DB.session.add(private_export)
 
-    return {
-        "public_export": public_export, 
-        "private_export": private_export
-    }
+    return {"public_export": public_export, "private_export": private_export}

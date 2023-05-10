@@ -20,14 +20,18 @@ class TestExportsBlueprints:
     def test_private_export(self, exports, users):
         set_logged_user_cookie(self.client, users["user"])
         response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["private_export"].id)
+            url_for(
+                "exports.get_one_export_api", id_export=exports["private_export"].id
+            )
         )
         assert response.status_code == 403
 
     def test_private_admin_export(self, exports, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["private_export"].id)
+            url_for(
+                "exports.get_one_export_api", id_export=exports["private_export"].id
+            )
         )
         assert response.status_code == 200
 
@@ -51,7 +55,9 @@ class TestExportsBlueprints:
         }
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["private_export"].id)
+            url_for(
+                "exports.get_one_export_api", id_export=exports["private_export"].id
+            )
         )
         assert response.status_code == 200
         validate_json(instance=response.json, schema=schema)
