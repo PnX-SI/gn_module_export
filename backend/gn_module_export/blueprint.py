@@ -29,7 +29,7 @@ from flask_cors import cross_origin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
 from flask_admin.babel import gettext
-from werkzeug.exceptions import NotFound, BadRequest
+from werkzeug.exceptions import NotFound, BadRequest,Forbidden
 from wtforms import validators
 
 from pypnusershub.db.models import User
@@ -181,6 +181,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         "geometry_srid",
         "public",
         "licence",
+        "allowed_roles",
     )
 
     def validate_form(self, form):
@@ -451,9 +452,9 @@ def get_exports():
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
-@permissions.check_cruved_scope("R", module_code="EXPORTS")
+@blueprint.route("/api/<int:id_export>/<token>", methods=["GET"])
 @json_resp
-def get_one_export_api(id_export):
+def get_one_export_api(id_export, token=None):
     """
     Fonction qui expose les exports disponibles à un role
         sous forme d'api
@@ -508,7 +509,7 @@ def get_one_export_api(id_export):
 
         order by : @TODO
     """
-
+    print("YOLOOO")
     limit = request.args.get("limit", default=1000, type=int)
     offset = request.args.get("offset", default=0, type=int)
 
@@ -518,6 +519,17 @@ def get_one_export_api(id_export):
     if "offset" in args:
         args.pop("offset")
     filters = {f: args.get(f) for f in args}
+
+    export = Export.query.get(id_export)
+    if not export:
+        raise NotFound(f"The export with id {id_export} does not exist.")
+    
+    if not export.public :
+        if not g.current_user :
+            if not token : 
+                raise Forbidden()
+            DB.session.query(CorExportsRoles).filter_by(token = )
+
 
     exprep = ExportObjectQueryRepository(
         id_export=id_export,
