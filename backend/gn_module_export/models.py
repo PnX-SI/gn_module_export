@@ -153,32 +153,6 @@ class Export(DB.Model):
         )
 
 
-@serializable
-class ExportLog(DB.Model):
-    __tablename__ = "t_exports_logs"
-    __table_args__ = {"schema": "gn_exports"}
-    id = DB.Column(DB.Integer, primary_key=True, nullable=False)  # noqa: A003
-    id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role))
-    role = DB.relationship("User", foreign_keys=[id_role], lazy="joined")
-    id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
-    export = DB.relationship("Export", lazy="joined")
-    format = DB.Column(DB.String(10), nullable=False)  # noqa: A003
-    start_time = DB.Column(DB.DateTime, nullable=False)
-    end_time = DB.Column(DB.DateTime)
-    status = DB.Column(DB.Integer, default=-2)
-    log = DB.Column(DB.Text)
-
-    @classmethod
-    def record(cls, adict):
-        try:
-            exportLog = cls()
-            exportLog.from_dict(adict)
-            DB.session.add(exportLog)
-            DB.session.commit()
-        except Exception as e:
-            DB.session.rollback()
-
-
 class ExportSchedules(DB.Model):
     __tablename__ = "t_export_schedules"
     __table_args__ = {"schema": "gn_exports"}
