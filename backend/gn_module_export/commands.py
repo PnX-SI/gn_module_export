@@ -6,10 +6,11 @@ from datetime import datetime
 
 from flask.cli import with_appcontext
 from click import ClickException
+from werkzeug.exceptions import NotFound
 
 from gn_module_export.tasks import generate_export
-from gn_module_export.models import Export
-from gn_module_export.utils_export import ExportGenerationNotNeeded
+from gn_module_export.models import Export, ExportSchedules
+from gn_module_export.utils_export import ExportGenerationNotNeeded, ExportRequest
 
 
 @click.command()
@@ -30,18 +31,33 @@ def generate(export_id, export_format, scheduled, skip_newer_than):
     """
     Lance la génération d’un fichier d’export
     """
-    export = Export.query.get(export_id)
-    if export is None:
+    export_schedule = None
+    if scheduled:
+        export_schedule = (
+            ExportSchedules.query.filter(ExportSchedules.id_export == export_id)
+            .filter(ExportSchedules.format == export_format)
+            .first()
+        )
+
+    export_request = ExportRequest(
+        id_export=export_id,
+        export_schedule=export_schedule,
+        id_role=None,
+        format=export_format,
+    )
+    if export_request is None:
         raise ClickException(f"Export {export_id} not found.")
     try:
         generate_export(
-            export_id,
-            export_format,
-            filename="",
-            user=None,
-            scheduled=scheduled,
-            skip_newer_than=skip_newer_than,
+            export_id=export_request.export.id,
+            file_name=export_request.generate_file_name(),
+            export_url=export_request.generate_url(),
+            format=export_request.format,
+            id_role=None,
+            filters=None,
         )
+    except NotFound:
+        click.echo(f"Export {export_id} sufficiently recent, skip generation.")
     except ExportGenerationNotNeeded:
         click.echo(f"Export {export_id} sufficiently recent, skip generation.")
 
