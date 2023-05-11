@@ -89,7 +89,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install \
           -e ..[tests] \
-          -r requirements-dev.txt \
+          -r requirements-dev.txt
       working-directory: ./dependencies/GeoNature/backend
     - name: Install database
       run: |
@@ -105,7 +105,9 @@ jobs:
         GEONATURE_CONFIG_FILE: dependencies/GeoNature/config/test_config.toml
     - name: Install export module backend
       run: |
-        pip install --editable .
+        pip install \
+          --editable . \
+          --editable file:dependencies/Utils-Flask-SQLAlchemy-Geo#egg=utils-flask-sqlalchemy-geo
     - name: Install import module database
       run: |
         geonature upgrade-modules-db EXPORTS
