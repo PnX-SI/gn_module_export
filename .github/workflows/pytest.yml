@@ -90,6 +90,7 @@ jobs:
         python -m pip install \
           -e ..[tests] \
           -r requirements-dev.txt \
+          -e file:../../Utils-Flask-SQLAlchemy-Geo#egg=utils-flask-sqlalchemy-geo
       working-directory: ./dependencies/GeoNature/backend
     - name: Install database
       run: |
