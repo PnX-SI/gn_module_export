@@ -531,7 +531,7 @@ def get_one_export_api(id_export):
     return data
 
 
-if public_config["EXPORTS"]["expose_dsw_api"]:
+if public_config.get("EXPORTS", False) and public_config["EXPORTS"]["expose_dsw_api"]:
 
     @blueprint.route("/semantic_dsw", methods=["GET"])
     def semantic_dsw():
@@ -597,5 +597,6 @@ if public_config["EXPORTS"]["expose_dsw_api"]:
             return response
 
         return send_from_directory(
-            os.path.dirname(export_dsw_fullpath), os.path.basename(export_dsw_fullpath)
+            os.path.dirname(export_dsw_fullpath),
+            os.path.basename(export_dsw_fullpath),
         )
