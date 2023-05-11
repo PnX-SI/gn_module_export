@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm import contains_eager
 
 from flask import (
     Blueprint,
@@ -220,13 +221,16 @@ def get_exports(scope):
     accessibles pour un role donné
     """
     try:
-        exports = Export.query.filter_by_scope(scope).all()
+        exports = Export.query.filter_by_scope(scope)
     except NoResultFound:
         return {
             "api_error": "no_result_found",
             "message": "Configure one or more export",
         }, 404
-    return [export.as_dict(fields=["licence"]) for export in exports]
+    return [
+        export.as_dict(fields=["licence", "cor_roles_exports"])
+        for export in exports.all()
+    ]
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])

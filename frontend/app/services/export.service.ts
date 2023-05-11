@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { ConfigService } from '@geonature/services/config.service';
 
+export type JsonData = { [key: string]: any };
+
 export interface Export {
   id: number;
   label: string;
@@ -10,6 +12,7 @@ export interface Export {
   desc: string;
   geometry_field: string;
   geometry_srid: number;
+  cor_roles_exports: JsonData[];
 }
 
 export interface ApiErrorResponse extends HttpErrorResponse {

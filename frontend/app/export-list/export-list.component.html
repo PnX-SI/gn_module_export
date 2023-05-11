@@ -14,7 +14,7 @@
         </div>
         <!-- Liste des exports disponibles au téléchargement -->
         <div *ngIf="exports">
-          <div class="card export-card mb-3" *ngFor="let export of exports">
+          <div class="card export-card mb-3" *ngFor="let export of exports; let i = index">
             <div class="card-body">
               <h5 class="card-title">
                 <span class="badge badge-info" title="ID de l'export" data-toggle="tooltip">{{
@@ -24,14 +24,6 @@
               </h5>
               <p class="card-text">{{ export.desc }}</p>
               <div class="d-flex justify-content-end">
-                <a
-                  class="btn btn-warning btn-sm"
-                  href="{{ api_endpoint }}/swagger/{{ export.id }}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  API JSON
-                </a>
                 <button
                   id="{{ export.id }}"
                   type="submit"
@@ -40,6 +32,25 @@
                 >
                   Télécharger
                 </button>
+                <a
+                  class="btn btn-warning btn-sm ml-3"
+                  href="{{ api_endpoint }}/swagger/{{ export.id }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  API JSON
+                </a>
+                <button
+                  (click)="copyToken(objectToken[i].token, i)"
+                  value="click to copy"
+                  class="btn btn-secondary btn-sm ml-3"
+                  *ngIf="objectToken[i].token != null"
+                >
+                  Copier le Token
+                </button>
+              </div>
+              <div class="ctn-token" [hidden]="!objectToken[i].display">
+                <p>Token : "{{ objectToken[i].token }}" copié</p>
               </div>
             </div>
           </div>
@@ -108,6 +119,15 @@
             </div>
           </div>
           <br />
+          <hr />
+          <br />
+          <label for="emailInput">
+            <small> Saisissez un email pour recevoir le lien de téléchargement. </small>
+          </label>
+          <input type="email" formControlName="emailInput" id="emailInput" class="form-control" />
+          <div *ngIf="modalForm.get('emailInput').hasError('pattern')">
+            <small> <i style="color: red">Email non valide.</i> </small>
+          </div>
         </form>
       </div>
       <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
