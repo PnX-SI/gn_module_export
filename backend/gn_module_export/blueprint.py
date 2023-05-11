@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm import contains_eager
 
 from flask import (
     Blueprint,
@@ -33,7 +34,7 @@ from utils_flask_sqla.response import json_resp, to_json_resp
 from geonature.core.gn_permissions import decorators as permissions
 
 from .repositories import ExportObjectQueryRepository, generate_swagger_spec
-from .models import Export
+from .models import Export, CorExportsRoles
 from .utils_export import thread_export_data
 from .commands import commands
 
@@ -224,13 +225,18 @@ def get_exports():
     accessibles pour un role donné
     """
     try:
-        exports = Export.query.get_allowed_exports().all()
+        exports_query = Export.query.get_allowed_exports()
+        exports = exports_query.options(
+            contains_eager(Export.cor_roles_exports).load_only(CorExportsRoles.token)
+        )
     except NoResultFound:
         return {
             "api_error": "no_result_found",
             "message": "Configure one or more export",
         }, 404
-    return [export.as_dict(fields=["licence"]) for export in exports]
+    return [
+        export.as_dict(fields=["licence", "cor_roles_exports"]) for export in exports
+    ]
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])

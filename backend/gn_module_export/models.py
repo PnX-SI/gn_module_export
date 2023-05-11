@@ -3,8 +3,8 @@ from packaging import version
 
 from flask import g
 from sqlalchemy import or_
-from sqlalchemy.orm import relationship
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm import backref
 
 import flask_sqlalchemy
 
@@ -20,6 +20,7 @@ from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
 
 
+@serializable
 class CorExportsRoles(DB.Model):
     __tablename__ = "cor_exports_roles"
     __table_args__ = {"schema": "gn_exports"}
@@ -39,9 +40,11 @@ class CorExportsRoles(DB.Model):
     token = DB.Column(DB.String(80), nullable=False, default=token_hex(16))
 
     export = DB.relationship(
-        "Export", lazy="joined", cascade="all,delete", backref="cor_roles_exports"
+        "Export",
+        lazy="joined",
+        backref=backref("cor_roles_exports", cascade="all,delete-orphan"),
     )
-    role = DB.relationship("UserRepr", lazy="joined")
+    role = DB.relationship("UserRepr")
 
 
 class ExportsQuery(Query):
