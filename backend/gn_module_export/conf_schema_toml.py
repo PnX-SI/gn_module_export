@@ -2,14 +2,13 @@
    Spécification du schéma toml des paramètres de configurations
 """
 
-from marshmallow import fields, Schema
 from geonature.utils.env import ROOT_DIR
+from marshmallow import Schema, fields
 
 export_format_map = {
     "csv": {"mime": "text/csv", "geofeature": False, "label": "CSV"},
     "json": {"mime": "application/json", "geofeature": False, "label": "Json"},
     "geojson": {"mime": "application/json", "geofeature": True, "label": "GeoJson"},
-    "shp": {"mime": "application/zip", "geofeature": True, "label": "ShapeFile"},
     "gpkg": {"mime": "application/zip", "geofeature": True, "label": "GeoPackage"},
 }  # noqa: E133
 
