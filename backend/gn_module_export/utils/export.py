@@ -1,245 +1,59 @@
-import csv
-import json
-import pathlib
-from typing import Union
+from typing import Optional
 
-import fiona
-from fiona.crs import from_epsg
+from flask import current_app
 from geonature.utils.env import db
 from geonature.utils.errors import GeoNatureError
-from utils_flask_sqla.schema import SmartRelationshipsMixin
-from utils_flask_sqla_geo.schema import GeoAlchemyAutoSchema
-from utils_flask_sqla_geo.utilsgeometry import FIONA_MAPPING
+from ref_geo.utils import get_local_srid
+from utils_flask_sqla_geo.export import (export_csv, export_geojson,
+                                         export_geopackage, export_json)
+from utils_flask_sqla_geo.generic import GenericQueryGeo
+
+from gn_module_export.models import Export
 
 
-def get_model_from_generic_query(generic_query, pk_name: Union[str, None] = None):
-    """
-    renvoie un modèle SQLAlchemy à partir d'une Generic Query
-
-    TODO (à déplacer dans les lib utils sqla)
-    """
-    view = generic_query.view
-    if pk_name is None:
-        pk_name = str(view.tableDef.columns.keys()[0])
-
-    if not hasattr(view.tableDef.c, pk_name):
-        raise GeoNatureError(f"{pk_name} cannot be found in table")
-
-    dict_model = {
-        "__table__": view.tableDef,
-        "__mapper_args__": {"primary_key": getattr(view.tableDef.c, pk_name)},
-    }
-
-    Model = type("Model", (db.Model,), dict_model)
-
-    return Model
-
-
-def get_schema_from_model(model):
-    """
-    renvoie un marshmalow schema à partir d'un modèle
-    ce schema hérite des classes GeoAlchemyAutoSchema et SmartRelationshipsMixin
-
-    TODO (à déplacer dans les lib utils sqla)
-    """
-    Meta = type(
-        "Meta",
-        (),
-        {
-            "model": model,
-            "load_instance": True,
-        },
-    )
-    dict_schema = {
-        "Meta": Meta,
-    }
-
-    return type(
-        "Schema",
-        (
-            GeoAlchemyAutoSchema,
-            SmartRelationshipsMixin,
-        ),
-        dict_schema,
+def export(export: Export, file_format: str, filename: str, generic_query_geo: GenericQueryGeo):
+    # TODO Add export.pk_name when available
+    export_to_file(
+        file_format, filename, generic_query_geo, export.geometry_field, srid=export.srid
     )
 
 
-def export_csv(
-    query,
-    fp,
-    columns: list = [],
-    chunk_size: int = 1000,
-    separator=";",
-    primary_key_name: Union[str, None] = None,
-    geometry_field_name=None,
-):
-    """Exporte une generic query au format csv
-
-    la geométrie n'est pas présente par défaut
-    elle peut être dans les données exportées si geometry_field_name est précisé
-
-    Args:
-        query (GenericQueryGeo): GenericQuery instanciée avec la vue, les filtre, le tri, etc..
-        fp (_type_): pointer vers un fichier (un stream, etc..)
-        columns (list, optioname): liste des colonnes à exporter. Defaults to [] (toutes les colonnes de la vue).
-        chunk_size (int, optional): taille pour le traitement par lots. Defaults to 1000.
-        separator (str, optional): sparateur pour le csv. Defaults to ";".
-        primary_key_name (Union[str, None], optional): nom du champs de la clé primaire. Defaults to None.
-        geometry_field_name (_type_, optional): nom du champ pour la colonne geométrique. Defaults to None.
-    """
-    # gestion de only
-    only = columns
-
-    # ajout du champs geométrique si demandé (sera exporté en WKT)
-    if geometry_field_name:
-        only.append(f"+{geometry_field_name}")
-
-    # creation du schema marshmallow
-    schema_class = get_schema_from_model(
-        get_model_from_generic_query(query, pk_name=primary_key_name)
-    )
-
-    # instantiation du schema avec only
-    schema = schema_class(only=only or None)
-
-    # écriture du fichier cscv
-    writer = csv.DictWriter(
-        fp, columns, delimiter=separator, quoting=csv.QUOTE_ALL, extrasaction="ignore"
-    )
-
-    writer.writeheader()  # ligne d'entête
-
-    # serialisation
-    iterable_data = schema.dump(query.raw_query().yield_per(chunk_size), many=True)
-
-    # écriture des lignes dans le fichier csv
-    for line in iterable_data:
-        writer.writerow(line)
-
-
-def export_geojson(
-    query,
-    fp,
-    columns: list = [],
-    chunk_size: int = 1000,
-    primary_key_name=None,
-    geometry_field_name=None,
-):
-    """Exporte une generic query au format geojson
-
-    le champs geomtrique peut être précisé
-    ou choisi par défaut si la vue ne comporte qu'un seul champs geométrique
-
-    Args:
-        query (GenericQueryGeo): GenericQuery instanciée avec la vue, les filtre, le tri, etc..
-        fp (_type_): pointer vers un fichier (un stream, etc..)
-        columns (list, optioname): liste des colonnes à exporter. Defaults to [] (toutes les colonnes de la vue).
-        chunk_size (int, optional): taille pour le traitement par lots. Defaults to 1000.
-        primary_key_name (Union[str, None], optional): nom du champs de la clé primaire. Defaults to None.
-        geometry_field_name (_type_, optional): nom du champ pour la colonne geométrique. Defaults to None.
-    """
-
-    # creation du schema marshmallow
-    schema_class = get_schema_from_model(
-        get_model_from_generic_query(query, pk_name=primary_key_name)
-    )
-
-    # instantiation du schema
-    schema = schema_class(
-        only=columns or None, as_geojson=True, feature_geometry=geometry_field_name
-    )
-
-    # serialisation
-    feature_collection = schema.dump(query.raw_query().yield_per(chunk_size), many=True)
-
-    # écriture du ficher geojson
-    for chunk in json.JSONEncoder().iterencode(feature_collection):
-        fp.write(chunk)
-
-
-def export_json(
-    query,
-    fp,
-    columns: list = [],
-    chunk_size: int = 1000,
-    primary_key_name=None,
-    geometry_field_name=None,
-):
-    """Exporte une generic query au format json
-
-    la geométrie n'est pas présente par défaut
-    elle peut être dans les données exportées si geometry_field_name est précisé
-
-    Args:
-        query (GenericQueryGeo): GenericQuery instanciée avec la vue, les filtre, le tri, etc..
-        fp (_type_): pointer vers un fichier (un stream, etc..)
-        columns (list, optioname): liste des colonnes à exporter. Defaults to [] (toutes les colonnes de la vue).
-        chunk_size (int, optional): taille pour le traitement par lots. Defaults to 1000.
-        separator (str, optional): sparateur pour le csv. Defaults to ";".
-        primary_key_name (Union[str, None], optional): nom du champs de la clé primaire. Defaults to None.
-        geometry_field_name (_type_, optional): nom du champ pour la colonne geométrique. Defaults to None.
-    """
-
-    # gestion de only
-    only = columns
-
-    # ajout du champs geométrique si demandé (sera exporté en WKT)
-    if geometry_field_name:
-        only.append(f"+{geometry_field_name}")
-
-    # creation du schema marshmallow
-    schema_class = get_schema_from_model(
-        get_model_from_generic_query(query, pk_name=primary_key_name)
-    )
-
-    # instantiation du schema avec only
-    schema = schema_class(only=only or None)
-
-    # serialisation
-    iterable_data = schema.dump(query.raw_query().yield_per(chunk_size), many=True)
-
-    # écriture du fichier json
-    for chunk in json.JSONEncoder().iterencode(iterable_data):
-        fp.write(chunk)
-
-
-def export_geopackage(
-    query,
+def export_to_file(
+    file_format: str,
     filename: str,
-    geometry_field_name=None,
-    columns: list = [],
-    chunk_size: int = 1000,
-    primary_key_name=None,
-    srid=4326,
+    generic_query_geo: GenericQueryGeo,
+    geometry_field_name: Optional[str] = None,
+    pk_name: Optional[str] = None,
+    srid: Optional[int] = None,
 ):
-    schema_class = get_schema_from_model(
-        get_model_from_generic_query(query, pk_name=primary_key_name)
-    )
+    format_list = [k for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
 
-    schema = schema_class(
-        only=columns or None, as_geojson=True, feature_geometry=geometry_field_name
-    )
+    if file_format not in format_list:
+        raise GeoNatureError("Unsupported format")
+    if file_format == "gpkg" and srid is None:
+        srid = get_local_srid(db.session)
 
-    feature_collection = schema.dump(query.raw_query().yield_per(chunk_size), many=True)
-    # FIXME: filter tableDef columns with columns
-    properties = {
-        db_col.key: FIONA_MAPPING.get(db_col.type.__class__.__name__.lower(), "str")
-        for db_col in query.view.tableDef.columns
-        if not db_col.type.__class__.__name__ == "Geometry"
-        and (not columns or db_col.key in columns)
-    }
-    gpkg_schema = {"geometry": "Unknown", "properties": properties}
+    schema_class = generic_query_geo.get_marshmallow_schema(pk_name=pk_name)
+    columns = generic_query_geo.view.tableDef.columns.keys()
+    columns = []
 
-    with fiona.open(filename, "w", "GPKG", schema=gpkg_schema, crs=from_epsg(srid)) as f:
-        for feature in feature_collection["features"]:
-            f.write(feature)
-    # items = self.data.get("items")
+    if file_format == "gpkg":
+        export_geopackage(
+            query=generic_query_geo.raw_query(),
+            schema_class=schema_class,
+            filename=filename,
+            geometry_field_name=geometry_field_name,
+            srid=srid,
+        )
+        return
 
-    # for feature in items["features"]:
-    #     geom, props = (feature.get(field) for field in ("geometry", "properties"))
+    func_dict = {"geojson": export_geojson, "json": export_json, "csv": export_csv}
 
-    #     fionaService.create_feature(
-    #         props, from_shape(asShape(geom), self.export.get("geometry_srid"))
-    #     )
-
-    # fionaService.save_files()
+    with open(filename, "w") as f:
+        func_dict[file_format](
+            query=generic_query_geo.raw_query(),
+            schema_class=schema_class,
+            fp=f,
+            geometry_field_name=geometry_field_name,
+            columns=columns,
+        )

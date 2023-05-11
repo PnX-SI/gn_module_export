@@ -1,83 +1,58 @@
 import csv
-import io
 import json
 import tempfile
 
-import pytest
 import fiona
-from gn_module_export.utils.export import (export_csv, export_geojson,
-                                           export_geopackage, export_json)
+import pytest
+
+from gn_module_export.utils.export import export_to_file
 
 
 @pytest.mark.usefixtures("temporary_transaction")
 class TestUtilsExport:
     def test_export_csv(self, synthese_data, export_query):
-        tmpfile = io.StringIO()
-        columns = export_query.view.tableDef.columns.keys()
-        export_csv(query=export_query, fp=tmpfile, columns=columns)
-
-        tmpfile.seek(0)
-        dialect = csv.Sniffer().sniff(tmpfile.read(1024))
-        tmpfile.seek(0)
-        reader = csv.DictReader(tmpfile, dialect=dialect)
-        ids = {int(row["id_synthese"]) for row in reader}
-
+        with tempfile.NamedTemporaryFile(suffix=".csv") as f:
+            export_to_file("csv", f.name, export_query)
+            with open(f.name, "r") as csvfile:
+                dialect = csv.Sniffer().sniff(csvfile.read(1024))
+                csvfile.seek(0)
+                reader = csv.DictReader(csvfile, dialect=dialect)
+                ids = {int(row["id_synthese"]) for row in reader}
         ids_synthese = {
             synthese["id_synthese"] for synthese in export_query.return_query()["items"]
         }
-
         assert ids_synthese == ids
 
     def test_export_geojson(self, synthese_data, export_query):
-        tmpfile = io.StringIO()
-        columns = export_query.view.tableDef.columns.keys()
-
-        export_geojson(query=export_query, fp=tmpfile, columns=columns)
-
-        tmpfile.seek(0)
-        res_txt = tmpfile.read()
-        res_geojson = json.loads(res_txt)
+        with tempfile.NamedTemporaryFile(suffix=".geojson") as f:
+            export_to_file("geojson", f.name, export_query)
+            with open(f.name, "r") as json_file:
+                res_geojson = json.load(json_file)
 
         assert res_geojson["type"] == "FeatureCollection"
         assert len(res_geojson["features"]) > 0
 
     def test_export_json(self, synthese_data, export_query):
-        tmpfile = io.StringIO()
-        columns = []
-
-        export_json(query=export_query, fp=tmpfile, columns=columns)
-
-        tmpfile.seek(0)
-        res_txt = tmpfile.read()
-        res_json = json.loads(res_txt)
+        with tempfile.NamedTemporaryFile(suffix=".json") as f:
+            export_to_file("json", f.name, export_query)
+            with open(f.name, "r") as json_file:
+                res_json = json.load(json_file)
 
         assert len(res_json) > 0
         assert "geom" not in res_json[0]
 
     def test_export_geopackage(self, synthese_data, export_query):
-        # tmpfile = io.StringIO()
-        # tmpfile = tempfile.NamedTemporaryFile(suffix='.gpkg')
-        filename='/tmp/tmpws8mck5i.gpkg'
-        columns = export_query.view.tableDef.columns.keys()
-        export_geopackage(query=export_query, filename=filename columns=columns)
+        file_name = "/tmp/test_fiona.gpkg"
+        export_to_file("gpkg", file_name, export_query)
 
-        # with fiona.open(filename, "w", "GPKG", schema=gpkg_schema, crs=from_epsg(srid)) as f:
-        
-        assert True
+        with fiona.open(file_name, "r", "GPKG", overwrite=True) as gpkg:
+            result = {data["properties"]["id_synthese"] for data in gpkg}
 
-    def test_export_geojson_with_filters(self, synthese_data, export_query):
-        tmpfile = io.StringIO()
-        columns = export_query.view.tableDef.columns.keys()
-        columns = []
-        export_query.limit = 10000
-
-        export_query.filters = {"filter_d_lo_id_synthese": 4}
-
-        export_geojson(query=export_query, fp=tmpfile, columns=columns)
-
-        tmpfile.seek(0)
-        res_txt = tmpfile.read()
-        res_json = json.loads(res_txt)
-
-        assert res_json["type"] == "FeatureCollection"
-        assert len(res_json["features"]) > 0
+        # FIXME: obs1, obs2, obs3 are the only synthese data that can be exported
+        # via the view
+        ids_synthese = {
+            value.id_synthese
+            for key, value in synthese_data.items()
+            if key in ["obs1", "obs2", "obs3"]
+        }
+        assert ids_synthese.issubset(result)
