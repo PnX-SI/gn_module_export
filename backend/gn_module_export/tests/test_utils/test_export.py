@@ -13,7 +13,7 @@ class TestUtilsExport:
     def test_export_as_file(self, synthese_data, export, export_query):
         with tempfile.NamedTemporaryFile(suffix=".csv") as f:
             export_as_file(export, "csv", f.name, export_query)
-            
+
     def test_export_csv(self, synthese_data, export_query):
         with tempfile.NamedTemporaryFile(suffix=".csv") as f:
             _export_as_file("csv", f.name, export_query)

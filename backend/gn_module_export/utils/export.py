@@ -4,17 +4,27 @@ from flask import current_app
 from geonature.utils.env import db
 from geonature.utils.errors import GeoNatureError
 from ref_geo.utils import get_local_srid
-from utils_flask_sqla_geo.export import (export_csv, export_geojson,
-                                         export_geopackage, export_json)
+from utils_flask_sqla_geo.export import (
+    export_csv,
+    export_geojson,
+    export_geopackage,
+    export_json,
+)
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from gn_module_export.models import Export
 
 
-def export_as_file(export: Export, file_format: str, filename: str, generic_query_geo: GenericQueryGeo):
+def export_as_file(
+    export: Export, file_format: str, filename: str, generic_query_geo: GenericQueryGeo
+):
     # TODO Add export.pk_name when available
     _export_as_file(
-        file_format, filename, generic_query_geo, export.geometry_field, srid=export.geometry_srid
+        file_format,
+        filename,
+        generic_query_geo,
+        export.geometry_field,
+        srid=export.geometry_srid,
     )
 
 
