@@ -17,7 +17,6 @@ from utils_flask_sqla.response import generate_csv_content
 from utils_flask_sqla_geo.utilsgeometry import FionaShapeService, FionaGpkgService
 
 from geonature.utils.filemanager import removeDisallowedFilenameChars
-from .send_mail import export_send_mail, export_send_mail_error
 from geonature.utils.env import DB
 from geonature.core.notifications.utils import dispatch_notifications
 from .models import Export
