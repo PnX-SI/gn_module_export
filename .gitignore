@@ -1,8 +1,3 @@
-# Overwritten Swagger specifications 
-backend/assets/api.yml
-backend/assets/swagger-ui-dist/index.html
-backend/templates/swagger/api_specification_*.json
-
 # Frontend
 frontend/app/module.config.ts
 frontend/tsconfig.json
