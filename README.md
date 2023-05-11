@@ -1,6 +1,6 @@
 # Module Export
 
-Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNature.
+Module permettant d'ajouter des fonctionnalités globales et transversales d'export à l'application GeoNature.
 
 ## Fonctionnalités principales
 
@@ -10,27 +10,13 @@ Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNa
 - Génération automatique planifiée des fichiers des exports
 - Export sémantique RDF au format Darwin-SW
 
+![image](https://github.com/PnX-SI/gn_module_export/assets/4418840/5cd71601-74f9-4e09-a447-a98ac24860de)
+
 # Installation du module
 
 ## Configuration
 
-### Email
-
-Le module d'export envoie des emails indiquant que l'export demandé est prêt. Pour cela il est nécessaire d'avoir configuré au préalable les paramètres d'envoi d'emails dans la configuration générale de GeoNature (section ``[MAIL_CONFIG]`` de ``geonature/config/geonature_config.toml``).
-
-La configuration des emails utilise les paramètres définis par Flask-Mail. Pour avoir accès à l'ensemble des paramètres se référer à la [documentation complète](https://flask-mail.readthedocs.io/en/latest/).
-
-```toml
-[MAIL_CONFIG]
-    MAIL_SERVER = "monserver.mail"
-    MAIL_PORT = 465 # Si différent de 465 en SSL
-    MAIL_USERNAME = "user@monserver.mail"
-    MAIL_PASSWORD = "password"
-    MAIL_DEFAULT_SENDER = "user@monserver.mail"
-```
-
-### Autres paramètres
-
+### Paramètres
 * ``export_dsw_dir`` : chemin absolu ou relatif au dossier media du dossier où l'export sémantique au format Darwin-SW sera réalisé
 * ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
 * ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
@@ -47,6 +33,7 @@ la [rubrique dédiée de la documentation de GeoNature](https://docs.geonature.f
 - Téléchargez le module dans ``/home/<myuser>/``, en remplacant ``X.Y.Z`` par la version souhaitée
 
 ```bash
+cd
 wget https://github.com/PnX-SI/gn_module_export/archive/X.Y.Z.zip
 unzip X.Y.Z.zip
 rm X.Y.Z.zip
@@ -117,29 +104,27 @@ Les fichiers exportés sont automatiquement supprimés 15 jours après avoir ét
 
 ## Enregistrer l'export créé dans le module Admin
 
-L'interface d'administration est accessible dans GeoNature via le module ``Admin`` puis ``Backoffice GeoNature``.
+L'interface d'administration est accessible dans GeoNature, dans le module ``Admin`` puis ``Backoffice GeoNature``.
 
-Dans la rubrique Exports selectionner le menu ``Export`` puis cliquer sur ``Create`` et renseigner les valeurs.
+Dans la rubrique "Exports", sélectionner le menu ``Export`` puis cliquer sur ``Create`` et renseigner les valeurs.
 
 ## Associer les roles ayant la permission d'accéder à cet export
 
-Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs pourront y accéder. Sinon il est possible de définir les rôles (utilisateurs ou groupes) qui peuvent accéder à un export.
+Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs ayant accès au module pourront accéder à cet export. Sinon il est possible de définir les rôles (utilisateurs ou groupes) qui peuvent accéder à un export.
 
-Aller sur la page ``Associer roles aux exports``.
-
-Puis créer des associations entre les rôles et l'export en question.
-
-Seul les roles ayant des emails peuvent être associé à un export, exception faite des groupes.
-
-Par défaut, lors de l'installation du module, un export public contenant toutes les données de la synthèse est créé (basé sur la vue ``gn_exports.v_synthese_sinp``). Il est donc accessible à tous les utilisateurs pouvant accéder au module Export. Libre à vous de le modifier ou le supprimer.
-
-Chaque fois qu'un export de fichier est réalisé depuis le module, celui-ci est tracé dans la table ``gn_exports.t_exports_logs``.
+- R SCOPE 1 : J'accède au module, je vois et accède aux exports qui me sont associés ou à un groupe auquel j'appartiens.
+- R SCOPE 3 : J'accède au module, je vois et accède à tous les exports
+- C : Permet de créer des exports dans le module ADMIN (si j'ai accès à celui-ci)
 
 # API JSON et documentation Swagger d'un export
 
-Pour chaque export créé, une API JSON filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API JSON de chaque export est accessible à tous (``Public = True``) ou limitée à certains rôles.
+Pour chaque export créé, une API JSON filtrable est automatiquement créée à l'adresse ``<URL_GeoNature>/api/exports/api/<id_export>``. Comme les exports fichiers, l'API JSON de chaque export est accessible à tous sans autorisation (si ``Public = True``) ou limitée à certains rôles (associés à l'export).
 
-Par défaut une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres.
+Si l'export est associé à certains rôles, ceux-ci peuvent accéder à l'API JSON de l'export grace à un token auto-généré pour chaque rôle associé à un export.
+<URL_GEONATURE>/api/export/<ID_EXPORT>?token=xxxxxxxxx.
+Il est aussi possible d'accéder à l'API en étant authentifié à GeoNature avec l'utilisateur ayant accès à l'export.
+
+Par défaut, une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres. Chaque champ est documenté automatiquement en affichant son commentaire défini dans la vue de l'export.
 
 Il est possible de surcharger la documentation Swagger de chaque API en respectant certaines conventions :
 
@@ -148,13 +133,13 @@ Il est possible de surcharger la documentation Swagger de chaque API en respecta
 
 # Générer un export
 
-Pour générer le ficheir d’un export, une commande est disponible : `geonature exports generate <ID_EXPORT>`
+Pour générer le fichier d’un export, une commande est disponible : `geonature exports generate <ID_EXPORT>`
 Pour plus d’information sur l’utilisation de cette commande, lancer `geonature exports generate --help`.
 
 # Export planifié
 
 Il est possible d’automatiser la génération des fichiers des exports.
-Ceci est configurable depuis la section « Planification des exports » dans le module Admin.
+Ceci est configurable depuis la section "Planification des exports" dans le module Admin.
 
 Les exports sont générés la nuit à 3 heures, selon la fréquence de génération configurée (en jours).
 
@@ -162,14 +147,12 @@ Vous pouvez forcer la génération d’un export manuellement avec la commande d
 
 Par défaut, le fichier généré par un export planifié est disponible à l'adresse : ``<URL_GEONATURE>/api/media/exports/schedules/Nom_Export.Format``.
 
-
 # URL des fichiers
 
-Les fichiers servis par le serveur web Gunicorn sont soumis à un timeout pouvant interrompre le téléchargement des fichier volumineux.
+Les fichiers servis par le serveur web Gunicorn sont soumis à un timeout pouvant interrompre le téléchargement des fichiers volumineux.
 Il est donc conseillé de servir les fichiers des exports directement par Apache sans passer par Gunicorn.
 
-Ainsi, il est recommandé d’utiliser la configuration Apache fourni par GeoNature (``/etc/apache2/conf-available/geonature.conf``) qui sert les médias directement sans passer par Gunicorn.
-
+Ainsi, il est recommandé d’utiliser la configuration Apache fourni par défaut dans GeoNature (``/etc/apache2/conf-available/geonature.conf``) qui sert les médias directement sans passer par Gunicorn.
 
 # Export RDF au format sémantique Darwin-SW
 

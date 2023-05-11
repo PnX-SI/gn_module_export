@@ -1,3 +1,58 @@
+
+1.5.0 (unreleased) - Workshop 2023
+----------------------------------
+
+**TODO**
+
+* Renommer les fichiers UTILS du module 
+
+**Perspectives**
+* Supprimer as_dict de generic_query
+
+**Nouveautés**
+
+* Correction des performances de génération de gros fichiers en les construisant par blocs de lignes (#110, #132, #95, par @mvergez, @joelclems, @VicentCauchois, @bouttier)
+* Centralisation et factorisation des fonctions de génération de fichiers dans les sous-modules [Utils-Flask-SQLAlchemy](https://github.com/PnX-SI/Utils-Flask-SQLAlchemy) et [Utils-Flask-SQLAlchemy-Geo](https://github.com/PnX-SI/Utils-Flask-SQLAlchemy-Geo) (#143, par @joelclems, @mvergez, @VincentCauchois, @bouttier)
+* Suppression du mécanisme interne d'envoi d'emails quand la génération d'un export à la demande est terminé, au profit du mécanisme de notifications intégré à GeoNature (#127, par @amandine-sahl)
+* Ajout d'une notification par défaut envoyée par email et dans l'application quand l'export à la demande d'un utilisateur est terminé (#127, par @amandine-sahl)
+* Possibilité de customiser l'email envoyé lorsqu'un fichier d'export est généré, grace au mécanisme de notification dont les messages sont définis dans la BDD et modifiables dans le module "Admin" (#59, par @amandine-sahl)
+* Utilisation de Celery pour traiter les taches asynchrones de génération des fichiers exportés
+* Ajout d'une tache Celery Beat lancée automatiquement chaque nuit, pour supprimer les fichiers de plus de 15 jours (#126, par @Pierre-Narcisi)
+* Ajout d'un token à chaque utilisateur ou groupe pour chaque export auquel il a accès (table `gn_exports.cor_exports_roles.token`), permettant d'accéder à l'API sans devoir utiliser un login et mot de passe (#131, par @TheoLechemia, @andriacap, @ch-cbna)
+* Suppression du champs permettant de renseigner un email lors de la demande de téléchargement d'un export (#170, par @amandine-sahl)
+* Révision, simplification et correction des permissions du module (#154, par @TheoLechemia, @ch-cna)
+* Simplification de l'association de rôles aux exports dans le module "Admin" en associant ceux-ci directement depuis le formulaire d'édition d'un export (#78, par @andriacap)
+* Suppression de la table `gn_exports.t_exports_logs` traçant les exports (#136, par @amandine-sahl)
+* Ajout du champ `gn_exports.t_exports.view_pk_column` permettant de spécifier la colonne d'unicité des vues d'exports (#149, par @amandine-sahl)
+* Mise en place d'une Github action pour lancer automatiquement les tests (#130 et #134, par @mvergez)
+* Ajout de tests automatisés (#141, par @JulienCorny, @Pierre-Narcisi, @TheoLechemia, @amandine-sahl, @joelclems, @andriacap, @mvergez, @bouttier, @ch-cbna, @jpm-cbna)
+* Suppression des paramètres `export_schedules_dir`, `usr_generated_dirname` et `export_web_url` (#155, par @amandine-sahl)
+* Le format SHP est supprimé des exports au profit du GPKG, plus performant et maintenable (#174, par @amandine-sahl)
+* Nettoyage et refactoring global du code (#138, par @amandine-sahl, @Julien-Corny, @bouttier)
+* Nettoyage des fichiers git (#146, par @jpm-cbna)
+* Remplacement de l'utilisation de `as_dict` au profit de marshmallow (#172, par @amandine-sahl)
+* Correction de la vue complémentaire (`gn_exports.v_synthese_sinp_dee`) au format DEE (#159, par @jpm-cbna) 
+
+**Corrections**
+
+* Correction de l'installation (#133, par @ch-cbna)
+* Correction de l'URL de l'API listant les exports (#102, par @TheoLechemia)
+* La liste des groupes et utilisateurs que l'on peut associer à un export ne contient désormais que les utilisateurs ayant accès à GeoNature (#75, par @andriacap)
+
+**⚠️ Notes de version**
+
+Si vous mettez à jour le module :
+
+* Si vous les aviez surcouché, supprimez les paramètres `export_schedules_dir`, `usr_generated_dirname` et `export_web_url` de la configuration du module
+* La table listant les exports réalisée (`gn_exports.t_exports_logs`) sera automatiquement supprimée
+* Les exports au format SHP seront convertis automatiquement en export au format GPKG. Attention si vous aviez des exports planifiés au format SHP, leur URL changera avec le même nom mais avec l'extension `.gpkg`.
+* Les droits d'accès au module et aux exports ne se base désormais plus que sur l'action R (read), et non plus E (export).
+* Changement URL API et fichiers exportés ?
+* Mentionner nouvelle URL des API des exports (rétrocompatibilité)
+* Une colomne permettant d'indiquer le champs d'unicité des vues a été ajoutée dans la table des exports (gn_exports.t_exports.view_pk_column). Pour les exports existants, cette colonne est automatiquement remplie avec la valeur de la première colonne des vues exports. Vous pouvez vérifier ou modifier ce champs pour les exports existants.
+* Relancer Celery après MAJ ? Indiquer de relancer Celery dans la doc d'installation ?
+
+
 1.4.0 (2023-03-27)
 ==================
 
