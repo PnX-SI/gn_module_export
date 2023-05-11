@@ -69,11 +69,18 @@ def export_csv(
     chunk_size: int = 1000,
     separator=";",
     primary_key_name: Union[str, None] = None,
+    geometry_field_name=None,
 ):
     schema_class = get_schema_from_model(
         get_model_from_generic_query(query, pk_name=primary_key_name)
     )
     schema = schema_class(only=columns)
+
+    only = columns
+    if geometry_field_name:
+        only.append(f"+{geometry_field_name}")
+
+    schema = schema_class(only=only or None)
 
     writer = csv.DictWriter(
         fp, columns, delimiter=separator, quoting=csv.QUOTE_ALL, extrasaction="ignore"
@@ -97,9 +104,31 @@ def export_geojson(
     )
     schema = schema_class(only=columns, as_geojson=True, feature_geometry=geometry_field_name)
 
-    iterable_items = map(lambda x: schema.dump(x), query.raw_query().yield_per(chunk_size))
+    feature_collection = schema.dump(query.raw_query().yield_per(chunk_size), many=True)
 
-    geofeatures = {"type": "FeatureCollection", "features": SerializableGenerator(iterable_items)}
+    for chunk in json.JSONEncoder().iterencode(feature_collection):
+        fp.write(chunk)
 
-    for chunk in json.JSONEncoder().iterencode(geofeatures):
+
+def export_json(
+    query,
+    fp,
+    columns: list = [],
+    chunk_size: int = 1000,
+    primary_key_name=None,
+    geometry_field_name=None,
+):
+    schema_class = get_schema_from_model(
+        get_model_from_generic_query(query, pk_name=primary_key_name)
+    )
+
+    only = columns
+    if geometry_field_name:
+        only.append(f"+{geometry_field_name}")
+
+    schema = schema_class(only=only or None)
+
+    feature_collection = schema.dump(query.raw_query().yield_per(chunk_size), many=True)
+
+    for chunk in json.JSONEncoder().iterencode(feature_collection):
         fp.write(chunk)

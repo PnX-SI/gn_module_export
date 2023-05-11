@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from gn_module_export.utils.export import export_csv, export_geojson
+from gn_module_export.utils.export import export_csv, export_geojson, export_json
 
 
 @pytest.mark.usefixtures("temporary_transaction")
@@ -36,10 +36,23 @@ class TestUtilsExport:
 
         tmpfile.seek(0)
         res_txt = tmpfile.read()
+        res_geojson = json.loads(res_txt)
+
+        assert res_geojson["type"] == "FeatureCollection"
+        assert len(res_geojson["features"]) > 0
+
+    def test_export_json(self, synthese_data, export_query):
+        tmpfile = io.StringIO()
+        columns = []
+
+        export_json(query=export_query, fp=tmpfile, columns=columns)
+
+        tmpfile.seek(0)
+        res_txt = tmpfile.read()
         res_json = json.loads(res_txt)
 
-        assert res_json["type"] == "FeatureCollection"
-        assert len(res_json["features"]) > 0
+        assert len(res_json) > 0
+        assert "geom" not in res_json[0]
 
     def test_export_geojson_with_filters(self, synthese_data, export_query):
         tmpfile = io.StringIO()
