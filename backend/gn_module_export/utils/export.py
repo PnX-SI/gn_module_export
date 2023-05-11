@@ -11,14 +11,14 @@ from utils_flask_sqla_geo.generic import GenericQueryGeo
 from gn_module_export.models import Export
 
 
-def export(export: Export, file_format: str, filename: str, generic_query_geo: GenericQueryGeo):
+def export_as_file(export: Export, file_format: str, filename: str, generic_query_geo: GenericQueryGeo):
     # TODO Add export.pk_name when available
-    export_to_file(
-        file_format, filename, generic_query_geo, export.geometry_field, srid=export.srid
+    _export_as_file(
+        file_format, filename, generic_query_geo, export.geometry_field, srid=export.geometry_srid
     )
 
 
-def export_to_file(
+def _export_as_file(
     file_format: str,
     filename: str,
     generic_query_geo: GenericQueryGeo,
