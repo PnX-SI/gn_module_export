@@ -6,8 +6,10 @@ from datetime import datetime
 
 from flask.cli import with_appcontext
 from click import ClickException
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import NotFound, Forbidden
 
+from flask import url_for, current_app
+from pypnusershub.db.models import User
 from gn_module_export.tasks import generate_export
 from gn_module_export.models import Export, ExportSchedules
 from gn_module_export.utils_export import ExportGenerationNotNeeded, ExportRequest
@@ -21,44 +23,60 @@ from gn_module_export.utils_export import ExportGenerationNotNeeded, ExportReque
     help="Générer un export de type planifié ou utilisateur.",
 )
 @click.option(
-    "--skip-newer-than",
-    type=int,
-    help="Ne pas regénérer les fichiers récents (en minutes).",
+    "--user_id",
+    default=None,
+    help="Identifiant de l'utilisateur.",
 )
 @click.argument("export_id")
 @with_appcontext
-def generate(export_id, export_format, scheduled, skip_newer_than):
+def generate(export_id, export_format, scheduled, user_id):
     """
     Lance la génération d’un fichier d’export
     """
-    export_schedule = None
+    scheduled_export = None
+    user = None
+
+    if user_id:
+        user = User.query.get(user_id)
+        if not user:
+            raise ClickException(f"User {user_id} not found.")
+
     if scheduled:
-        export_schedule = (
+        scheduled_export = (
             ExportSchedules.query.filter(ExportSchedules.id_export == export_id)
             .filter(ExportSchedules.format == export_format)
             .first()
         )
-
-    export_request = ExportRequest(
-        id_export=export_id,
-        export_schedule=export_schedule,
-        id_role=None,
-        format=export_format,
-    )
-    if export_request is None:
+        if not scheduled_export:
+            raise ClickException(
+                f"Schedule export {export_id} format {export_format} not found."
+            )
+    try:
+        export_request = ExportRequest(
+            id_export=export_id,
+            scheduled_export=scheduled_export,
+            user=user,
+            format=export_format,
+        )
+    except NotFound:
         raise ClickException(f"Export {export_id} not found.")
+    except Forbidden:
+        raise ClickException(f"Export {export_id} not allow for user id {user_id}.")
+    except ExportGenerationNotNeeded:
+        raise ClickException(
+            f"Export {export_id} sufficiently recent, skip generation."
+        )
+
     try:
         generate_export(
             export_id=export_request.export.id,
             file_name=export_request.generate_file_name(),
-            export_url=export_request.generate_url(),
+            export_url=None,
             format=export_request.format,
             id_role=None,
             filters=None,
         )
     except NotFound:
-        click.echo(f"Export {export_id} sufficiently recent, skip generation.")
-    except ExportGenerationNotNeeded:
         click.echo(f"Export {export_id} sufficiently recent, skip generation.")
 
 

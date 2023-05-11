@@ -32,7 +32,7 @@ def generate_scheduled_exports(self):
         generate_export.delay(
             export_id=export_request.export.id,
             file_name=export_request.generate_file_name(),
-            export_url=export_request.generate_url(),
+            export_url=None,
             format=export_request.format,
             id_role=None,
             filters=None,

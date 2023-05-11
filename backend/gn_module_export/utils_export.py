@@ -21,7 +21,11 @@ from utils_flask_sqla_geo.utilsgeometry import FionaShapeService, FionaGpkgServi
 from geonature.utils.filemanager import removeDisallowedFilenameChars
 from geonature.utils.env import DB
 from geonature.core.notifications.utils import dispatch_notifications
+from pypnusershub.db.models import User
+
 from .models import Export
+
+from gn_module_export.utils.export import export_as_file
 
 
 class ExportGenerationNotNeeded(Exception):
@@ -52,77 +56,54 @@ class ExportRequest:
     file_name = None
     export_url = None
 
-    def __init__(self, id_export, scheduled_export=None, id_role=None, format=None):
+    def __init__(self, id_export, scheduled_export=None, user=None, format=None):
         self.id_export = id_export
-        self.id_role = id_role
+        self.user = user
         self.format = format
-        print(format)
         self.export = Export.query.get_or_404(self.id_export)
 
-        if id_role and not self.export.has_instance_permission(id_role):
+        if user and not self.export.has_instance_permission(user):
             raise Forbidden
 
         if scheduled_export:
+            self.scheduled_export = scheduled_export
             self.format = scheduled_export.format
-            self.test_schedule_needded()
+            self.test_schedule_needed()
+
+        self.generate_file_name()
 
     def generate_file_name(self):
         if self.file_name:
-            return self.export_dir + self.file_name
+            return Path(self.export_dir) / self.file_name
 
-        conf = current_app.config.get("EXPORTS")
-        if self.id_role:
-            """
-            Génération du nom horodaté du fichier d'export
-            """
-            self.export_dir = os.path.join(
-                current_app.config["MEDIA_FOLDER"],
-                conf.get("export_schedules_dir"),
+        if not self.user:
+            self.export_dir = (
+                Path(current_app.config["MEDIA_FOLDER"]) / "exports/schedules"
+            )
+            self.file_name = "{}.{}".format(
+                removeDisallowedFilenameChars(self.export.label), self.format
+            )
+        else:
+            self.export_dir = (
+                Path(current_app.config["MEDIA_FOLDER"]) / "exports/usr_generated"
             )
             self.file_name = "{}_{}.{}".format(
                 datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S"),
                 removeDisallowedFilenameChars(self.export.label),
                 self.format,
             )
-        else:
-            """
-            Génération du nom statique du fichier d'export programmé
-            """
-            self.export_dir = os.path.join(
-                current_app.config["MEDIA_FOLDER"], conf.get("usr_generated_dirname")
-            )
-            self.file_name = "{}.{}".format(
-                removeDisallowedFilenameChars(self.export.get("label")), self.format
-            )
-        print(self.file_name)
         os.makedirs(self.export_dir, exist_ok=True)
 
-        return self.export_dir + self.file_name
+        return Path(self.export_dir) / self.file_name
 
-    def generate_url(self):
-        self.generate_file_name()
-        module_conf = current_app.config["EXPORTS"]
-        if module_conf.get("export_web_url"):
-            return "{}/{}".format(module_conf.get("export_web_url"), self.file_name)
-        else:
-            return url_for(
-                "media",
-                filename=module_conf.get("usr_generated_dirname")
-                + "/"
-                + self.file_name,
-                _external=True,
-            )
-
-    def test_schedule_needded(self):
+    def test_schedule_needed(self):
         self.generate_file_name()
         skip_newer_than = timedelta(minutes=self.scheduled_export.frequency * 24 * 60)
         file_path = Path(self.export_dir) / self.file_name
         if skip_newer_than is not None and file_path.exists():
             age = datetime.now() - datetime.fromtimestamp(file_path.stat().st_mtime)
             if age < skip_newer_than:
-                raise ExportGenerationNotNeeded(
-                    self.export["id"], skip_newer_than - age
-                )
+                raise ExportGenerationNotNeeded(self.export.id, skip_newer_than - age)
 
 
 def export_data_file(export_id, file_name, export_url, format, id_role, filters):
@@ -143,30 +124,18 @@ def export_data_file(export_id, file_name, export_url, format, id_role, filters)
     export = Export.query.get(export_id)
 
     try:
-        full_file_name = GenerateExport(
-            query=export.get_view_query(limit=-1, offset=0, filters=None),
-            file_name=file_name,
-            format=format,
-            primary_key=None,  # TODO change with PR  151
+        export_as_file(
+            export=export,
+            file_format=format,
+            filename=file_name,
+            generic_query_geo=export.get_view_query(limit=-1, offset=0, filters=None),
         )
     except Exception as exp:
         notify_export_file_generated(
             export=export, user=id_role, export_url=export_url, export_failed=True
         )
         raise exp
-
     notify_export_file_generated(export=export, user=id_role, export_url=export_url)
-
-    return full_file_name
-
-
-class GenerateExport:
-    """
-    Classe permettant de générer un fichier d'export dans le format spécfié
-    """
-
-    def __init__(self, query, file_name, format, primary_key):
-        print("TODO")
 
 
 def clean_export_file(dir_to_del, nb_days):
