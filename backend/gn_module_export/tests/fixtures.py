@@ -1,39 +1,34 @@
 import pytest
-
-from geonature.utils.env import DB
-from pypnusershub.db.models import User
+from geonature.utils.env import db
 from geonature.tests.fixtures import users
 
 from gn_module_export.models import Export, Licences
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def exports(users):
     licence = Licences.query.first()
-    public_export = Export(
-        label="test public",
-        schema_name="gn_commons",
-        view_name="t_modules",
-        desc="test public export",
+    export_public = Export(
+        label="Public",
+        schema_name="gn_exports",
+        view_name="t_exports",
         geometry_field=None,
         geometry_srid=None,
         public=True,
         licence=licence,
     )
-    DB.session.add(public_export)
-
-    private_export = Export(
-        label="test private",
-        schema_name="gn_commons",
-        view_name="t_modules",
-        desc="test private export",
+    export_private = Export(
+        label="Private",
+        schema_name="gn_exports",
+        view_name="t_exports",
         geometry_field=None,
         geometry_srid=None,
         public=False,
         licence=licence,
     )
-
-    private_export.allowed_roles.append(users["admin_user"])
-    DB.session.add(private_export)
-
-    return {"public_export": public_export, "private_export": private_export}
+    with db.session.begin_nested():
+        db.session.add(export_public)
+        db.session.add(export_private)
+    with db.session.begin_nested():
+        export_private.allowed_roles.append(users["admin_user"])
+    return {"public": export_public, "private": export_private}
