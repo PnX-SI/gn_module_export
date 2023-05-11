@@ -127,14 +127,19 @@ class Export(DB.Model):
 
     __repr__ = __str__
 
-    def has_instance_permission(self, user=None, token=None):
+    def has_instance_permission(self, user=None, token=None, scope=None):
         if self.public:
+            return True
+        if scope == 3:
             return True
         if token:
             return token in map(lambda cor: cor.token, self.cor_roles_exports)
-
         if user:
-            return user.id_role in map(lambda user: user.id_role, self.allowed_roles)
+            allowed_roles = map(lambda user: user.id_role, self.allowed_groups)
+            groups_of_user = map(lambda group: group.id, self.user.groups)
+            return user.id_role in allowed_roles or set(allowed_roles) & set(
+                groups_of_user
+            )
 
         return False
 

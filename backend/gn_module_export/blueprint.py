@@ -32,6 +32,7 @@ from utils_flask_sqla.response import json_resp, to_json_resp
 
 
 from geonature.core.gn_permissions import decorators as permissions
+from geonature.core.gn_permissions.tools import get_scopes_by_action
 
 
 import gn_module_export.tasks  # noqua: F401
@@ -295,10 +296,13 @@ def get_one_export_api(id_export, token=None):
 
     user = g.current_user
     export = Export.query.get(id_export)
-
+    print(f"USER GROUPS : {user.groups}")
+    scope = None
+    if user:
+        scope = get_scopes_by_action(user.id_role, "EXPORT")["E"]
     if not export:
         return jsonify([])
-    if not export.has_instance_permission(user, token):
+    if not export.has_instance_permission(user, token, scope):
         raise Forbidden
 
     limit = request.args.get("limit", default=1000, type=int)
