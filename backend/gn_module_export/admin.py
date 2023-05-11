@@ -11,7 +11,8 @@ from geonature.core.admin.admin import admin as flask_admin, CruvedProtectedMixi
 from geonature.utils.env import DB
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
-from gn_module_export.models import Export, ExportSchedules, Licences, UserRepr
+from gn_module_export.models import Export, ExportSchedules, Licences
+from pypnusershub.db.models import User
 
 
 class LicenceView(CruvedProtectedMixin, ModelView):
@@ -112,9 +113,9 @@ class ExportView(CruvedProtectedMixin, ModelView):
     )
     form_args = {
         "allowed_roles": {
-            "query_factory": lambda: UserRepr.query.order_by(
-                UserRepr.groupe.desc(), UserRepr.nom_role
-            ).filter((UserRepr.groupe == True) | (UserRepr.identifiant.isnot(None)))
+            "query_factory": lambda: User.query.order_by(
+                User.groupe.desc(), User.nom_role
+            ).filter((User.groupe == True) | (User.identifiant.isnot(None)))
         }
     }
 

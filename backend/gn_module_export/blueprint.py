@@ -41,7 +41,6 @@ from gn_module_export.models import (
     CorExportsRoles,
     Licences,
     ExportSchedules,
-    UserRepr,
 )
 from gn_module_export.commands import commands
 from gn_module_export.tasks import generate_export

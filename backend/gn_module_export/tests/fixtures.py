@@ -26,8 +26,9 @@ def exports(users):
         public=False,
         licence=licence,
     )
-    export_private.allowed_roles.append(users["admin_user"])
     with db.session.begin_nested():
         db.session.add(export_public)
         db.session.add(export_private)
+    with db.session.begin_nested():
+        export_private.allowed_roles.append(users["admin_user"])
     return {"public": export_public, "private": export_private}

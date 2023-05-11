@@ -46,7 +46,7 @@ class CorExportsRoles(DB.Model):
         backref=backref("cor_roles_exports", cascade="all, delete-orphan"),
     )
     role = DB.relationship(
-        "UserRepr",
+        "User",
         lazy="joined",
     )
 
@@ -69,19 +69,6 @@ class ExportsQuery(Query):
         ]
         self = self.outerjoin(CorExportsRoles).filter(or_(*ors))
         return self
-
-
-class UserRepr(User):
-    def __str__(self):
-        if self.groupe:
-            val = "Groupe : {}".format(self.nom_role)
-        else:
-            val = "{nom} {prenom} - ({email})".format(
-                nom=self.nom_role,
-                prenom=self.prenom_role or "",
-                email=self.email or "no email",
-            )
-        return val
 
 
 @serializable
