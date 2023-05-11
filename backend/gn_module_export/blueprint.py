@@ -32,6 +32,7 @@ from utils_flask_sqla.response import json_resp, to_json_resp
 
 
 from geonature.core.gn_permissions import decorators as permissions
+from geonature.core.gn_permissions.tools import get_scopes_by_action
 
 
 import gn_module_export.tasks  # noqua: F401
@@ -159,8 +160,8 @@ def swagger_ressources(id_export=None):
     allow_headers=["content-type", "content-disposition"],
     expose_headers=["Content-Type", "Content-Disposition", "Authorization"],
 )
-@permissions.check_cruved_scope("E", module_code="EXPORTS")
-def getOneExportThread(id_export, export_format):
+@permissions.check_cruved_scope("R", module_code="EXPORTS", get_scope=True)
+def getOneExportThread(scope, id_export, export_format):
     """
     Run export with thread
     """
@@ -183,7 +184,7 @@ def getOneExportThread(id_export, export_format):
     if not export:
         return jsonify([])
 
-    if not export.has_instance_permission(user.id_role):
+    if not export.has_instance_permission(user=user, scope=scope):
         raise Forbidden
 
     module_conf = current_app.config["EXPORTS"]
@@ -215,15 +216,15 @@ def getOneExportThread(id_export, export_format):
 
 
 @blueprint.route("/", methods=["GET"])
-@permissions.check_cruved_scope("R", module_code="EXPORTS")
+@permissions.check_cruved_scope("R", module_code="EXPORTS", get_scope=True)
 @json_resp
-def get_exports():
+def get_exports(scope):
     """
     Fonction qui renvoie la liste des exports
     accessibles pour un role donné
     """
     try:
-        exports = Export.query.get_allowed_exports().all()
+        exports = Export.query.get_allowed_exports(scope).all()
     except NoResultFound:
         return {
             "api_error": "no_result_found",
@@ -293,7 +294,10 @@ def get_one_export_api(id_export, token=None):
 
     user = g.current_user
     export = Export.query.get_or_404(id_export)
-    if not export.has_instance_permission(user, token):
+    scope = None
+    if user:
+        scope = get_scopes_by_action(user.id_role, "EXPORT")["R"]
+    if not export.has_instance_permission(user=user, token=token, scope=scope):
         raise Forbidden
 
     limit = request.args.get("limit", default=1000, type=int)
