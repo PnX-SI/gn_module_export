@@ -1,9 +1,8 @@
 import pytest
-
 from geonature.utils.env import db
 from geonature.tests.fixtures import users
 
-from gn_module_export.models import Export, Licences, CorExportsRoles
+from gn_module_export.models import Export, Licences
 
 
 @pytest.fixture(scope="class")
@@ -13,17 +12,21 @@ def exports(users):
         label="Public",
         schema_name="gn_exports",
         view_name="t_exports",
+        geometry_field=None,
+        geometry_srid=None,
         public=True,
-        id_licence=licence.id_licence,
+        licence=licence,
     )
     export_private = Export(
         label="Private",
         schema_name="gn_exports",
         view_name="t_exports",
+        geometry_field=None,
+        geometry_srid=None,
         public=False,
-        id_licence=licence.id_licence,
-        cor_roles_exports=[CorExportsRoles(id_role=users["user"].id_role)],
+        licence=licence,
     )
+    export_private.allowed_roles.append(users["admin_user"])
     with db.session.begin_nested():
         db.session.add(export_public)
         db.session.add(export_private)

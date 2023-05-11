@@ -64,7 +64,6 @@ blueprint.cli.short_help = "Commandes du module export"
 for cmd in commands:
     blueprint.cli.add_command(cmd)
 
-
 from .admin import *
 
 """
@@ -294,10 +293,7 @@ def get_one_export_api(id_export, token=None):
     """
 
     user = g.current_user
-    export = Export.query.get(id_export)
-
-    if not export:
-        return jsonify([])
+    export = Export.query.get_or_404(id_export)
     if not export.has_instance_permission(user, token):
         raise Forbidden
 

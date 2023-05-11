@@ -1,13 +1,8 @@
 {
   "name": "export",
-  "version": "1.0.0",
-  "description": "Module d export de données",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC",
+  "version": "1.4.0",
+  "description": "GeoNature export data module",
+  "license": "GPLv3",
   "dependencies": {},
   "devDependencies": {}
 }
