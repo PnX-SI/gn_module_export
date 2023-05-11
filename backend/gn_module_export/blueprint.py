@@ -120,7 +120,6 @@ def swagger_ressources(id_export=None):
 
     # Génération automatique des spécifications
     export_parameters = generate_swagger_spec(id_export)
-
     # Récupération des paramètres URL du backend
     backend_url = urlparse(current_app.config["API_ENDPOINT"])
 
@@ -129,13 +128,23 @@ def swagger_ressources(id_export=None):
     else:
         scheme = ["https", "http"]
 
+    if export.public:
+        export_path = "{}/{}".format(
+            current_app.config["EXPORTS"]["MODULE_URL"], id_export
+        )
+    else:
+        export_path = (
+            current_app.config["EXPORTS"]["MODULE_URL"]
+            + "/"
+            + str(id_export)
+            + "/{apiKey}"
+        )
+
     swagger_spec = render_template(
         "/swagger/generic_swagger_doc.json",
         export_nom=export.label,
         export_description=export.desc,
-        export_path="{}/api/{}".format(
-            current_app.config["EXPORTS"]["MODULE_URL"], id_export
-        ),
+        export_path=export_path,
         export_parameters=export_parameters,
         licence_nom=export.licence.name_licence,
         licence_description=export.licence.url_licence,
@@ -231,7 +240,9 @@ def get_exports():
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
+@blueprint.route("/<int:id_export>", methods=["GET"])
 @blueprint.route("/api/<int:id_export>/<token>", methods=["GET"])
+@blueprint.route("/<int:id_export>/<token>", methods=["GET"])
 @json_resp
 def get_one_export_api(id_export, token=None):
     """

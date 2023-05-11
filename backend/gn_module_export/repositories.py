@@ -66,4 +66,15 @@ def generate_swagger_spec(id_export):
             "description": "Nom d'un champ de la vue qui sera utilisé comme variable de tri. Une mention au sens du tri peut être ajoutée en utilisant la syntaxe suivante : nom_col[:ASC|DESC]",
         },
     ]
+    if not export.public:
+        general_params.insert(
+            0,
+            {
+                "in": "path",
+                "name": "apiKey",
+                "type": "varchar",
+                "description": "Clé API fournie par votre administrateur",
+                # "required": True,
+            },
+        )
     return general_params + swagger_parameters
