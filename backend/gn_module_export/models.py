@@ -6,6 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import relationship, backref
 import flask_sqlalchemy
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm import backref
 
 
 if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
@@ -22,6 +23,7 @@ from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
 
 
+@serializable
 class CorExportsRoles(DB.Model):
     __tablename__ = "cor_exports_roles"
     __table_args__ = {"schema": "gn_exports"}
