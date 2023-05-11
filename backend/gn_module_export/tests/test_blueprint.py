@@ -67,5 +67,4 @@ class TestExportsBlueprints:
         response = self.client.get(
             url_for("exports.get_one_export_api", id_export=1000000)
         )
-        assert response.status_code == 200
-        assert response.json == []
+        assert response.status_code == 404

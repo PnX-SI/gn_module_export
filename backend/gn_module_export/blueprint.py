@@ -501,7 +501,6 @@ def get_one_export_api(id_export):
     user = g.current_user
     export = Export.query.get_or_404(id_export)
 
-    if not export:
     if not export.has_instance_permission(user.id_role):
         raise Forbidden
 
