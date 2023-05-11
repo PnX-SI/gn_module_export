@@ -160,6 +160,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         label="Nom de l'export",
         schema_name="Nom du schema PostgreSQL",
         view_name="Nom de la vue SQL",
+        view_pk_column="Nom de colonne d'unicité de la vue",
         desc="Description",
         geometry_field="Nom de champ géométrique",
         geometry_srid="SRID du champ géométrique",
@@ -167,8 +168,9 @@ class ExportView(CruvedProtectedMixin, ModelView):
     # Description des colonnes
     column_descriptions = dict(
         label="Nom libre de l'export",
-        schema_name="Nom exact du schéma postgreSQL contenant la vue SQL.",
+        schema_name="Nom exact du schéma PostgreSQL contenant la vue SQL.",
         view_name="Nom exact de la vue SQL permettant l'export de vos données.",  # noqa E501
+        view_pk_column="Nom exact de la colonne d'unicité de la vue. Si non renseigné, la première colonne sera utilisée pour les exports.",
         desc="Décrit la nature de l'export",
         public="L'export est accessible à tous",
     )
@@ -177,6 +179,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         "label",
         "schema_name",
         "view_name",
+        "view_pk_column",
         "desc",
         "geometry_field",
         "geometry_srid",
@@ -194,6 +197,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         schema_name = getattr(form, "schema_name", "")
         geometry_field = getattr(form, "geometry_field", None)
         geometry_srid = getattr(form, "geometry_srid", None)
+        view_pk_column = getattr(form, "view_pk_column", None)
         if is_form_submitted() and view_name and schema_name:
             try:
                 if geometry_field.data and geometry_srid.data is None:
@@ -208,7 +212,13 @@ class ExportView(CruvedProtectedMixin, ModelView):
                     geometry_field=geometry_field.data,
                     filters=[],
                 )
-                query.return_query()
+                columns = query.view.tableDef.columns.keys()
+
+                # test if columns exists
+                test_columns = (geometry_field.data, view_pk_column.data)
+                for col in test_columns:
+                    if col and col not in columns:
+                        raise KeyError(f"Column {col} doesn't exists")
 
             except Exception as exp:
                 flash(exp, category="error")

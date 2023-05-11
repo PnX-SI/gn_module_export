@@ -77,6 +77,7 @@ class Export(DB.Model):
     label = DB.Column(DB.Text, nullable=False, unique=True, index=True)
     schema_name = DB.Column(DB.Text, nullable=False)
     view_name = DB.Column(DB.Text, nullable=False)
+    view_pk_column = DB.Column(DB.Text, nullable=False)
     desc = DB.Column(DB.Text)
     geometry_field = DB.Column(DB.Text)
     geometry_srid = DB.Column(DB.Integer)
