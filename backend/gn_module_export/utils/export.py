@@ -6,6 +6,7 @@ from typing import Union
 from geonature.utils.env import db
 from geonature.utils.errors import GeoNatureError
 from utils_flask_sqla_geo.schema import GeoAlchemyAutoSchema
+from utils_flask_sqla.schema import SmartRelationshipsMixin
 
 
 class SerializableGenerator(list):
@@ -59,7 +60,14 @@ def get_schema_from_model(model):
         "Meta": Meta,
     }
 
-    return type("Schema", (GeoAlchemyAutoSchema,), dict_schema)
+    return type(
+        "Schema",
+        (
+            GeoAlchemyAutoSchema,
+            SmartRelationshipsMixin,
+        ),
+        dict_schema,
+    )
 
 
 def export_csv(
