@@ -25,25 +25,8 @@ class ExportGenerationNotNeeded(Exception):
     pass
 
 
-def export_filename(export):
-    """
-    Génération du nom horodaté du fichier d'export
-    """
-    return "{}_{}".format(
-        time.strftime("%Y-%m-%d_%H-%M-%S"),
-        removeDisallowedFilenameChars(export.get("label")),
-    )
-
-
-def schedule_export_filename(export):
-    """
-    Génération du nom statique du fichier d'export programmé
-    """
-    return "{}".format(removeDisallowedFilenameChars(export.get("label")))
-
-
 def export_data_file(
-    id_export, export_format, filters={}, isScheduler=False, skip_newer_than=None
+    id_export, export_format, filters={}, id_role, skip_newer_than=None
 ):
     """
     Fonction qui permet de générer un export fichier
@@ -79,10 +62,7 @@ def export_data_file(
 
     # Generate and store export file
     export_def = export.as_dict()
-    if isScheduler:
-        file_name = schedule_export_filename(export_def)
-    else:
-        file_name = export_filename(export_def)
+    file_name = ExportFileName(export.get("id_export"), id_role).generate_file_name()
 
     full_file_name = GenerateExport(
         file_name=file_name,
@@ -90,12 +70,40 @@ def export_data_file(
         data=data,
         columns=columns,
         export=export_def,
-        isScheduler=isScheduler,
+        isScheduler=id_role,
     ).generate_data_export(
         skip_newer_than=skip_newer_than,
     )
 
     return full_file_name
+
+
+class ExportFileName:
+    """
+    Classe permettant de générer le nom de fichier
+    """
+
+    def __init__(self, id_export, id_role):
+        self.id_export = id_export
+        self.id_role = id_role
+        #self.format = format
+
+    def generate_file_name(self):
+        export = Export.query.get(self.id_export)
+
+        if not self.id_role:
+            """
+            Génération du nom horodaté du fichier d'export
+            """
+            return "{}_{}".format(
+                datetime.datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S"),
+                removeDisallowedFilenameChars(export.get("label")),
+            )
+        else:
+            """
+            Génération du nom statique du fichier d'export programmé
+            """
+            return "{}".format(removeDisallowedFilenameChars(export.get("label")))
 
 
 class GenerateExport:
