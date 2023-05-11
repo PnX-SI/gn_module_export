@@ -296,7 +296,6 @@ def get_one_export_api(id_export, token=None):
 
     user = g.current_user
     export = Export.query.get(id_export)
-    print(f"USER GROUPS : {user.groups}")
     scope = None
     if user:
         scope = get_scopes_by_action(user.id_role, "EXPORT")["E"]

@@ -135,10 +135,10 @@ class Export(DB.Model):
         if token:
             return token in map(lambda cor: cor.token, self.cor_roles_exports)
         if user:
-            allowed_roles = map(lambda user: user.id_role, self.allowed_groups)
-            groups_of_user = map(lambda group: group.id, self.user.groups)
-            return user.id_role in allowed_roles or set(allowed_roles) & set(
-                groups_of_user
+            allowed_id_roles = list(map(lambda user: user.id_role, self.allowed_roles))
+            ids_group_of_user = list(map(lambda group: group.id_role, user.groups))
+            return user.id_role in allowed_id_roles or set(ids_group_of_user) & set(
+                allowed_id_roles
             )
 
         return False
