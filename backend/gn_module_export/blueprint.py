@@ -233,9 +233,8 @@ def get_exports():
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
-@blueprint.route("/api/<int:id_export>/<token>", methods=["GET"])
 @json_resp
-def get_one_export_api(id_export, token=None):
+def get_one_export_api(id_export):
     """
     Fonction qui expose les exports disponibles à un role
         sous forme d'api
@@ -248,6 +247,9 @@ def get_one_export_api(id_export, token=None):
     ----------
     limit : nombre limite de résultats à retourner
     offset : numéro de page
+    token : clé de l'API permettant de se passer de la connexion via un
+        cookie. Peut aussi être transmis dans un entête HTTP
+        `Authorization: Bearer <token>`.
 
     FILTRES :
         nom_col=val: Si nom_col fait partie des colonnes
@@ -290,14 +292,20 @@ def get_one_export_api(id_export, token=None):
 
         order by : @TODO
     """
+    limit = request.args.get("limit", default=1000, type=int)
+    offset = request.args.get("offset", default=0, type=int)
+    token = request.args.get("token", default=None, type=str)
+
+    # Try to extract token from Bearer Authorization HTTP Header
+    bearer = request.headers.get("Authorization", default=None, type=str)
+    if token is None and bearer is not None:
+        token = bearer.removeprefix("Bearer ")
 
     user = g.current_user
+
     export = Export.query.get_or_404(id_export)
     if not export.has_instance_permission(user, token):
         raise Forbidden
-
-    limit = request.args.get("limit", default=1000, type=int)
-    offset = request.args.get("offset", default=0, type=int)
 
     if limit > 1000:
         limit = 1000
@@ -307,6 +315,8 @@ def get_one_export_api(id_export, token=None):
         args.pop("limit")
     if "offset" in args:
         args.pop("offset")
+    if "token" in args:
+        args.pop("token")
     filters = {f: args.get(f) for f in args}
 
     query = export.get_view_query(limit=limit, offset=offset, filters=filters)
