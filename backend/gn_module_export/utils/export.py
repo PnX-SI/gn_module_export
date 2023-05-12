@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from flask import current_app
 from geonature.utils.env import db
@@ -35,6 +35,7 @@ def _export_as_file(
     geometry_field_name: Optional[str] = None,
     pk_name: Optional[str] = None,
     srid: Optional[int] = None,
+    columns: Optional[List[str]] = [],
 ):
     format_list = [k for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
 
@@ -44,8 +45,6 @@ def _export_as_file(
         srid = get_local_srid(db.session)
 
     schema_class = generic_query_geo.get_marshmallow_schema(pk_name=pk_name)
-    columns = generic_query_geo.view.tableDef.columns.keys()
-    columns = []
 
     if file_format == "gpkg":
         export_geopackage(
