@@ -32,7 +32,6 @@ def _export_as_file(
     file_format: str,
     filename: str,
     generic_query_geo: GenericQueryGeo,
-    geometry_field_name: Optional[str] = None,
     pk_name: Optional[str] = None,
     srid: Optional[int] = None,
     columns: Optional[List[str]] = [],
@@ -51,7 +50,7 @@ def _export_as_file(
             query=generic_query_geo.raw_query(),
             schema_class=schema_class,
             filename=filename,
-            geometry_field_name=geometry_field_name,
+            geometry_field_name=generic_query_geo.geometry_field,
             srid=srid,
         )
         return
@@ -63,6 +62,6 @@ def _export_as_file(
             query=generic_query_geo.raw_query(),
             schema_class=schema_class,
             fp=f,
-            geometry_field_name=geometry_field_name,
+            geometry_field_name=generic_query_geo.geometry_field,
             columns=columns,
         )
