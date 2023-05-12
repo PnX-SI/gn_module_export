@@ -128,6 +128,10 @@ class Export(DB.Model):
             return True
         if token:
             return token in map(lambda cor: cor.token, self.cor_roles_exports)
+        if user is None:
+            user = g.current_user
+        if user is None:  # no user provided and no user connected
+            return False
         if scope == 3:
             return True
         if scope in (1, 2):
