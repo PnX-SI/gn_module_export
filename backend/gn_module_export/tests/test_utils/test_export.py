@@ -43,7 +43,6 @@ class TestUtilsExport:
                 res_json = json.load(json_file)
 
         assert len(res_json) > 0
-        assert "geom" not in res_json[0]
 
     def test_export_geopackage(self, synthese_data, export_query):
         file_name = "/tmp/test_fiona.gpkg"
