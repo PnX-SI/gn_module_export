@@ -49,7 +49,7 @@ import gn_module_export.tasks  # noqua: F401
 from .repositories import generate_swagger_spec
 from .models import Export, CorExportsRoles, Licences, ExportSchedules, UserRepr
 from .commands import commands
-from .tasks import generate_export
+from .tasks import generate_export, generate_export_synchronous
 
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
@@ -370,6 +370,7 @@ def swagger_ressources(id_export=None):
     expose_headers=["Content-Type", "Content-Disposition", "Authorization"],
 )
 @permissions.check_cruved_scope("E", module_code="EXPORTS")
+@profile
 def getOneExportThread(id_export, export_format):
     """
     Run export with thread
@@ -405,12 +406,21 @@ def getOneExportThread(id_export, export_format):
     if not user.email and not email_to:  # TODO add more test
         raise BadRequest("User doesn't have email")
 
-    generate_export.delay(
-        export_id=id_export,
-        export_format=export_format,
-        scheduled=False,
-        skip_newer_than=None,
-    )
+    is_benchmark = True
+    if is_benchmark:
+        generate_export_synchronous(
+            export_id=id_export,
+            export_format=export_format,
+            scheduled=False,
+            skip_newer_than=None,
+        )
+    else:
+        generate_export.delay(
+            export_id=id_export,
+            export_format=export_format,
+            scheduled=False,
+            skip_newer_than=None,
+        )
 
     return to_json_resp(
         {
@@ -442,6 +452,7 @@ def get_exports():
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
 @permissions.check_cruved_scope("R", module_code="EXPORTS")
 @json_resp
+@profile
 def get_one_export_api(id_export):
     """
     Fonction qui expose les exports disponibles à un role

@@ -59,6 +59,9 @@ def export_data_file(
     .. str : nom du fichier
     """
 
+    import tracemalloc
+    tracemalloc.start()
+
     export = Export.query.get(id_export)
 
     # export data
@@ -94,6 +97,20 @@ def export_data_file(
     ).generate_data_export(
         skip_newer_than=skip_newer_than,
     )
+
+    import logging
+    logger = logging.getLogger(__name__)
+
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics('lineno')
+    # logger.info("Tracemalloc [ Top 10 ]")
+    # for stat in top_stats[:10]:
+    #     logger.info(stat)
+    logger.info(f"Total allocated size in `export_data_file` : {sum(stat.size for stat in top_stats) / 1024 / 1024} MiB")
+
+    import sys
+    sys.getsizeof(data)
+    logger.info(f"\n\n sys.getsizeof(data)={sys.getsizeof(data)} \n\n")
 
     return full_file_name
 
