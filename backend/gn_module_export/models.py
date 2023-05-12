@@ -1,25 +1,23 @@
 from secrets import token_hex
-from packaging import version
 
+import flask_sqlalchemy
 from flask import g
+from packaging import version
 from sqlalchemy import or_, false
 import flask_sqlalchemy
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref
-
+from sqlalchemy.orm import backref, relationship
 
 if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
     from flask_sqlalchemy.query import Query
 else:  # retro-compatibility Flask-SQLAlchemy 2 / SQLAlchemy 1.3
     from flask_sqlalchemy import BaseQuery as Query
 
-from geonature.utils.env import DB
-from utils_flask_sqla.serializers import serializable
-
-from utils_flask_sqla_geo.generic import GenericQueryGeo
-
-from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
+from geonature.utils.env import DB
+from pypnusershub.db.models import User
+from utils_flask_sqla.serializers import serializable
+from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 
 @serializable
