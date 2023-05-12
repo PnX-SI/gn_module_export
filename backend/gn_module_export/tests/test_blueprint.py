@@ -18,7 +18,7 @@ class TestExportsBlueprints:
         response = self.client.get(
             url_for(
                 "exports.get_one_export_api",
-                id_export=exports["private"].id,
+                id_export=exports["private_user_associated"].id,
             )
         )
         assert response.status_code == 403
@@ -28,23 +28,9 @@ class TestExportsBlueprints:
         response = self.client.get(
             url_for(
                 "exports.get_one_export_api",
-                id_export=exports["private"].id,
+                id_export=exports["private_user_associated"].id,
                 token="fake_token",
             )
-        )
-        assert response.status_code == 403
-
-    def test_public_export(self, exports, users):
-        set_logged_user_cookie(self.client, users["user"])
-        response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["public"].id)
-        )
-        assert response.status_code == 200
-
-    def test_private_export(self, exports, users):
-        set_logged_user_cookie(self.client, users["user"])
-        response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["private"].id)
         )
         assert response.status_code == 403
 
@@ -53,26 +39,51 @@ class TestExportsBlueprints:
         response = self.client.get(
             url_for(
                 "exports.get_one_export_api",
-                id_export=exports["private"].id,
-                token=exports["private"].cor_roles_exports[0].token,
+                id_export=exports["private_user_associated"].id,
+                token=exports["private_user_associated"].cor_roles_exports[0].token,
             )
         )
         assert response.status_code == 200
 
-    def test_private_admin_export(self, exports, users):
-        set_logged_user_cookie(self.client, users["admin_user"])
+    def test_private_export_with_allowed_id_role(self, users, exports):
+        # with an allowed user and without token
+        set_logged_user_cookie(self.client, users["self_user"])
         response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["private"].id)
+            url_for(
+                "exports.get_one_export_api",
+                id_export=exports["private_user_associated"].id,
+            )
         )
         assert response.status_code == 200
 
-    def test_private_export_with_good_token(self, users, exports):
+    def test_private_export_with_allowed_group(self, group_and_user, exports):
+        # log with a user which is in a group associated with "private_group_associated" export
+        set_logged_user_cookie(self.client, group_and_user["user"])
+        response = self.client.get(
+            url_for(
+                "exports.get_one_export_api",
+                id_export=exports["private_group_associated"].id,
+            )
+        )
+        assert response.status_code == 200
+
+    def test_private_export_with_scope_3(self, users, exports):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        response = self.client.get(
+            url_for(
+                "exports.get_one_export_api",
+                id_export=exports["private_user_associated"].id,
+            )
+        )
+        assert response.status_code == 200
+
+    def test_private_export_with_unautorized_user(self, users, exports):
         # with an not allowed user and without token
         set_logged_user_cookie(self.client, users["noright_user"])
         response = self.client.get(
             url_for(
                 "exports.get_one_export_api",
-                id_export=exports["private"].id,
+                id_export=exports["private_user_associated"].id,
             )
         )
         assert response.status_code == 403
@@ -106,7 +117,10 @@ class TestExportsBlueprints:
         }
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["private"].id)
+            url_for(
+                "exports.get_one_export_api",
+                id_export=exports["private_user_associated"].id,
+            )
         )
         assert response.status_code == 200
         validate_json(instance=response.json, schema=schema)

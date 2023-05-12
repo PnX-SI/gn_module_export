@@ -2,7 +2,7 @@ from secrets import token_hex
 from packaging import version
 
 from flask import g
-from sqlalchemy import or_
+from sqlalchemy import or_, false
 from sqlalchemy.orm import relationship, backref
 import flask_sqlalchemy
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -52,22 +52,25 @@ class CorExportsRoles(DB.Model):
 
 
 class ExportsQuery(Query):
-    def get_allowed_exports(self, user=None):
+    def filter_by_scope(self, scope, user=None):
         """
         Liste des exports autorisés pour un role
         """
         if not user:
             user = g.current_user
-        ors = [
-            CorExportsRoles.id_role == user.id_role,
-            CorExportsRoles.id_role.in_(
-                User.query.with_entities(User.id_role)
-                .join(CorRole, CorRole.id_role_groupe == User.id_role)
-                .filter(CorRole.id_role_utilisateur == user.id_role)
-            ),
-            Export.public == True,
-        ]
-        self = self.outerjoin(CorExportsRoles).filter(or_(*ors))
+        if scope == 0:
+            self = self.filter(false())
+        elif scope in (1, 2):
+            ors = [
+                CorExportsRoles.id_role == user.id_role,
+                CorExportsRoles.id_role.in_(
+                    User.query.with_entities(User.id_role)
+                    .join(CorRole, CorRole.id_role_groupe == User.id_role)
+                    .filter(CorRole.id_role_utilisateur == user.id_role)
+                ),
+                Export.public == True,
+            ]
+            self = self.outerjoin(CorExportsRoles).filter(or_(*ors))
         return self
 
 
@@ -115,15 +118,28 @@ class Export(DB.Model):
 
     __repr__ = __str__
 
-    def has_instance_permission(self, user=None, token=None):
+    def has_instance_permission(
+        self,
+        user=None,
+        scope=None,
+        token=None,
+    ):
         if self.public:
             return True
         if token:
             return token in map(lambda cor: cor.token, self.cor_roles_exports)
-
-        if user:
-            return user.id_role in map(lambda user: user.id_role, self.allowed_roles)
-
+        if user is None:
+            user = g.current_user
+        if user is None:  # no user provided and no user connected
+            return False
+        if scope == 3:
+            return True
+        if scope in (1, 2):
+            allowed_id_roles = list(map(lambda user: user.id_role, self.allowed_roles))
+            ids_group_of_user = list(map(lambda group: group.id_role, user.groups))
+            return user.id_role in allowed_id_roles or set(ids_group_of_user) & set(
+                allowed_id_roles
+            )
         return False
 
     def get_view_query(self, limit, offset, filters=None):
