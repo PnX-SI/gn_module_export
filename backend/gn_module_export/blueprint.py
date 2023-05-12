@@ -45,6 +45,7 @@ from gn_module_export.models import (
 )
 from gn_module_export.commands import commands
 from gn_module_export.tasks import generate_export
+from .utils_export import ExportRequest
 
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
@@ -167,7 +168,6 @@ def getOneExportThread(scope, id_export, export_format):
     """
 
     filters = {f: request.args.get(f) for f in request.args}
-    data = dict(request.get_json())
     user = g.current_user
 
     # Test format
@@ -180,30 +180,26 @@ def getOneExportThread(scope, id_export, export_format):
             status=500,
         )
 
-    export = Export.query.get(id_export)
-    if not export:
-        return jsonify([])
-
-    if not export.has_instance_permission(user=user, scope=scope):
-        raise Forbidden
+    export_request = ExportRequest(
+        id_export=id_export, id_role=user.id_role, format=export_format
+    )
 
     module_conf = current_app.config["EXPORTS"]
-    if module_conf.get("export_web_url"):
-        export_url = "{}/{}".format(module_conf.get("export_web_url"))
-    else:
-        export_url = url_for(
-            "media",
-            filename=module_conf.get("usr_generated_dirname"),
-            _external=True,
-        )
+    export_url = url_for(
+        "media",
+        filename=module_conf.get("usr_generated_dirname")
+        + "/"
+        + export_request.file_name,
+        _external=True,
+    )
 
     generate_export.delay(
-        export_id=id_export,
-        export_format=export_format,
-        filename=export_url,
-        user=user.id_role,
-        scheduled=False,
-        skip_newer_than=None,
+        export_id=export_request.export.id,
+        file_name=export_request.generate_file_name(),
+        export_url=export_url,
+        format=export_request.format,
+        id_role=user.id_role,
+        filters=filters,
     )
 
     return to_json_resp(

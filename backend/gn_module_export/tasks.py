@@ -7,7 +7,7 @@ from celery.schedules import crontab
 from geonature.utils.celery import celery_app
 
 from .models import Export, ExportSchedules
-from .utils_export import export_data_file, ExportGenerationNotNeeded
+from .utils_export import export_data_file, ExportGenerationNotNeeded, ExportRequest
 
 from geonature.core.notifications.utils import dispatch_notifications
 
@@ -26,40 +26,26 @@ def setup_periodic_tasks(sender, **kwargs):
 @celery_app.task(bind=True)
 def generate_scheduled_exports(self):
     for scheduled_export in ExportSchedules.query.all():
-        export = scheduled_export.export
+        export_request = ExportRequest(
+            id_export=scheduled_export.id_export, scheduled_export=scheduled_export
+        )
         generate_export.delay(
-            export_id=export.id,
-            export_format=scheduled_export.format,
-            filename="",
-            user=None,
-            scheduled=True,
-            skip_newer_than=scheduled_export.frequency * 24 * 60,
+            export_id=export_request.export.id,
+            file_name=export_request.generate_file_name(),
+            export_url=None,
+            format=export_request.format,
+            id_role=None,
+            filters=None,
         )
 
 
 @celery_app.task(bind=True, throws=ExportGenerationNotNeeded)
-def generate_export(
-    self,
-    export_id,
-    export_format,
-    filename,
-    user=None,
-    scheduled=False,
-    skip_newer_than=None,
-):
+def generate_export(self, export_id, file_name, export_url, format, id_role, filters):
     logger.info(f"Generate export {export_id}...")
     export = Export.query.get(export_id)
     if export is None:
         logger.warning("Export {export_id} does not exist")
         return
-    if skip_newer_than is not None:
-        skip_newer_than = timedelta(minutes=skip_newer_than)
-    export_data_file(
-        id_export=export_id,
-        export_format=export_format,
-        filename=filename,
-        user=user,
-        isScheduler=scheduled,
-        skip_newer_than=skip_newer_than,
-    )
+
+    export_data_file(export_id, file_name, export_url, format, id_role, filters)
     logger.info(f"Export {export_id} generated.")

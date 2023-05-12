@@ -31,18 +31,15 @@ La configuration des emails utilise les paramètres définis par Flask-Mail. Pou
 
 ### Autres paramètres
 
-* ``usr_generated_dirname`` : chemin absolu ou relatif au dossier media du dossier où les exports à la demande des utilisateurs seront déposés
-* ``export_schedules_dir`` : chemin absolu ou relatif au dossier media du dossier où les exports programmés seront déposés
 * ``export_dsw_dir`` : chemin absolu ou relatif au dossier media du dossier où l'export sémantique au format Darwin-SW sera réalisé
 * ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
-* ``export_web_url`` : URL des fichiers exportés à la demande par les utilisateurs
 * ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
 
-Vous pouvez modifier la configuration du module en créant un fichier 
-`exports_config.toml` dans le dossier `config` de GeoNature, en vous inspirant 
+Vous pouvez modifier la configuration du module en créant un fichier
+`exports_config.toml` dans le dossier `config` de GeoNature, en vous inspirant
 du fichier `exports_config.toml.example` et en surcouchant les paramètres que vous souhaitez.
 
-Pour appliquer les modifications de la configuration du module, consultez 
+Pour appliquer les modifications de la configuration du module, consultez
 la [rubrique dédiée de la documentation de GeoNature](https://docs.geonature.fr/installation.html#module-config).
 
 ## Commande d'installation
@@ -89,7 +86,7 @@ mv ~/gn_module_export ~/gn_module_export_old
 mv ~/gn_module_export-X.Y.Z ~/gn_module_export
 ```
 
-- Si vous avez encore votre configuration du module dans le dossier `config` du module, 
+- Si vous avez encore votre configuration du module dans le dossier `config` du module,
   copiez le vers le dossier de configuration centralisée de GeoNature :
 
 ```bash
