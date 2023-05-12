@@ -39,7 +39,7 @@ export class ExportListComponent implements OnInit {
     public config: ConfigService
   ) {
     this.exportFormat = this.config.EXPORTS['export_format_map'];
-    this.api_endpoint = `${this.config.API_ENDPOINT}/${this.config.EXPORTS.MODULE_URL}`;
+    this.api_endpoint = `${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}`;
   }
 
   ngOnInit() {
