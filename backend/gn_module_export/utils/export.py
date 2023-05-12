@@ -23,8 +23,8 @@ def export_as_file(
         file_format,
         filename,
         generic_query_geo,
-        export.geometry_field,
         srid=export.geometry_srid,
+        pk_name=export.view_pk_column,
     )
 
 
