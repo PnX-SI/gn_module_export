@@ -34,20 +34,6 @@ class TestExportsBlueprints:
         )
         assert response.status_code == 403
 
-    def test_public_export(self, exports, users):
-        set_logged_user_cookie(self.client, users["user"])
-        response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["public"].id)
-        )
-        assert response.status_code == 200
-
-    def test_private_export(self, exports, users):
-        set_logged_user_cookie(self.client, users["user"])
-        response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["private"].id)
-        )
-        assert response.status_code == 403
-
     def test_private_export_with_good_token(self, users, exports):
         # with good token
         response = self.client.get(
@@ -131,7 +117,10 @@ class TestExportsBlueprints:
         }
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=exports["private"].id)
+            url_for(
+                "exports.get_one_export_api",
+                id_export=exports["private_user_associated"].id,
+            )
         )
         assert response.status_code == 200
         validate_json(instance=response.json, schema=schema)

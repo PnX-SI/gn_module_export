@@ -224,7 +224,7 @@ def get_exports(scope):
     accessibles pour un role donné
     """
     try:
-        exports = Export.query.get_allowed_exports(scope).all()
+        exports = Export.query.filter_by_scope(scope).all()
     except NoResultFound:
         return {
             "api_error": "no_result_found",
