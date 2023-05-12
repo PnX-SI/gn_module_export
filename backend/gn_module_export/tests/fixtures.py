@@ -73,5 +73,5 @@ def export_synthese_sinp_query(export_synthese_sinp):
         export_synthese_sinp.view_name,
         export_synthese_sinp.schema_name,
         geometry_field=export_synthese_sinp.geometry_field,
-        limit=10
+        limit=10,
     )
