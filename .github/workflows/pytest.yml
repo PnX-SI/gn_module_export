@@ -107,6 +107,7 @@ jobs:
       run: |
         pip install \
           --editable . \
+          --editable file:dependencies/Utils-Flask-SQLAlchemy#egg=utils-flask-sqlalchemy \
           --editable file:dependencies/Utils-Flask-SQLAlchemy-Geo#egg=utils-flask-sqlalchemy-geo
     - name: Install import module database
       run: |
