@@ -2,10 +2,8 @@
     Définition des routes du module export
 """
 
-import os
 import logging
-import threading
-
+import os
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -14,39 +12,30 @@ from sqlalchemy.orm import contains_eager
 
 from flask import (
     Blueprint,
-    request,
-    current_app,
-    send_from_directory,
     Response,
-    render_template,
-    jsonify,
-    copy_current_request_context,
+    current_app,
     g,
+    jsonify,
+    render_template,
+    request,
+    send_from_directory,
     url_for,
 )
 from flask_cors import cross_origin
-from werkzeug.exceptions import NotFound, BadRequest, Forbidden
-
-
-from geonature.utils.config import config_frontend as public_config
-from utils_flask_sqla.response import json_resp, to_json_resp
-
-
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scopes_by_action
 
 
-import gn_module_export.tasks  # noqua: F401
 from gn_module_export.repositories import generate_swagger_spec
-from gn_module_export.models import (
-    Export,
-    CorExportsRoles,
-    Licences,
-    ExportSchedules,
-)
+from geonature.utils.config import config_frontend as public_config
 from gn_module_export.commands import commands
+from gn_module_export.models import Export
+from gn_module_export.repositories import generate_swagger_spec
 from gn_module_export.tasks import generate_export
 from .utils_export import ExportRequest
+from sqlalchemy.orm.exc import NoResultFound
+from utils_flask_sqla.response import json_resp, to_json_resp
+from werkzeug.exceptions import Forbidden
 
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
