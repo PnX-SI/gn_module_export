@@ -5,7 +5,7 @@ from geonature.tests.fixtures import users
 from gn_module_export.models import Export, Licences
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def exports(users):
     licence = Licences.query.first()
     export_public = Export(

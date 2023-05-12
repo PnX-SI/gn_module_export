@@ -178,12 +178,11 @@ def getOneExportThread(id_export, export_format):
             },
             status=500,
         )
-
     export = Export.query.get(id_export)
     if not export:
         return jsonify([])
 
-    if not export.has_instance_permission(user.id_role):
+    if not export.has_instance_permission(user):
         raise Forbidden
 
     module_conf = current_app.config["EXPORTS"]
