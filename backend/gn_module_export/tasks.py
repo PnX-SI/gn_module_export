@@ -59,6 +59,7 @@ def generate_export(self, export_id, file_name, export_url, format, id_role, fil
     export_data_file(export_id, file_name, export_url, format, id_role, filters)
     logger.info(f"Export {export_id} generated.")
 
+
 @celery_app.task(bind=True)
 def clean_export_file(self):
     """
