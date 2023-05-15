@@ -21,6 +21,11 @@ logger = get_task_logger(__name__)
 @celery_app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(
+        crontab(minute="0", hour="2"),
+        clean_export_file.s(),
+        name="scheduled exports clean",
+    )
+    sender.add_periodic_task(
         crontab(minute="0", hour="3"),
         generate_scheduled_exports.s(),
         name="generate scheduled exports",
@@ -54,8 +59,8 @@ def generate_export(self, export_id, file_name, export_url, format, id_role, fil
     export_data_file(export_id, file_name, export_url, format, id_role, filters)
     logger.info(f"Export {export_id} generated.")
 
-
-def clean_export_file():
+@celery_app.task(bind=True)
+def clean_export_file(self):
     """
     Fonction permettant de supprimer les fichiers générés
     par le module export ayant plus de X jours
