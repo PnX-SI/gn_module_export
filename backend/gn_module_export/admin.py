@@ -60,26 +60,8 @@ class ExportView(CruvedProtectedMixin, ModelView):
         # Référence au model utilisé
         super(ExportView, self).__init__(Export, session, **kwargs)
 
-    def filter_user_app_and_role():
-        user_and_gp_from_gn_app = (
-            User.query.outerjoin(CorRole, User.id_role == CorRole.id_role_utilisateur)
-            .outerjoin(
-                UserApplicationRight,
-                or_(
-                    UserApplicationRight.id_role == CorRole.id_role_groupe,
-                    UserApplicationRight.id_role == User.id_role,
-                ),
-            )
-            .join(
-                Application,
-                Application.id_application == UserApplicationRight.id_application,
-            )
-            .filter(Application.code_application == "GN")
-        )
-
-        return user_and_gp_from_gn_app.order_by(
-            User.groupe.desc(), User.nom_role
-        ).filter((User.groupe == True) | (User.identifiant.isnot(None)))
+    def filer_role_by_app():
+        return User.query.filter_by_app().order_by()(User.groupe.desc(), User.nom_role)
 
     def format_user_role(user):
         if user.groupe:
@@ -169,9 +151,12 @@ class ExportView(CruvedProtectedMixin, ModelView):
         "allowed_roles",
     )
 
+    def fiter_user_by_app():
+        return User.query.filter_by_app().order_by(User.groupe.desc(), User.identifiant)
+
     form_args = {
         "allowed_roles": {
-            "query_factory": filter_user_app_and_role,
+            "query_factory": fiter_user_by_app,
             "get_label": format_user_role,
         }
     }
