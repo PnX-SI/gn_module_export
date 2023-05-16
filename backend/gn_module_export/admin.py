@@ -61,7 +61,6 @@ class ExportView(CruvedProtectedMixin, ModelView):
         super(ExportView, self).__init__(Export, session, **kwargs)
 
     def filter_user_app_and_role():
-
         user_and_gp_from_gn_app = (
             User.query.outerjoin(CorRole, User.id_role == CorRole.id_role_utilisateur)
             .outerjoin(
