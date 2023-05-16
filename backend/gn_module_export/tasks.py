@@ -70,16 +70,10 @@ def clean_export_file(self):
         fichiers générés par le module export ayant plus de X jours
 
     """
-    conf = current_app.config.get("EXPORTS")
 
     dirs_to_del_from = [
-        os.path.join(
-            current_app.config["MEDIA_FOLDER"],
-            conf.get("export_schedules_dir"),
-        ),
-        os.path.join(
-            current_app.config["MEDIA_FOLDER"], conf.get("usr_generated_dirname")
-        ),
+        Path(current_app.config["MEDIA_FOLDER"]) / "exports/schedules",
+        Path(current_app.config["MEDIA_FOLDER"]) / "exports/usr_generated",
     ]
     # Date limite de suppression
     time_to_del = datetime.timestamp(
@@ -87,7 +81,7 @@ def clean_export_file(self):
         - timedelta(days=current_app.config["EXPORTS"]["nb_days_keep_file"])
     )
     for dir in dirs_to_del_from:
-        for item in Path(dir).glob("**", recursive=True):
+        for item in Path(dir).glob("**/*"):
             item_time = item.stat().st_mtime
             if item_time < time_to_del:
                 if item.is_file():

@@ -4,6 +4,11 @@ from geonature.utils.env import db
 from pypnusershub.db.models import User
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
+from flask import current_app
+from pathlib import Path
+
+import tempfile
+
 from gn_module_export.models import CorExportsRoles, Export, Licences
 
 EXPORT_SYNTHESE_NAME = "Synthese SINP"
@@ -75,3 +80,26 @@ def export_synthese_sinp_query(export_synthese_sinp):
         geometry_field=export_synthese_sinp.geometry_field,
         limit=10,
     )
+
+
+@pytest.fixture(scope="function")
+def temporary_media_directory(monkeypatch):
+    with tempfile.TemporaryDirectory() as media_td:
+        monkeypatch.setitem(current_app.config, "MEDIA_FOLDER", media_td)
+        yield media_td
+
+
+@pytest.fixture
+def export_directories(temporary_media_directory):
+    media_td = temporary_media_directory
+    export_path = Path(media_td + "/exports")
+    schedules_path = Path(media_td + "/exports/schedules")
+    usr_generated_path = Path(media_td + "/exports/usr_generated")
+    export_path.mkdir()
+    schedules_path.mkdir()
+    usr_generated_path.mkdir()
+    yield {
+        "export_path": export_path,
+        "schedules_path": schedules_path,
+        "usr_generated_path": usr_generated_path,
+    }
