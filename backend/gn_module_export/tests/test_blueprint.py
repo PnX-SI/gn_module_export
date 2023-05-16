@@ -153,15 +153,11 @@ class TestExportsBlueprints:
 
     def test_get_all_exports_with_scope_1_2_group(self, exports, users, group_and_user):
         allowed_fixture_ids = set()
-        allowed_fixture_label = set()
         for _, exp in exports.items():
             if exp.public or exp.label in ("Private1"):
                 allowed_fixture_ids.add(exp.id)
-                allowed_fixture_label.add(exp.label)
         set_logged_user_cookie(self.client, group_and_user["user"])
         response = self.client.get(url_for("exports.get_exports"))
         assert response.status_code == 200
         response_id_export = set([exp["id"] for exp in response.json])
         assert allowed_fixture_ids.issubset(response_id_export)
-        response_label_export = set([exp["label"] for exp in response.json])
-        assert allowed_fixture_label.issubset(response_label_export)
