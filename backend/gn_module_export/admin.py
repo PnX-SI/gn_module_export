@@ -1,18 +1,21 @@
-from flask import current_app, flash, Markup
+from flask import Markup, current_app, flash
+from flask_admin.babel import gettext
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
-from flask_admin.babel import gettext
-from psycopg2.errors import ForeignKeyViolation
-from sqlalchemy.exc import IntegrityError
-from wtforms import validators
-
-
-from geonature.core.admin.admin import admin as flask_admin, CruvedProtectedMixin
+from geonature.core.admin.admin import CruvedProtectedMixin
+from geonature.core.admin.admin import admin as flask_admin
+from geonature.core.users.models import CorRole
 from geonature.utils.env import DB
+from gn_module_export.models import Export, ExportSchedules, Licences
+from psycopg2.errors import ForeignKeyViolation
+from pypnusershub.db.models import Application, AppRole, User, UserApplicationRight
+from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from gn_module_export.models import Export, ExportSchedules, Licences
 from pypnusershub.db.models import User
+from wtforms import validators
 
 
 class LicenceView(CruvedProtectedMixin, ModelView):
@@ -53,6 +56,56 @@ class ExportView(CruvedProtectedMixin, ModelView):
     module_code = "EXPORTS"
     object_code = None
 
+    def __init__(self, session, **kwargs):
+        # Référence au model utilisé
+        super(ExportView, self).__init__(Export, session, **kwargs)
+
+    def filter_user_app_and_role():
+        user_and_gp_from_gn_app = (
+            User.query.outerjoin(CorRole, User.id_role == CorRole.id_role_utilisateur)
+            .outerjoin(
+                UserApplicationRight,
+                or_(
+                    UserApplicationRight.id_role == CorRole.id_role_groupe,
+                    UserApplicationRight.id_role == User.id_role,
+                ),
+            )
+            .join(
+                Application,
+                Application.id_application == UserApplicationRight.id_application,
+            )
+            .filter(Application.code_application == "GN")
+        )
+
+        return user_and_gp_from_gn_app.order_by(
+            User.groupe.desc(), User.nom_role
+        ).filter((User.groupe == True) | (User.identifiant.isnot(None)))
+
+    def format_user_role(user):
+        if user.groupe:
+            val = "Groupe : {}".format(user.nom_role)
+        else:
+            val = "{nom} {prenom} - ({email})".format(
+                nom=user.nom_role,
+                prenom=user.prenom_role or "",
+                email=user.email or "no email",
+            )
+        return val
+
+    def list_label_allowed_role_formatter(view, _context, model, _name):
+        val_list = []
+        for user in model.allowed_roles:
+            if user.groupe:
+                val = "Groupe : {}".format(user.nom_role)
+            else:
+                val = "{nom} {prenom} - ({email})".format(
+                    nom=user.nom_role,
+                    prenom=user.prenom_role or "",
+                    email=user.email or "no email",
+                )
+            val_list.append(val)
+        return val_list
+
     # Order column to have licence at the end
     column_list = [
         "id",
@@ -80,6 +133,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         "cor_roles_exports",
     ]
     column_formatters_detail = {"cor_roles_exports": _token_formatter}
+    column_formatters = {"allowed_roles": list_label_allowed_role_formatter}
 
     column_labels = dict(
         id="Identifiant",
@@ -114,17 +168,13 @@ class ExportView(CruvedProtectedMixin, ModelView):
         "licence",
         "allowed_roles",
     )
+
     form_args = {
         "allowed_roles": {
-            "query_factory": lambda: User.query.order_by(
-                User.groupe.desc(), User.nom_role
-            ).filter((User.groupe == True) | (User.identifiant.isnot(None)))
+            "query_factory": filter_user_app_and_role,
+            "get_label": format_user_role,
         }
     }
-
-    def __init__(self, session, **kwargs):
-        # Référence au model utilisé
-        super(ExportView, self).__init__(Export, session, **kwargs)
 
     def validate_form(self, form):
         """
