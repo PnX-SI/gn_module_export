@@ -9,7 +9,7 @@ from pathlib import Path
 
 import tempfile
 
-from gn_module_export.models import CorExportsRoles, Export, Licences
+from gn_module_export.models import CorExportsRoles, Export, Licences, ExportSchedules
 
 EXPORT_SYNTHESE_NAME = "Synthese SINP"
 
@@ -69,6 +69,14 @@ def exports(group_and_user, users):
     }
 
 
+@pytest.fixture(scope="function")
+def exports_schedule(exports):
+    export_schedule = ExportSchedules(id_export=exports["public"].id, frequency=1, format="csv")
+    with db.session.begin_nested():
+        db.session.add(export_schedule)
+    return export_schedule
+
+
 @pytest.fixture
 def export_synthese_sinp():
     return Export.query.filter(Export.label == EXPORT_SYNTHESE_NAME).one()
@@ -106,3 +114,8 @@ def export_directories(temporary_media_directory):
         "schedules_path": schedules_path,
         "usr_generated_path": usr_generated_path,
     }
+
+
+@pytest.fixture()
+def notifications_enabled(monkeypatch):
+    monkeypatch.setitem(current_app.config, "NOTIFICATIONS_ENABLED", True)

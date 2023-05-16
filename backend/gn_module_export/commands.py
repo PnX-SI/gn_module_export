@@ -21,18 +21,18 @@ from gn_module_export.utils_export import (
 @click.command()
 @click.option("--format", "export_format", default="csv")
 @click.option(
-    "--scheduled/--user",
-    default=False,
-    help="Générer un export de type planifié ou utilisateur.",
-)
-@click.option(
-    "--user_id",
+    "--user-id",
     default=None,
     help="Identifiant de l'utilisateur.",
 )
+@click.option(
+    "--skip-newer-than",
+    type=int,
+    help="Ne pas regénérer les fichiers récents (en minutes).",
+)
 @click.argument("export_id")
 @with_appcontext
-def generate(export_id, export_format, scheduled, user_id):
+def generate(export_id, export_format, user_id, skip_newer_than):
     """
     Lance la génération d’un fichier d’export
     """
@@ -43,8 +43,8 @@ def generate(export_id, export_format, scheduled, user_id):
         user = User.query.get(user_id)
         if not user:
             raise ClickException(f"User {user_id} not found.")
-
-    if scheduled:
+    else:
+        # If not user_id => scheduled
         scheduled_export = (
             ExportSchedules.query.filter(ExportSchedules.id_export == export_id)
             .filter(ExportSchedules.format == export_format)
@@ -52,12 +52,15 @@ def generate(export_id, export_format, scheduled, user_id):
         )
         if not scheduled_export:
             raise ClickException(f"Schedule export {export_id} format {export_format} not found.")
+        # Parameter skip_newer_than overide scheduled_export.skip_newer_than property
+        if not skip_newer_than:
+            skip_newer_than = scheduled_export.skip_newer_than
     try:
         export_request = ExportRequest(
             id_export=export_id,
-            scheduled_export=scheduled_export,
             user=user,
             format=export_format,
+            skip_newer_than=skip_newer_than,
         )
     except NotFound:
         raise ClickException(f"Export {export_id} not found.")
@@ -66,17 +69,14 @@ def generate(export_id, export_format, scheduled, user_id):
     except ExportGenerationNotNeeded:
         raise ClickException(f"Export {export_id} sufficiently recent, skip generation.")
 
-    try:
-        generate_export(
-            export_id=export_request.export.id,
-            file_name=export_request.generate_file_name(),
-            export_url=None,
-            format=export_request.format,
-            id_role=None,
-            filters=None,
-        )
-    except NotFound:
-        click.echo(f"Export {export_id} sufficiently recent, skip generation.")
+    generate_export(
+        export_id=export_request.export.id,
+        file_name=export_request.get_full_path_file_name(),
+        export_url=None,
+        format=export_request.format,
+        id_role=None,
+        filters=None,
+    )
 
 
 @click.command()

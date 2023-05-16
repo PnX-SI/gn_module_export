@@ -1,3 +1,7 @@
+import os
+
+from pathlib import Path
+
 from typing import List, Optional
 
 from flask import current_app
@@ -45,6 +49,9 @@ def _export_as_file(
         raise GeoNatureError("Unsupported format")
     if file_format == "gpkg" and srid is None:
         srid = get_local_srid(db.session)
+
+    # Generate directory
+    os.makedirs(Path(filename).parent, exist_ok=True)
 
     schema_class = generic_query_geo.get_marshmallow_schema(pk_name=pk_name)
 

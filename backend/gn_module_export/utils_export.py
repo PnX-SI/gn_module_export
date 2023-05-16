@@ -57,52 +57,64 @@ class ExportRequest:
 
     export_dir = None
     file_name = None
-    export_url = None
+    media_dir = None
 
-    def __init__(self, id_export, scheduled_export=None, user=None, format=None):
-        self.id_export = id_export
+    def __init__(
+        self,
+        id_export: int,
+        user: User = None,
+        format: str = None,
+        skip_newer_than: int = None,
+    ):
+        self.export = Export.query.get_or_404(id_export)
         self.user = user
         self.format = format
-        self.export = Export.query.get_or_404(self.id_export)
 
         if user and not self.export.has_instance_permission(user):
             raise Forbidden
 
-        if scheduled_export:
-            self.scheduled_export = scheduled_export
-            self.format = scheduled_export.format
-            self.test_schedule_needed()
+        self._generate_file_name_and_dir()
+        if skip_newer_than:
+            self.skip_newer_than = timedelta(minutes=skip_newer_than)
+            self._test_export_needed()
 
-        self.generate_file_name()
+    def _get_cst_file_name(self):
+        return "{}.{}".format(removeDisallowedFilenameChars(self.export.label), self.format)
 
-    def generate_file_name(self):
+    def _generate_file_name_and_dir(self):
         if self.file_name:
-            return Path(self.export_dir) / self.file_name
+            return
 
         if not self.user:
-            self.export_dir = Path(current_app.config["MEDIA_FOLDER"]) / "exports/schedules"
-            self.file_name = "{}.{}".format(
-                removeDisallowedFilenameChars(self.export.label), self.format
-            )
+            self.media_dir = "exports/schedules"
+            self.export_dir = Path(current_app.config["MEDIA_FOLDER"]) / self.media_dir
+            self.file_name = self._get_cst_file_name()
         else:
-            self.export_dir = Path(current_app.config["MEDIA_FOLDER"]) / "exports/usr_generated"
-            self.file_name = "{}_{}.{}".format(
-                datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S"),
-                removeDisallowedFilenameChars(self.export.label),
-                self.format,
+            self.media_dir = "exports/usr_generated"
+            self.export_dir = Path(current_app.config["MEDIA_FOLDER"]) / self.media_dir
+            self.file_name = "{}_{}".format(
+                datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S"), self._get_cst_file_name()
             )
-        os.makedirs(self.export_dir, exist_ok=True)
 
-        return Path(self.export_dir) / self.file_name
+    def _test_export_needed(self):
+        if not self.skip_newer_than:
+            return
 
-    def test_schedule_needed(self):
-        self.generate_file_name()
-        skip_newer_than = timedelta(minutes=self.scheduled_export.frequency * 24 * 60)
-        file_path = Path(self.export_dir) / self.file_name
-        if skip_newer_than is not None and file_path.exists():
-            age = datetime.now() - datetime.fromtimestamp(file_path.stat().st_mtime)
-            if age < skip_newer_than:
-                raise ExportGenerationNotNeeded(self.export.id, skip_newer_than - age)
+        for file in Path(self.export_dir).glob("*{}".format(self._get_cst_file_name())):
+            age = datetime.now() - datetime.fromtimestamp(file.stat().st_mtime)
+            if age < self.skip_newer_than:
+                raise ExportGenerationNotNeeded(self.export.id, self.skip_newer_than - age)
+
+    def get_export_url(self):
+        with current_app.test_request_context():
+            return url_for(
+                "media",
+                filename=f"{self.media_dir}/{self.file_name}",
+                _external=True,
+            )
+
+    def get_full_path_file_name(self):
+        return str(Path(self.export_dir) / self.file_name)
 
 
 def export_data_file(export_id, file_name, export_url, format, id_role, filters):
