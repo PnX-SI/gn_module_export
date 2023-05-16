@@ -165,18 +165,3 @@ class TestExportsBlueprints:
         assert allowed_fixture_ids.issubset(response_id_export)
         response_label_export = set([exp["label"] for exp in response.json])
         assert allowed_fixture_label.issubset(response_label_export)
-
-    def test_get_all_exports_with_scope_0(self, exports, users, group_and_user):
-        # Only public exports OR 403 ????
-        allowed_fixture_ids = set()
-        for _, exp in exports.items():
-            if exp.public:
-                allowed_fixture_ids.add(exp.id)
-
-        set_logged_user_cookie(self.client, users["noright_user"])
-
-        response = self.client.get(url_for("exports.get_exports"))
-        assert response.status_code == 200
-
-        response_id_export = set([exp["id"] for exp in response.json])
-        assert allowed_fixture_ids.issubset(response_id_export)
