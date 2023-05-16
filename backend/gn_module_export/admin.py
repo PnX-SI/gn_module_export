@@ -9,7 +9,7 @@ from geonature.utils.env import DB
 from gn_module_export.models import Export, ExportSchedules, Licences
 from psycopg2.errors import ForeignKeyViolation
 from pypnusershub.db.models import Application, AppRole, User, UserApplicationRight
-from sqlalchemy import and_
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
@@ -66,29 +66,25 @@ class ExportView(CruvedProtectedMixin, ModelView):
             .filter(Application.code_application == "GN")
             .first()
         )
-        user_in_gp_app_gn = User.query.join(
-            UserApplicationRight, UserApplicationRight.id_role == User.id_role
-        ).filter(UserApplicationRight.id_application == id_app_gn)
-        group_in_gn_app = (
-            User.query.join(CorRole, CorRole.id_role_groupe == User.id_role)
+
+        user_and_gp_from_gn_app = (
+            User.query.join(
+                CorRole, User.id_role == CorRole.id_role_utilisateur, isouter=True
+            )
             .join(
                 UserApplicationRight,
-                UserApplicationRight.id_role == CorRole.id_role_groupe,
+                or_(
+                    UserApplicationRight.id_role == CorRole.id_role_groupe,
+                    UserApplicationRight.id_role == User.id_role,
+                ),
+                isouter=True,
             )
             .filter(UserApplicationRight.id_application == id_app_gn)
-            .subquery()
         )
-        user_gp_gn = CorRole.query.join(
-            group_in_gn_app, group_in_gn_app.c.id_role == CorRole.id_role_groupe
-        ).subquery()
-        user_gn = User.query.join(
-            user_gp_gn, user_gp_gn.c.id_role_utilisateur == User.id_role
-        )
-        query_only_gp_user_gn = user_in_gp_app_gn.union(user_gn)
 
-        return query_only_gp_user_gn.order_by(User.groupe.desc(), User.nom_role).filter(
-            (User.groupe == True) | (User.identifiant.isnot(None))
-        )
+        return user_and_gp_from_gn_app.order_by(
+            User.groupe.desc(), User.nom_role
+        ).filter((User.groupe == True) | (User.identifiant.isnot(None)))
 
     def format_user_role(user):
         if user.groupe:
