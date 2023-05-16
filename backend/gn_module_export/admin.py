@@ -61,11 +61,6 @@ class ExportView(CruvedProtectedMixin, ModelView):
         super(ExportView, self).__init__(Export, session, **kwargs)
 
     def filter_user_app_and_role():
-        id_app_gn = (
-            Application.query.with_entities(Application.id_application)
-            .filter(Application.code_application == "GN")
-            .first()
-        )
 
         user_and_gp_from_gn_app = (
             User.query.outerjoin(CorRole, User.id_role == CorRole.id_role_utilisateur)
@@ -76,7 +71,11 @@ class ExportView(CruvedProtectedMixin, ModelView):
                     UserApplicationRight.id_role == User.id_role,
                 ),
             )
-            .filter(UserApplicationRight.id_application == id_app_gn)
+            .join(
+                Application,
+                Application.id_application == UserApplicationRight.id_application,
+            )
+            .filter(Application.code_application == "GN")
         )
 
         return user_and_gp_from_gn_app.order_by(
