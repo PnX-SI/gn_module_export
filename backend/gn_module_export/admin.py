@@ -68,16 +68,13 @@ class ExportView(CruvedProtectedMixin, ModelView):
         )
 
         user_and_gp_from_gn_app = (
-            User.query.join(
-                CorRole, User.id_role == CorRole.id_role_utilisateur, isouter=True
-            )
-            .join(
+            User.query.outerjoin(CorRole, User.id_role == CorRole.id_role_utilisateur)
+            .outerjoin(
                 UserApplicationRight,
                 or_(
                     UserApplicationRight.id_role == CorRole.id_role_groupe,
                     UserApplicationRight.id_role == User.id_role,
                 ),
-                isouter=True,
             )
             .filter(UserApplicationRight.id_application == id_app_gn)
         )
