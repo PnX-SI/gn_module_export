@@ -131,3 +131,33 @@ class TestExportsBlueprints:
             url_for("exports.get_one_export_api", id_export=1000000)
         )
         assert response.status_code == 404
+
+    def test_get_all_exports_with_scope_3(self, exports, users):
+        fixtures_export_id = set([export.id for _, export in exports.items()])
+        set_logged_user_cookie(self.client, users["admin_user"])
+        response = self.client.get(url_for("exports.get_exports"))
+        assert response.status_code == 200
+        response_id_export = set([exp["id"] for exp in response.json])
+        assert fixtures_export_id.issubset(response_id_export)
+
+    def test_get_all_exports_with_scope_1_2_no_group(self, exports, users):
+        allowed_fixture_ids = set()
+        for _, exp in exports.items():
+            if exp.public or exp.label == "Private2":
+                allowed_fixture_ids.add(exp.id)
+        set_logged_user_cookie(self.client, users["self_user"])
+        response = self.client.get(url_for("exports.get_exports"))
+        assert response.status_code == 200
+        response_id_export = set([exp["id"] for exp in response.json])
+        assert allowed_fixture_ids.issubset(response_id_export)
+
+    def test_get_all_exports_with_scope_1_2_group(self, exports, users, group_and_user):
+        allowed_fixture_ids = set()
+        for _, exp in exports.items():
+            if exp.public or exp.label in ("Private1"):
+                allowed_fixture_ids.add(exp.id)
+        set_logged_user_cookie(self.client, group_and_user["user"])
+        response = self.client.get(url_for("exports.get_exports"))
+        assert response.status_code == 200
+        response_id_export = set([exp["id"] for exp in response.json])
+        assert allowed_fixture_ids.issubset(response_id_export)
