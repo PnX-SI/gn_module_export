@@ -289,7 +289,7 @@ def get_one_export_api(id_export):
     # Try to extract token from Bearer Authorization HTTP Header
     bearer = request.headers.get("Authorization", default=None, type=str)
     if token is None and bearer is not None:
-        token = bearer.removeprefix("Bearer ")
+        token = bearer.lstrip("Bearer ")
 
     user = g.current_user
 

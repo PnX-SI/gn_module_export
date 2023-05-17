@@ -1,12 +1,11 @@
 import pytest
 from jsonschema import validate as validate_json
 from flask import url_for
+from werkzeug.datastructures import Headers
 
 from geonature.tests.fixtures import *
 from geonature.tests.utils import set_logged_user_cookie
 from pypnusershub.tests.utils import set_logged_user_cookie
-
-from gn_module_export.tests.fixtures import exports
 
 from .fixtures import *
 
@@ -35,7 +34,7 @@ class TestExportsBlueprints:
         assert response.status_code == 403
 
     def test_private_export_with_good_token(self, users, exports):
-        # with good token
+        # With good token
         response = self.client.get(
             url_for(
                 "exports.get_one_export_api",
@@ -45,9 +44,59 @@ class TestExportsBlueprints:
         )
         assert response.status_code == 200
 
+    def test_private_export_with_token_in_header_Authorization_Bearer(
+        self, users, exports
+    ):
+        # With good token and good Authorization Bearer HTTP header
+        token = exports["private_user_associated"].cor_roles_exports[0].token
+        headers = Headers()
+        headers.extend(
+            {
+                "Authorization": f"Bearer {token}",
+            }
+        )
+
+        response = self.client.get(
+            url_for(
+                "exports.get_one_export_api",
+                id_export=exports["private_user_associated"].id,
+            ),
+            headers=headers,
+        )
+        assert response.status_code == 200
+
+    def test_private_export_with_token_in_header_Authorization(self, users, exports):
+        # Compatibility with Swagger not adding "Bearer" prefix to authorization header value
+        token = exports["private_user_associated"].cor_roles_exports[0].token
+        headers = Headers()
+        headers.extend(
+            {
+                "Authorization": token,
+            }
+        )
+
+        response = self.client.get(
+            url_for(
+                "exports.get_one_export_api",
+                id_export=exports["private_user_associated"].id,
+            ),
+            headers=headers,
+        )
+        assert response.status_code == 200
+
     def test_private_export_with_allowed_id_role(self, users, exports):
         # with an allowed user and without token
         set_logged_user_cookie(self.client, users["self_user"])
+        response = self.client.get(
+            url_for(
+                "exports.get_one_export_api",
+                id_export=exports["private_user_associated"].id,
+            )
+        )
+        assert response.status_code == 200
+
+    def test_private_admin_export(self, exports, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.get(
             url_for(
                 "exports.get_one_export_api",
