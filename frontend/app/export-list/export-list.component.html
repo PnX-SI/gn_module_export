@@ -118,16 +118,6 @@
               </label>
             </div>
           </div>
-          <br />
-          <hr />
-          <br />
-          <label for="emailInput">
-            <small> Saisissez un email pour recevoir le lien de téléchargement. </small>
-          </label>
-          <input type="email" formControlName="emailInput" id="emailInput" class="form-control" />
-          <div *ngIf="modalForm.get('emailInput').hasError('pattern')">
-            <small> <i style="color: red">Email non valide.</i> </small>
-          </div>
         </form>
       </div>
       <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->

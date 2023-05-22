@@ -76,7 +76,6 @@ export class ExportListComponent implements OnInit {
           //Chargement des données de l'utilisateur
           this._userService.getRole(parseInt(this.currentUser.id_role)).subscribe((res) => {
             this._fullUser = res;
-            this.modalForm.patchValue({ emailInput: this._fullUser['email'] });
             this.loadingIndicator = false;
           });
         },
