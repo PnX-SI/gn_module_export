@@ -44,9 +44,7 @@ class TestExportsBlueprints:
         )
         assert response.status_code == 200
 
-    def test_private_export_with_token_in_header_Authorization_Bearer(
-        self, users, exports
-    ):
+    def test_private_export_with_token_in_header_Authorization_Bearer(self, users, exports):
         # With good token and good Authorization Bearer HTTP header
         token = exports["private_user_associated"].cor_roles_exports[0].token
         headers = Headers()
@@ -176,9 +174,7 @@ class TestExportsBlueprints:
 
     def test_unknown_export(self, exports, users):
         set_logged_user_cookie(self.client, users["admin_user"])
-        response = self.client.get(
-            url_for("exports.get_one_export_api", id_export=1000000)
-        )
+        response = self.client.get(url_for("exports.get_one_export_api", id_export=1000000))
         assert response.status_code == 404
 
     def test_get_all_exports_with_scope_3(self, exports, users):

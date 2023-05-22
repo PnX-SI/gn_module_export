@@ -12,7 +12,10 @@ from flask import url_for, current_app
 from pypnusershub.db.models import User
 from gn_module_export.tasks import generate_export
 from gn_module_export.models import Export, ExportSchedules
-from gn_module_export.utils_export import ExportGenerationNotNeeded, ExportRequest
+from gn_module_export.utils_export import (
+    ExportGenerationNotNeeded,
+    ExportRequest,
+)
 
 
 @click.command()
@@ -48,9 +51,7 @@ def generate(export_id, export_format, scheduled, user_id):
             .first()
         )
         if not scheduled_export:
-            raise ClickException(
-                f"Schedule export {export_id} format {export_format} not found."
-            )
+            raise ClickException(f"Schedule export {export_id} format {export_format} not found.")
     try:
         export_request = ExportRequest(
             id_export=export_id,
@@ -63,9 +64,7 @@ def generate(export_id, export_format, scheduled, user_id):
     except Forbidden:
         raise ClickException(f"Export {export_id} not allow for user id {user_id}.")
     except ExportGenerationNotNeeded:
-        raise ClickException(
-            f"Export {export_id} sufficiently recent, skip generation."
-        )
+        raise ClickException(f"Export {export_id} sufficiently recent, skip generation.")
 
     try:
         generate_export(
@@ -82,7 +81,10 @@ def generate(export_id, export_format, scheduled, user_id):
 
 @click.command()
 @click.option(
-    "--limit", required=False, default=-1, help="Nombre de résultats à retourner"
+    "--limit",
+    required=False,
+    default=-1,
+    help="Nombre de résultats à retourner",
 )
 @click.option(
     "--offset",
@@ -126,9 +128,7 @@ def generate_dsw(limit, offset):
     with open(export_dsw_dir, "w+b") as xp:
         store.save(store_uri=xp)
 
-    click.echo(
-        "Export done with success data are available here: {}".format(export_dsw_dir)
-    )
+    click.echo("Export done with success data are available here: {}".format(export_dsw_dir))
     click.echo("END schedule export task")
 
 

@@ -7,7 +7,11 @@ from celery.schedules import crontab
 from geonature.utils.celery import celery_app
 
 from .models import Export, ExportSchedules
-from .utils_export import export_data_file, ExportGenerationNotNeeded, ExportRequest
+from .utils_export import (
+    export_data_file,
+    ExportGenerationNotNeeded,
+    ExportRequest,
+)
 
 from geonature.core.notifications.utils import dispatch_notifications
 
@@ -27,7 +31,8 @@ def setup_periodic_tasks(sender, **kwargs):
 def generate_scheduled_exports(self):
     for scheduled_export in ExportSchedules.query.all():
         export_request = ExportRequest(
-            id_export=scheduled_export.id_export, scheduled_export=scheduled_export
+            id_export=scheduled_export.id_export,
+            scheduled_export=scheduled_export,
         )
         generate_export.delay(
             export_id=export_request.export.id,

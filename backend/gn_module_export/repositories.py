@@ -44,7 +44,12 @@ def generate_swagger_spec(id_export):
         if column.type.__class__.__name__ in SWAGGER_TYPE_COR:
             type = SWAGGER_TYPE_COR[column.type.__class__.__name__]
         swagger_parameters.append(
-            {"in": "query", "name": column.name, "description": column.comment, **type}
+            {
+                "in": "query",
+                "name": column.name,
+                "description": column.comment,
+                **type,
+            }
         )
     general_params = [
         {

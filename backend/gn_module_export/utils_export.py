@@ -16,7 +16,10 @@ from shapely.geometry import asShape
 from werkzeug.exceptions import Forbidden
 
 from utils_flask_sqla.response import generate_csv_content
-from utils_flask_sqla_geo.utilsgeometry import FionaShapeService, FionaGpkgService
+from utils_flask_sqla_geo.utilsgeometry import (
+    FionaShapeService,
+    FionaGpkgService,
+)
 
 from geonature.utils.filemanager import removeDisallowedFilenameChars
 from geonature.utils.env import DB
@@ -77,16 +80,12 @@ class ExportRequest:
             return Path(self.export_dir) / self.file_name
 
         if not self.user:
-            self.export_dir = (
-                Path(current_app.config["MEDIA_FOLDER"]) / "exports/schedules"
-            )
+            self.export_dir = Path(current_app.config["MEDIA_FOLDER"]) / "exports/schedules"
             self.file_name = "{}.{}".format(
                 removeDisallowedFilenameChars(self.export.label), self.format
             )
         else:
-            self.export_dir = (
-                Path(current_app.config["MEDIA_FOLDER"]) / "exports/usr_generated"
-            )
+            self.export_dir = Path(current_app.config["MEDIA_FOLDER"]) / "exports/usr_generated"
             self.file_name = "{}_{}.{}".format(
                 datetime.now().strftime("%Y_%m_%d_%Hh%Mm%S"),
                 removeDisallowedFilenameChars(self.export.label),
@@ -132,7 +131,10 @@ def export_data_file(export_id, file_name, export_url, format, id_role, filters)
         )
     except Exception as exp:
         notify_export_file_generated(
-            export=export, user=id_role, export_url=export_url, export_failed=True
+            export=export,
+            user=id_role,
+            export_url=export_url,
+            export_failed=True,
         )
         raise exp
     notify_export_file_generated(export=export, user=id_role, export_url=export_url)

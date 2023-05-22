@@ -103,12 +103,12 @@ class Export(DB.Model):
     geometry_field = DB.Column(DB.Text)
     geometry_srid = DB.Column(DB.Integer)
     public = DB.Column(DB.Boolean, nullable=False, default=False)
-    id_licence = DB.Column(
-        DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False
-    )
+    id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False)
     licence = DB.relationship("Licences")
     allowed_roles = association_proxy(
-        "cor_roles_exports", "role", creator=lambda role: CorExportsRoles(role=role)
+        "cor_roles_exports",
+        "role",
+        creator=lambda role: CorExportsRoles(role=role),
     )
     # cor_role_token ajouter via une backref
 

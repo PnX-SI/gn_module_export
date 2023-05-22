@@ -20,7 +20,9 @@ depends_on = None
 
 def upgrade():
     op.add_column(
-        "cor_exports_roles", sa.Column("token", sa.String()), schema="gn_exports"
+        "cor_exports_roles",
+        sa.Column("token", sa.String()),
+        schema="gn_exports",
     )
 
     op.execute(
