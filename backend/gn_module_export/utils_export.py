@@ -136,32 +136,3 @@ def export_data_file(export_id, file_name, export_url, format, id_role, filters)
         )
         raise exp
     notify_export_file_generated(export=export, user=id_role, export_url=export_url)
-
-
-def clean_export_file(dir_to_del, nb_days):
-    """
-    Fonction permettant de supprimer les fichiers générés
-    par le module export ayant plus de X jours
-
-    .. :quickref: Fonction permettant de supprimer les
-        fichiers générés par le module export ayant plus de X jours
-
-
-    :query str dir_to_del: Répertoire où les fichiers doivent
-        être supprimés
-    :query int nb_days: Nb de jours à partir duquel les fichiers
-        sont considérés comme à supprimer
-
-
-
-    """
-    # Date limite de suppression
-    time_to_del = datetime.timestamp(datetime.today() - timedelta(days=nb_days))
-
-    for item in Path(dir_to_del).glob("*"):
-        item_time = item.stat().st_mtime
-        if item_time < time_to_del:
-            if item.is_dir():
-                shutil.rmtree(str(item))
-            if item.is_file():
-                item.unlink()
