@@ -76,8 +76,7 @@ def swagger_ui(id_export=None):
     return render_template(
         "index.html",
         API_ENDPOINT=(
-            current_app.config["API_ENDPOINT"]
-            + current_app.config["EXPORTS"]["MODULE_URL"]
+            current_app.config["API_ENDPOINT"] + current_app.config["EXPORTS"]["MODULE_URL"]
         ),
         id_export=id_export,
     )
@@ -124,9 +123,7 @@ def swagger_ressources(id_export=None):
         "/swagger/generic_swagger_doc.json",
         export_nom=export.label,
         export_description=export.desc,
-        export_path="{}/api/{}".format(
-            current_app.config["EXPORTS"]["MODULE_URL"], id_export
-        ),
+        export_path="{}/api/{}".format(current_app.config["EXPORTS"]["MODULE_URL"], id_export),
         export_parameters=export_parameters,
         licence_nom=export.licence.name_licence,
         licence_description=export.licence.url_licence,
@@ -170,16 +167,12 @@ def getOneExportThread(scope, id_export, export_format):
             status=500,
         )
 
-    export_request = ExportRequest(
-        id_export=id_export, id_role=user.id_role, format=export_format
-    )
+    export_request = ExportRequest(id_export=id_export, id_role=user.id_role, format=export_format)
 
     module_conf = current_app.config["EXPORTS"]
     export_url = url_for(
         "media",
-        filename=module_conf.get("usr_generated_dirname")
-        + "/"
-        + export_request.file_name,
+        filename=module_conf.get("usr_generated_dirname") + "/" + export_request.file_name,
         _external=True,
     )
 
@@ -216,10 +209,7 @@ def get_exports(scope):
             "api_error": "no_result_found",
             "message": "Configure one or more export",
         }, 404
-    return [
-        export.as_dict(fields=["licence", "cor_roles_exports"])
-        for export in exports.all()
-    ]
+    return [export.as_dict(fields=["licence", "cor_roles_exports"]) for export in exports.all()]
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])

@@ -60,12 +60,8 @@ class OccurrenceStore:
                 Literal(
                     "/".join(
                         [
-                            dt.isoformat(
-                                dt.strptime(record["dateDebut"], "%Y-%m-%d %H:%M:%S")
-                            ),
-                            dt.isoformat(
-                                dt.strptime(record["dateFin"], "%Y-%m-%d %H:%M:%S")
-                            ),
+                            dt.isoformat(dt.strptime(record["dateDebut"], "%Y-%m-%d %H:%M:%S")),
+                            dt.isoformat(dt.strptime(record["dateFin"], "%Y-%m-%d %H:%M:%S")),
                         ]
                     )
                 ),
@@ -73,9 +69,7 @@ class OccurrenceStore:
         )
         # self.graph.add(
         #     (event, DWC['samplingProtocol'], Literal(record['obsMeth'])))  # noqa: E501
-        self.graph.add(
-            (event, DWC["eventRemarks"], Literal(record["obsCtx"]))
-        )  # noqa: E501
+        self.graph.add((event, DWC["eventRemarks"], Literal(record["obsCtx"])))  # noqa: E501
         self.graph.add((recordlevel, DSW["basisOfRecord"], event))
         return event
 
@@ -83,10 +77,18 @@ class OccurrenceStore:
         location = BNode()
         self.graph.add((location, RDF.type, DCMTERMS["Location"]))
         self.graph.add(
-            (location, DWC["maximumElevationInMeters"], Literal(record["altMax"]))
+            (
+                location,
+                DWC["maximumElevationInMeters"],
+                Literal(record["altMax"]),
+            )
         )  # noqa: E501
         self.graph.add(
-            (location, DWC["minimumElevationInMeters"], Literal(record["altMin"]))
+            (
+                location,
+                DWC["minimumElevationInMeters"],
+                Literal(record["altMin"]),
+            )
         )  # noqa: E501
         self.graph.add((location, DWC["footprintWKT"], Literal(record["geom"])))
         self.graph.add((location, DWC["geodeticDatum"], Literal("EPSG:4326")))
@@ -121,33 +123,27 @@ class OccurrenceStore:
         occurrence = BNode()
         self.graph.add((occurrence, RDF.type, DWC["Occurrence"]))
         self.graph.add((occurrence, DWC["occurrenceID"], Literal(record["permId"])))
+        self.graph.add((occurrence, DWC["occurrenceStatus"], Literal(record["statObs"])))
+        self.graph.add((occurrence, DWC["occurrenceRemarks"], Literal(record["obsDescr"])))
         self.graph.add(
-            (occurrence, DWC["occurrenceStatus"], Literal(record["statObs"]))
-        )
-        self.graph.add(
-            (occurrence, DWC["occurrenceRemarks"], Literal(record["obsDescr"]))
-        )
-        self.graph.add(
-            (occurrence, DWC["organismQuantityType"], Literal(record["objDenbr"]))
+            (
+                occurrence,
+                DWC["organismQuantityType"],
+                Literal(record["objDenbr"]),
+            )
         )  # noqa: E501
         self.graph.add(
             (occurrence, DWC["occurrenceQuantity"], Literal(record["denbrMin"]))
         )  # noqa: E501
-        self.graph.add(
-            (occurrence, DWC["establishmentMeans"], Literal(record["ocNat"]))
-        )
+        self.graph.add((occurrence, DWC["establishmentMeans"], Literal(record["ocNat"])))
         self.graph.add((occurrence, DWC["lifeStage"], Literal(record["ocStade"])))
-        self.graph.add(
-            (occurrence, DWC["occurrenceStatus"], Literal(record["statObs"]))
-        )
+        self.graph.add((occurrence, DWC["occurrenceStatus"], Literal(record["statObs"])))
 
         if "observer" in record.keys():
             observer = self.build_agent(record["observer"])
             self.graph.add((occurrence, DWC["recordedBy"], observer))
 
-        self.graph.add(
-            (occurrence, DWC["occurrenceRemarks"], Literal(record["obsDescr"]))
-        )
+        self.graph.add((occurrence, DWC["occurrenceRemarks"], Literal(record["obsDescr"])))
         self.graph.add((occurrence, DSW["atEvent"], event))
         self.graph.add((event, DSW["eventOf"], occurrence))
         return occurrence
@@ -190,7 +186,11 @@ class OccurrenceStore:
         self.graph.add((taxon, RDF.type, DWC["Taxon"]))
         self.graph.add((taxon, DWC["scientificName"], Literal(record["nom_complet"])))
         self.graph.add(
-            (taxon, DWC["vernacularName"], Literal(record["nomCite"], lang="fr"))
+            (
+                taxon,
+                DWC["vernacularName"],
+                Literal(record["nomCite"], lang="fr"),
+            )
         )
         self.graph.add((taxon, DWC["taxonID"], Literal(record["cdNom"])))
         # TODO : pour le moment version de taxref fixée à 12
@@ -201,11 +201,7 @@ class OccurrenceStore:
                 taxon,
                 DWC["taxonID"],
                 URIRef(
-                    Literal(
-                        "http://taxref.mnhn.fr/lod/taxon/{}/12.0".format(
-                            str(record["cdRef"])
-                        )
-                    )
+                    Literal("http://taxref.mnhn.fr/lod/taxon/{}/12.0".format(str(record["cdRef"])))
                 ),
             )
         )

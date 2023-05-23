@@ -8,7 +8,12 @@ from geonature.core.users.models import CorRole
 from geonature.utils.env import DB
 from gn_module_export.models import Export, ExportSchedules, Licences
 from psycopg2.errors import ForeignKeyViolation
-from pypnusershub.db.models import Application, AppRole, User, UserApplicationRight
+from pypnusershub.db.models import (
+    Application,
+    AppRole,
+    User,
+    UserApplicationRight,
+)
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from utils_flask_sqla_geo.generic import GenericQueryGeo
@@ -30,9 +35,7 @@ class LicenceView(CruvedProtectedMixin, ModelView):
         super(LicenceView, self).__init__(Licences, session, **kwargs)
 
     form_excluded_columns = "exports"
-    column_labels = dict(
-        name_licence="Nom de la licence", url_licence="URL de la licence"
-    )
+    column_labels = dict(name_licence="Nom de la licence", url_licence="URL de la licence")
     column_descriptions = dict(
         name_licence="Nom de la licence",
         url_licence="URL de la documentation de la licence",
@@ -174,9 +177,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         if is_form_submitted() and view_name and schema_name:
             try:
                 if geometry_field.data and geometry_srid.data is None:
-                    raise KeyError(
-                        "Field Geometry SRID is mandatory with Geometry field"
-                    )
+                    raise KeyError("Field Geometry SRID is mandatory with Geometry field")
 
                 query = GenericQueryGeo(
                     DB,
@@ -236,9 +237,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     }
 
     if "EXPORTS" in current_app.config:
-        format_list = [
-            (k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()
-        ]
+        format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
         form_choices = {"format": format_list}
 
     def __init__(self, session, **kwargs):

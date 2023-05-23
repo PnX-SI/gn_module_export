@@ -14,13 +14,9 @@ from gn_module_export.tests.fixtures import (
 
 @pytest.mark.usefixtures("temporary_transaction")
 class TestUtilsExport:
-    def test_export_as_file(
-        self, synthese_data, export_synthese_sinp, export_synthese_sinp_query
-    ):
+    def test_export_as_file(self, synthese_data, export_synthese_sinp, export_synthese_sinp_query):
         with tempfile.NamedTemporaryFile(suffix=".csv") as f:
-            export_as_file(
-                export_synthese_sinp, "csv", f.name, export_synthese_sinp_query
-            )
+            export_as_file(export_synthese_sinp, "csv", f.name, export_synthese_sinp_query)
 
     def test_export_csv(self, synthese_data, export_synthese_sinp_query):
         with tempfile.NamedTemporaryFile(suffix=".csv") as f:

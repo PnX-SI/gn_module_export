@@ -16,7 +16,10 @@ from gn_module_export.models import Export
 
 
 def export_as_file(
-    export: Export, file_format: str, filename: str, generic_query_geo: GenericQueryGeo
+    export: Export,
+    file_format: str,
+    filename: str,
+    generic_query_geo: GenericQueryGeo,
 ):
     # TODO Add export.pk_name when available
     _export_as_file(
@@ -55,7 +58,11 @@ def _export_as_file(
         )
         return
 
-    func_dict = {"geojson": export_geojson, "json": export_json, "csv": export_csv}
+    func_dict = {
+        "geojson": export_geojson,
+        "json": export_json,
+        "csv": export_csv,
+    }
 
     with open(filename, "w") as f:
         func_dict[file_format](

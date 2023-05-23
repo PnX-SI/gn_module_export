@@ -20,11 +20,7 @@ depends_on = "dde31e76ce45"  # GeoNature 2.9.0
 def upgrade():
     conn = op.get_bind()
     conn.execute(
-        text(
-            importlib.resources.read_text(
-                "gn_module_export.migrations.data", "exports.sql"
-            )
-        )
+        text(importlib.resources.read_text("gn_module_export.migrations.data", "exports.sql"))
     )
 
 

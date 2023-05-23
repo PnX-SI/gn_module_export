@@ -81,7 +81,11 @@ def upgrade():
         schema="gn_notifications",
     )
     values = [
-        {"code_category": result.code, "code_method": method, "content": content}
+        {
+            "code_category": result.code,
+            "code_method": method,
+            "content": content,
+        }
         for method, content in (("EMAIL", EMAIL_CONTENT), ("DB", DB_CONTENT))
     ]
 
@@ -113,13 +117,14 @@ def downgrade():
         schema="gn_notifications",
     )
     notification_rules = sa.Table(
-        "t_notifications_rules", metadata, autoload=True, schema="gn_notifications"
+        "t_notifications_rules",
+        metadata,
+        autoload=True,
+        schema="gn_notifications",
     )
 
     bind.execute(
-        notification_rules.delete().where(
-            notification_rules.c.code_category == CATEGORY_CODE
-        )
+        notification_rules.delete().where(notification_rules.c.code_category == CATEGORY_CODE)
     )
     bind.execute(
         notification_template.delete().where(
@@ -127,9 +132,7 @@ def downgrade():
         )
     )
     bind.execute(
-        notification_category.delete().where(
-            notification_category.c.code == CATEGORY_CODE
-        )
+        notification_category.delete().where(notification_category.c.code == CATEGORY_CODE)
     )
     op.execute(
         f"""
