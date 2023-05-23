@@ -32,6 +32,7 @@ from gn_module_export.commands import commands
 from gn_module_export.models import Export
 from gn_module_export.repositories import generate_swagger_spec
 from gn_module_export.tasks import generate_export
+from gn_module_export.schemas import ExportSchema
 from .utils_export import ExportRequest
 from sqlalchemy.orm.exc import NoResultFound
 from utils_flask_sqla.response import json_resp, to_json_resp
@@ -202,14 +203,8 @@ def get_exports(scope):
     Fonction qui renvoie la liste des exports
     accessibles pour un role donné
     """
-    try:
-        exports = Export.query.filter_by_scope(scope)
-    except NoResultFound:
-        return {
-            "api_error": "no_result_found",
-            "message": "Configure one or more export",
-        }, 404
-    return [export.as_dict(fields=["licence", "cor_roles_exports"]) for export in exports.all()]
+    exports = Export.query.filter_by_scope(scope).all()
+    return ExportSchema(many=True, only=["licence", "cor_roles_exports"]).dump(exports)
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
@@ -306,10 +301,10 @@ def get_one_export_api(id_export):
 
     data = query.return_query()
 
-    export_license = (export.as_dict(fields=["licence"])).get("licence", None)
+    export_license = export.licence
     data["license"] = dict()
-    data["license"]["name"] = export_license.get("name_licence", None)
-    data["license"]["href"] = export_license.get("url_licence", None)
+    data["license"]["name"] = getattr(export_license, "name_licence", None)
+    data["license"]["href"] = getattr(export_license, "url_licence", None)
 
     return data
 
