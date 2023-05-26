@@ -82,8 +82,7 @@ def clean_export_file(self):
     ]
     # Date limite de suppression
     time_to_del = datetime.timestamp(
-        datetime.today()
-        - timedelta(days=current_app.config["EXPORTS"]["nb_days_keep_file"])
+        datetime.today() - timedelta(days=current_app.config["EXPORTS"]["nb_days_keep_file"])
     )
     for dir in dirs_to_del_from:
         for item in Path(dir).glob("**/*"):
