@@ -36,6 +36,7 @@ def exports(group_and_user, users):
         geometry_srid=None,
         public=True,
         licence=licence,
+        view_pk_column="id",
     )
     export_private_group_associated = Export(
         label="Private1",
@@ -45,6 +46,7 @@ def exports(group_and_user, users):
         geometry_srid=None,
         public=False,
         id_licence=licence.id_licence,
+        view_pk_column="id",
         cor_roles_exports=[CorExportsRoles(id_role=group_and_user["group"].id_role)],
     )
     export_private_role_associated = Export(
@@ -53,6 +55,7 @@ def exports(group_and_user, users):
         view_name="t_exports",
         public=False,
         id_licence=licence.id_licence,
+        view_pk_column="id",
         cor_roles_exports=[CorExportsRoles(id_role=users["self_user"].id_role)],
     )
     with db.session.begin_nested():
