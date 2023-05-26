@@ -5,7 +5,7 @@ Module permettant d'ajouter des fonctionnalités d'export à l'application GeoNa
 ## Fonctionnalités principales
 
 - Interface administrateur de gestion des exports créés dynamiquement à partir de vues dans la base de données de GeoNature
-- Interface utilisateur permettant de réaliser des exports sous forme de fichiers (CSV, JSON, GeoJSON, SHP)
+- Interface utilisateur permettant de réaliser des exports sous forme de fichiers (CSV, JSON, GeoJSON, GeoPackage)
 - API JSON d'interrogation dynamique et filtrable des exports
 - Génération automatique planifiée des fichiers des exports
 - Export sémantique RDF au format Darwin-SW
