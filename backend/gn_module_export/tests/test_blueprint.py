@@ -174,6 +174,33 @@ class TestExportsBlueprints:
         assert response.status_code == 200
         validate_json(instance=response.json, schema=schema)
 
+    def test_export_orderby(self, synthese_data, export_synthese_sinp, users):
+        set_logged_user_cookie(self.client, users["admin_user"])
+        response = self.client.get(
+            url_for(
+                "exports.get_one_export_api",
+                id_export=export_synthese_sinp.id,
+            )
+        )
+        assert response.status_code == 200
+
+        unordered_id_synthese = [i["id_synthese"] for i in response.json["items"]]
+        ordered_id_synthese = sorted(unordered_id_synthese)
+        assert ordered_id_synthese == unordered_id_synthese
+
+        unordered_cd_noms = [i["cd_nom"] for i in response.json["items"]]
+        ordered_cd_noms = sorted(unordered_cd_noms)
+        assert ordered_cd_noms != unordered_cd_noms
+        assert set(ordered_cd_noms).issubset(set(unordered_cd_noms))
+
+        response = self.client.get(
+            url_for(
+                "exports.get_one_export_api", id_export=export_synthese_sinp.id, orderby="cd_nom"
+            )
+        )
+        return_cd_noms = [i["cd_nom"] for i in response.json["items"]]
+        assert ordered_cd_noms == return_cd_noms
+
     def test_unknown_export(self, exports, users):
         set_logged_user_cookie(self.client, users["admin_user"])
         response = self.client.get(url_for("exports.get_one_export_api", id_export=1000000))
