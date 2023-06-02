@@ -7,7 +7,7 @@ from geonature.utils.env import DB
 from utils_flask_sqla_geo.generic import GenericTableGeo
 
 
-from .models import Export, ExportLog, ExportSchedules
+from .models import Export, ExportSchedules
 
 
 SWAGGER_TYPE_COR = {
