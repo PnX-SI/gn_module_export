@@ -17,8 +17,6 @@ from .utils_export import (
     ExportRequest,
 )
 
-from geonature.core.notifications.utils import dispatch_notifications
-
 logger = get_task_logger(__name__)
 
 
@@ -41,11 +39,13 @@ def generate_scheduled_exports(self):
     for scheduled_export in ExportSchedules.query.all():
         export_request = ExportRequest(
             id_export=scheduled_export.id_export,
-            scheduled_export=scheduled_export,
+            user=None,
+            format=scheduled_export.format,
+            skip_newer_than=scheduled_export.skip_newer_than,
         )
         generate_export.delay(
             export_id=export_request.export.id,
-            file_name=export_request.generate_file_name(),
+            file_name=export_request.get_full_path_file_name(),
             export_url=None,
             format=export_request.format,
             id_role=None,
@@ -59,8 +59,6 @@ def generate_export(self, export_id, file_name, export_url, format, id_role, fil
     export = Export.query.get(export_id)
     if export is None:
         logger.warning("Export {export_id} does not exist")
-        return
-
     export_data_file(export_id, file_name, export_url, format, id_role, filters)
     logger.info(f"Export {export_id} generated.")
 

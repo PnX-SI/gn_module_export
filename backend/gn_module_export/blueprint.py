@@ -168,19 +168,12 @@ def getOneExportThread(scope, id_export, export_format):
             status=500,
         )
 
-    export_request = ExportRequest(id_export=id_export, id_role=user.id_role, format=export_format)
-
-    module_conf = current_app.config["EXPORTS"]
-    export_url = url_for(
-        "media",
-        filename=module_conf.get("usr_generated_dirname") + "/" + export_request.file_name,
-        _external=True,
-    )
+    export_request = ExportRequest(id_export=id_export, user=user, format=export_format)
 
     generate_export.delay(
         export_id=export_request.export.id,
-        file_name=export_request.generate_file_name(),
-        export_url=export_url,
+        file_name=str(export_request.get_full_path_file_name()),
+        export_url=export_request.get_export_url(),
         format=export_request.format,
         id_role=user.id_role,
         filters=filters,

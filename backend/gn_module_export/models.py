@@ -13,6 +13,8 @@ if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
 else:  # retro-compatibility Flask-SQLAlchemy 2 / SQLAlchemy 1.3
     from flask_sqlalchemy import BaseQuery as Query
 
+from datetime import timedelta
+
 from geonature.core.users.models import CorRole
 from geonature.utils.env import DB
 from pypnusershub.db.models import User
@@ -158,3 +160,7 @@ class ExportSchedules(DB.Model):
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
 
     export = DB.relationship("Export", lazy="subquery", cascade="all,delete")
+
+    @property
+    def skip_newer_than(self):
+        return self.frequency * 24 * 60
