@@ -1,7 +1,7 @@
 """Fix and improve SINP DEE synthese view (see #105)
 
 Revision ID: fe1347f4805f
-Revises: 1c4433a804a9
+Revises: 75edd92560d7
 Create Date: 2023-05-11 20:21:38.452938
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "fe1347f4805f"
-down_revision = "1c4433a804a9"
+down_revision = "75edd92560d7"
 branch_labels = None
 depends_on = None
 

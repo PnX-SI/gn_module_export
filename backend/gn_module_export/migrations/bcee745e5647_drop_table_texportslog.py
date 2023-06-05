@@ -1,7 +1,7 @@
 """drop table gn_exports.t_exports_logs
 
 Revision ID: bcee745e5647
-Revises: c2d02e345a06
+Revises: 7876d042e673
 Create Date: 2023-05-10 10:43:45.661554
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "bcee745e5647"
-down_revision = "fe1347f4805f"
+down_revision = "7876d042e673"
 branch_labels = None
 depends_on = None
 
