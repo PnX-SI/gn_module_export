@@ -302,6 +302,9 @@ def get_one_export_api(id_export):
         args.pop("token")
     filters = {f: args.get(f) for f in args}
 
+    if not "orderby" in filters:
+        filters["orderby"] = export.view_pk_column
+
     query = export.get_view_query(limit=limit, offset=offset, filters=filters)
 
     data = query.return_query()
