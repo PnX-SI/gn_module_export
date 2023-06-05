@@ -6,18 +6,24 @@ from datetime import datetime
 
 from flask.cli import with_appcontext
 from click import ClickException
+from werkzeug.exceptions import NotFound, Forbidden
 
+from flask import url_for, current_app
+from pypnusershub.db.models import User
 from gn_module_export.tasks import generate_export
-from gn_module_export.models import Export
-from gn_module_export.utils_export import ExportGenerationNotNeeded
+from gn_module_export.models import Export, ExportSchedules
+from gn_module_export.utils_export import (
+    ExportGenerationNotNeeded,
+    ExportRequest,
+)
 
 
 @click.command()
 @click.option("--format", "export_format", default="csv")
 @click.option(
-    "--scheduled/--user",
-    default=False,
-    help="Générer un export de type planifié ou utilisateur.",
+    "--user-id",
+    default=None,
+    help="Identifiant de l'utilisateur.",
 )
 @click.option(
     "--skip-newer-than",
@@ -26,27 +32,59 @@ from gn_module_export.utils_export import ExportGenerationNotNeeded
 )
 @click.argument("export_id")
 @with_appcontext
-def generate(export_id, export_format, scheduled, skip_newer_than):
+def generate(export_id, export_format, user_id, skip_newer_than):
     """
     Lance la génération d’un fichier d’export
     """
-    export = Export.query.get(export_id)
-    if export is None:
-        raise ClickException(f"Export {export_id} not found.")
+    scheduled_export = None
+    user = None
+
+    if user_id:
+        user = User.query.get(user_id)
+        if not user:
+            raise ClickException(f"User {user_id} not found.")
+    else:
+        # If not user_id => scheduled
+        scheduled_export = (
+            ExportSchedules.query.filter(ExportSchedules.id_export == export_id)
+            .filter(ExportSchedules.format == export_format)
+            .first()
+        )
+        if not scheduled_export:
+            raise ClickException(f"Schedule export {export_id} format {export_format} not found.")
+        # Parameter skip_newer_than overide scheduled_export.skip_newer_than property
+        if not skip_newer_than:
+            skip_newer_than = scheduled_export.skip_newer_than
     try:
-        generate_export(
-            export_id,
-            export_format,
-            scheduled=scheduled,
+        export_request = ExportRequest(
+            id_export=export_id,
+            user=user,
+            format=export_format,
             skip_newer_than=skip_newer_than,
         )
+    except NotFound:
+        raise ClickException(f"Export {export_id} not found.")
+    except Forbidden:
+        raise ClickException(f"Export {export_id} not allow for user id {user_id}.")
     except ExportGenerationNotNeeded:
-        click.echo(f"Export {export_id} sufficiently recent, skip generation.")
+        raise ClickException(f"Export {export_id} sufficiently recent, skip generation.")
+
+    generate_export(
+        export_id=export_request.export.id,
+        file_name=export_request.get_full_path_file_name(),
+        export_url=None,
+        format=export_request.format,
+        id_role=None,
+        filters=None,
+    )
 
 
 @click.command()
 @click.option(
-    "--limit", required=False, default=-1, help="Nombre de résultats à retourner"
+    "--limit",
+    required=False,
+    default=-1,
+    help="Nombre de résultats à retourner",
 )
 @click.option(
     "--offset",
@@ -90,9 +128,7 @@ def generate_dsw(limit, offset):
     with open(export_dsw_dir, "w+b") as xp:
         store.save(store_uri=xp)
 
-    click.echo(
-        "Export done with success data are available here: {}".format(export_dsw_dir)
-    )
+    click.echo("Export done with success data are available here: {}".format(export_dsw_dir))
     click.echo("END schedule export task")
 
 

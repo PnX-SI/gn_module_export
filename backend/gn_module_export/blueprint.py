@@ -2,54 +2,41 @@
     Définition des routes du module export
 """
 
-import os
 import logging
-import threading
-
+import os
 from pathlib import Path
 from urllib.parse import urlparse
 
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.exc import IntegrityError
-from psycopg2.errors import ForeignKeyViolation
+from sqlalchemy.orm import contains_eager
 
 from flask import (
     Blueprint,
-    request,
-    current_app,
-    send_from_directory,
     Response,
-    render_template,
-    jsonify,
-    flash,
-    copy_current_request_context,
+    current_app,
     g,
+    jsonify,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
 )
 from flask_cors import cross_origin
-from flask_admin.contrib.sqla import ModelView
-from flask_admin.helpers import is_form_submitted
-from flask_admin.babel import gettext
-from werkzeug.exceptions import NotFound, BadRequest
-from wtforms import validators
-
-from pypnusershub.db.models import User
-
-from geonature.core.admin.admin import admin as flask_admin, CruvedProtectedMixin
-from geonature.utils.config import config_frontend as public_config
-from utils_flask_sqla.response import json_resp, to_json_resp
-
-
-from utils_flask_sqla_geo.generic import GenericQueryGeo
-
 from geonature.core.gn_permissions import decorators as permissions
-from geonature.utils.env import DB
+from geonature.core.gn_permissions.tools import get_scopes_by_action
 
 
-import gn_module_export.tasks  # noqua: F401
-from .repositories import ExportObjectQueryRepository, generate_swagger_spec
-from .models import Export, CorExportsRoles, Licences, ExportSchedules, UserRepr
-from .utils_export import thread_export_data
-from .commands import commands
+from gn_module_export.repositories import generate_swagger_spec
+from geonature.utils.config import config_frontend as public_config
+from gn_module_export.commands import commands
+from gn_module_export.models import Export
+from gn_module_export.repositories import generate_swagger_spec
+from gn_module_export.tasks import generate_export
+from gn_module_export.schemas import ExportSchema
+from .utils_export import ExportRequest
+from sqlalchemy.orm.exc import NoResultFound
+from utils_flask_sqla.response import json_resp, to_json_resp
+from werkzeug.exceptions import Forbidden
 
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
@@ -58,7 +45,6 @@ blueprint = Blueprint("exports", __name__, cli_group="exports")
 
 blueprint.template_folder = os.path.join(blueprint.root_path, "templates")
 blueprint.static_folder = os.path.join(blueprint.root_path, "static")
-
 
 """
 #################################################################
@@ -70,210 +56,7 @@ blueprint.cli.short_help = "Commandes du module export"
 for cmd in commands:
     blueprint.cli.add_command(cmd)
 
-
-"""
-#################################################################
-    Configuration de l'admin
-#################################################################
-"""
-
-
-class LicenceView(CruvedProtectedMixin, ModelView):
-    """
-    Surcharge de l'administration des licences
-    """
-
-    module_code = "EXPORTS"
-    object_code = None
-
-    def __init__(self, session, **kwargs):
-        # Référence au model utilisé
-        super(LicenceView, self).__init__(Licences, session, **kwargs)
-
-    # exclusion du champ exports
-    form_excluded_columns = "exports"
-    # Nom de colonne user friendly
-    column_labels = dict(
-        name_licence="Nom de la licence", url_licence="Description de la licence"
-    )
-    # Description des colonnes
-    column_descriptions = dict(
-        name_licence="Nom de la licence",
-        url_licence="URL de la documentation de la licence",
-    )
-
-
-class ExportRoleView(CruvedProtectedMixin, ModelView):
-    """
-    Surcharge de l'administration de l'association role/export
-    """
-
-    module_code = "EXPORTS"
-    object_code = None
-
-    def __init__(self, session, **kwargs):
-        # Référence au model utilisé
-        super(ExportRoleView, self).__init__(CorExportsRoles, session, **kwargs)
-
-    # Nom de colonne user friendly
-    column_labels = dict(export="Nom de l'export", role="Nom du role")
-    # Description des colonnes
-    column_descriptions = dict(role="Role associé à l'export")
-    # Surcharge du formulaure
-    form_args = {
-        "role": {
-            "query_factory": lambda: UserRepr.query.order_by(
-                UserRepr.groupe.desc(), UserRepr.nom_role
-            ).filter((UserRepr.groupe == True) | (UserRepr.identifiant.isnot(None)))
-        }
-    }
-
-
-class ExportView(CruvedProtectedMixin, ModelView):
-    """
-    Surcharge du formulaire d'administration Export
-    """
-
-    module_code = "EXPORTS"
-    object_code = None
-
-    def __init__(self, session, **kwargs):
-        # Référence au model utilisé
-        super(ExportView, self).__init__(Export, session, **kwargs)
-
-    # Ordonne les colonnes pour avoir la licence à la fin de la liste
-    column_list = [
-        "id",
-        "label",
-        "schema_name",
-        "view_name",
-        "desc",
-        "geometry_field",
-        "geometry_srid",
-        "public",
-        "licence",
-    ]
-    # Nom de colonne user friendly
-    column_labels = dict(
-        id="Identifiant",
-        label="Nom de l'export",
-        schema_name="Nom du schema PostgreSQL",
-        view_name="Nom de la vue SQL",
-        desc="Description",
-        geometry_field="Nom de champ géométrique",
-        geometry_srid="SRID du champ géométrique",
-    )
-    # Description des colonnes
-    column_descriptions = dict(
-        label="Nom libre de l'export",
-        schema_name="Nom exact du schéma postgreSQL contenant la vue SQL.",
-        view_name="Nom exact de la vue SQL permettant l'export de vos données.",  # noqa E501
-        desc="Décrit la nature de l'export",
-        public="L'export est accessible à tous",
-    )
-    # Ordonne des champs pour avoir la licence à la fin du formulaire
-    form_columns = (
-        "label",
-        "schema_name",
-        "view_name",
-        "desc",
-        "geometry_field",
-        "geometry_srid",
-        "public",
-        "licence",
-    )
-
-    def validate_form(self, form):
-        """
-        Validation personnalisée du form
-        """
-        # Essai de récupérer en BD la vue sql déclarée
-        # Delete n'a pas d'attribut view_name
-        view_name = getattr(form, "view_name", "")
-        schema_name = getattr(form, "schema_name", "")
-        geometry_field = getattr(form, "geometry_field", None)
-        geometry_srid = getattr(form, "geometry_srid", None)
-        if is_form_submitted() and view_name and schema_name:
-            try:
-                if geometry_field.data and geometry_srid.data is None:
-                    raise KeyError(
-                        "Field Geometry SRID is mandatory with Geometry field"
-                    )
-
-                query = GenericQueryGeo(
-                    DB,
-                    view_name.data,
-                    schema_name.data,
-                    geometry_field=geometry_field.data,
-                    filters=[],
-                )
-                query.return_query()
-
-            except Exception as exp:
-                flash(exp, category="error")
-                return False
-
-        return super(ExportView, self).validate_form(form)
-
-    def handle_view_exception(self, exc):
-        """
-        Customisation du message d'erreur en cas de suppresion de l'export
-        s'il est toujours référencé dans les tables de logs
-        """
-        if isinstance(exc, IntegrityError):
-            if isinstance(exc.orig, ForeignKeyViolation):
-                flash(
-                    gettext(
-                        "L'export ne peut pas être supprimé car il est toujours référencé (table de log)"
-                    ),
-                    "error",
-                )
-                return True
-
-        return super(ModelView, self).handle_view_exception(exc)
-
-
-class ExportSchedulesView(CruvedProtectedMixin, ModelView):
-    """
-    Surcharge de l'administration de l'export Schedules
-    """
-
-    module_code = "EXPORTS"
-    object_code = None
-
-    def __init__(self, session, **kwargs):
-        # Référence au model utilisé
-        super(ExportSchedulesView, self).__init__(ExportSchedules, session, **kwargs)
-
-    # Description des colonnes
-    column_descriptions = dict(
-        export="Nom de l'export à planifier",
-        frequency="Fréquence de la génération de l'export (en jours)",
-        format="Format de l'export à générer",
-    )
-
-    form_args = {
-        "export": {"validators": [validators.DataRequired()]},
-        "frequency": {"validators": [validators.NumberRange(1, 365)]},
-    }
-
-    if "EXPORTS" in current_app.config:
-        format_list = [
-            (k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()
-        ]
-        form_choices = {"format": format_list}
-
-
-# Add views
-flask_admin.add_view(ExportView(DB.session, name="Exports", category="Export"))
-flask_admin.add_view(
-    ExportRoleView(DB.session, name="Associer un rôle à un export", category="Export")
-)
-flask_admin.add_view(LicenceView(DB.session, name="Licences", category="Export"))
-flask_admin.add_view(
-    ExportSchedulesView(DB.session, name="Planification des exports", category="Export")
-)
-
+from .admin import *
 
 """
 #################################################################
@@ -294,8 +77,7 @@ def swagger_ui(id_export=None):
     return render_template(
         "index.html",
         API_ENDPOINT=(
-            current_app.config["API_ENDPOINT"]
-            + current_app.config["EXPORTS"]["MODULE_URL"]
+            current_app.config["API_ENDPOINT"] + current_app.config["EXPORTS"]["MODULE_URL"]
         ),
         id_export=id_export,
     )
@@ -342,9 +124,7 @@ def swagger_ressources(id_export=None):
         "/swagger/generic_swagger_doc.json",
         export_nom=export.label,
         export_description=export.desc,
-        export_path="{}/api/{}".format(
-            current_app.config["EXPORTS"]["MODULE_URL"], id_export
-        ),
+        export_path="{}/api/{}".format(current_app.config["EXPORTS"]["MODULE_URL"], id_export),
         export_parameters=export_parameters,
         licence_nom=export.licence.name_licence,
         licence_description=export.licence.url_licence,
@@ -369,59 +149,35 @@ def swagger_ressources(id_export=None):
     allow_headers=["content-type", "content-disposition"],
     expose_headers=["Content-Type", "Content-Disposition", "Authorization"],
 )
-@permissions.check_cruved_scope("E", module_code="EXPORTS")
-def getOneExportThread(id_export, export_format):
+@permissions.check_cruved_scope("R", module_code="EXPORTS", get_scope=True)
+def getOneExportThread(scope, id_export, export_format):
     """
     Run export with thread
     """
-    # Test if export exists
-    if (
-        id_export < 1
-        or export_format not in current_app.config["EXPORTS"]["export_format_map"]
-    ):
+
+    filters = {f: request.args.get(f) for f in request.args}
+    user = g.current_user
+
+    # Test format
+    if export_format not in current_app.config["EXPORTS"]["export_format_map"]:
         return to_json_resp(
             {
                 "api_error": "invalid_export",
-                "message": "Invalid export or export not found",
+                "message": "Invalid export format",
             },
-            status=404,
+            status=500,
         )
 
-    filters = {f: request.args.get(f) for f in request.args}
-    data = dict(request.get_json())
+    export_request = ExportRequest(id_export=id_export, user=user, format=export_format)
 
-    # Alternative email in payload
-    email_to = None
-    if "email" in data:
-        email_to = data["email"]
-
-    @copy_current_request_context
-    def get_data(id_export, export_format, role, filters, email_to):
-        thread_export_data(id_export, export_format, role, filters, email_to)
-
-    exp = ExportObjectQueryRepository(id_export=id_export, role=g.current_user)
-
-    # Test if user have an email
-    try:
-        user = g.current_user
-        if not user.email and not email_to:  # TODO add more test
-            raise BadRequest("User doesn't have email")
-    except NoResultFound:
-        raise NotFound("User doesn't exist")
-
-    # Run export
-    a = threading.Thread(
-        name="export_data",
-        target=get_data,
-        kwargs={
-            "id_export": id_export,
-            "export_format": export_format,
-            "role": g.current_user,
-            "filters": filters,
-            "email_to": [email_to] if (email_to) else [user.email],
-        },
+    generate_export.delay(
+        export_id=export_request.export.id,
+        file_name=str(export_request.get_full_path_file_name()),
+        export_url=export_request.get_export_url(),
+        format=export_request.format,
+        id_role=user.id_role,
+        filters=filters,
     )
-    a.start()
 
     return to_json_resp(
         {
@@ -433,25 +189,18 @@ def getOneExportThread(id_export, export_format):
 
 
 @blueprint.route("/", methods=["GET"])
-@permissions.check_cruved_scope("R", module_code="EXPORTS")
+@permissions.check_cruved_scope("R", module_code="EXPORTS", get_scope=True)
 @json_resp
-def get_exports():
+def get_exports(scope):
     """
     Fonction qui renvoie la liste des exports
     accessibles pour un role donné
     """
-    try:
-        exports = Export.query.get_allowed_exports().all()
-    except NoResultFound:
-        return {
-            "api_error": "no_result_found",
-            "message": "Configure one or more export",
-        }, 404
-    return [export.as_dict(fields=["licence"]) for export in exports]
+    exports = Export.query.filter_by_scope(scope).all()
+    return ExportSchema(many=True, only=["licence", "cor_roles_exports"]).dump(exports)
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
-@permissions.check_cruved_scope("R", module_code="EXPORTS")
 @json_resp
 def get_one_export_api(id_export):
     """
@@ -466,6 +215,9 @@ def get_one_export_api(id_export):
     ----------
     limit : nombre limite de résultats à retourner
     offset : numéro de page
+    token : clé de l'API permettant de se passer de la connexion via un
+        cookie. Peut aussi être transmis dans un entête HTTP
+        `Authorization: Bearer <token>`.
 
     FILTRES :
         nom_col=val: Si nom_col fait partie des colonnes
@@ -508,29 +260,52 @@ def get_one_export_api(id_export):
 
         order by : @TODO
     """
-
     limit = request.args.get("limit", default=1000, type=int)
     offset = request.args.get("offset", default=0, type=int)
+    token = request.args.get("token", default=None, type=str)
+
+    # Try to extract token from Bearer Authorization HTTP Header
+    bearer = request.headers.get("Authorization", default=None, type=str)
+    if token is None and bearer is not None:
+        token = bearer.lstrip("Bearer ")
+
+    user = g.current_user
+
+    export = Export.query.get_or_404(id_export)
+    scope = None
+    if user:
+        scope = get_scopes_by_action(user.id_role, "EXPORT")["R"]
+    if not export.has_instance_permission(user=user, token=token, scope=scope):
+        raise Forbidden
+
+    if limit > 1000:
+        limit = 1000
 
     args = request.args.to_dict()
     if "limit" in args:
         args.pop("limit")
     if "offset" in args:
         args.pop("offset")
+    if "token" in args:
+        args.pop("token")
     filters = {f: args.get(f) for f in args}
 
-    exprep = ExportObjectQueryRepository(
-        id_export=id_export,
-        role=g.current_user,
-        filters=filters,
-        limit=limit,
-        offset=offset,
-    )
-    data = exprep.get_export_with_logging()
+    if not "orderby" in filters:
+        filters["orderby"] = export.view_pk_column
+
+    query = export.get_view_query(limit=limit, offset=offset, filters=filters)
+
+    data = query.return_query()
+
+    export_license = export.licence
+    data["license"] = dict()
+    data["license"]["name"] = getattr(export_license, "name_licence", None)
+    data["license"]["href"] = getattr(export_license, "url_licence", None)
+
     return data
 
 
-if public_config["EXPORTS"]["expose_dsw_api"]:
+if public_config.get("EXPORTS", False) and public_config["EXPORTS"]["expose_dsw_api"]:
 
     @blueprint.route("/semantic_dsw", methods=["GET"])
     def semantic_dsw():
@@ -596,5 +371,6 @@ if public_config["EXPORTS"]["expose_dsw_api"]:
             return response
 
         return send_from_directory(
-            os.path.dirname(export_dsw_fullpath), os.path.basename(export_dsw_fullpath)
+            os.path.dirname(export_dsw_fullpath),
+            os.path.basename(export_dsw_fullpath),
         )

@@ -1,56 +1,78 @@
-from packaging import version
+from secrets import token_hex
 
-from flask import g
-from sqlalchemy import or_
-from sqlalchemy.orm import relationship
 import flask_sqlalchemy
+from flask import g
+from packaging import version
+from sqlalchemy import or_, false
+import flask_sqlalchemy
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm import backref, relationship
 
 if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
     from flask_sqlalchemy.query import Query
 else:  # retro-compatibility Flask-SQLAlchemy 2 / SQLAlchemy 1.3
     from flask_sqlalchemy import BaseQuery as Query
 
-from geonature.utils.env import DB
-from utils_flask_sqla.serializers import serializable
+from datetime import timedelta
 
-from pypnusershub.db.models import User
 from geonature.core.users.models import CorRole
+from geonature.utils.env import DB
+from pypnusershub.db.models import User
+from utils_flask_sqla_geo.generic import GenericQueryGeo
+
+
+class CorExportsRoles(DB.Model):
+    __tablename__ = "cor_exports_roles"
+    __table_args__ = {"schema": "gn_exports"}
+    id_export = DB.Column(
+        DB.Integer(),
+        DB.ForeignKey("gn_exports.t_exports.id"),
+        primary_key=True,
+        nullable=False,
+    )
+
+    id_role = DB.Column(
+        DB.Integer,
+        DB.ForeignKey("utilisateurs.t_roles.id_role"),
+        primary_key=True,
+        nullable=False,
+    )
+    token = DB.Column(DB.String(80), nullable=False, default=token_hex(16))
+
+    export = DB.relationship(
+        "Export",
+        lazy="joined",
+        backref=backref("cor_roles_exports", cascade="all, delete-orphan"),
+    )
+    role = DB.relationship(
+        "User",
+        lazy="joined",
+    )
 
 
 class ExportsQuery(Query):
-    def get_allowed_exports(self, user=None):
+    def filter_by_scope(self, scope, user=None):
         """
         Liste des exports autorisés pour un role
         """
         if not user:
             user = g.current_user
-        ors = [
-            CorExportsRoles.id_role == user.id_role,
-            CorExportsRoles.id_role.in_(
-                User.query.with_entities(User.id_role)
-                .join(CorRole, CorRole.id_role_groupe == User.id_role)
-                .filter(CorRole.id_role_utilisateur == user.id_role)
-            ),
-            Export.public == True,
-        ]
-        self = self.outerjoin(CorExportsRoles).filter(or_(*ors))
+        if scope == 0:
+            self = self.filter(false())
+        elif scope in (1, 2):
+            ors = [
+                CorExportsRoles.id_role == user.id_role,
+                CorExportsRoles.id_role.in_(
+                    User.query.with_entities(User.id_role)
+                    .join(CorRole, CorRole.id_role_groupe == User.id_role)
+                    .filter(CorRole.id_role_utilisateur == user.id_role)
+                ),
+                Export.public == True,
+            ]
+            self = self.outerjoin(CorExportsRoles).filter(or_(*ors))
         return self
 
 
-class UserRepr(User):
-    def __str__(self):
-        if self.groupe:
-            val = "Groupe : {}".format(self.nom_role)
-        else:
-            val = "{nom} {prenom} - ({email})".format(
-                nom=self.nom_role,
-                prenom=self.prenom_role or "",
-                email=self.email or "no email",
-            )
-        return val
-
-
-@serializable
 class Licences(DB.Model):
     __tablename__ = "t_licences"
     __table_args__ = {"schema": "gn_exports"}
@@ -65,7 +87,6 @@ class Licences(DB.Model):
     __repr__ = __str__
 
 
-@serializable
 class Export(DB.Model):
     __tablename__ = "t_exports"
     __table_args__ = {"schema": "gn_exports"}
@@ -75,61 +96,59 @@ class Export(DB.Model):
     label = DB.Column(DB.Text, nullable=False, unique=True, index=True)
     schema_name = DB.Column(DB.Text, nullable=False)
     view_name = DB.Column(DB.Text, nullable=False)
+    view_pk_column = DB.Column(DB.Text, nullable=False)
     desc = DB.Column(DB.Text)
     geometry_field = DB.Column(DB.Text)
     geometry_srid = DB.Column(DB.Integer)
     public = DB.Column(DB.Boolean, nullable=False, default=False)
-    id_licence = DB.Column(
-        DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False
-    )
-    allowed_roles = DB.relationship("CorExportsRoles")
+    id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False)
     licence = DB.relationship("Licences")
+    allowed_roles = association_proxy(
+        "cor_roles_exports",
+        "role",
+        creator=lambda role: CorExportsRoles(role=role),
+    )
+    # cor_role_token ajouter via une backref
 
     def __str__(self):
         return "{}".format(self.label)
 
     __repr__ = __str__
 
+    def has_instance_permission(
+        self,
+        user=None,
+        scope=None,
+        token=None,
+    ):
+        if self.public:
+            return True
+        if token:
+            return token in map(lambda cor: cor.token, self.cor_roles_exports)
+        if user is None:
+            user = g.current_user
+        if user is None:  # no user provided and no user connected
+            return False
+        if scope == 3:
+            return True
+        if scope in (1, 2):
+            allowed_id_roles = list(map(lambda user: user.id_role, self.allowed_roles))
+            ids_group_of_user = list(map(lambda group: group.id_role, user.groups))
+            return user.id_role in allowed_id_roles or set(ids_group_of_user) & set(
+                allowed_id_roles
+            )
+        return False
 
-@serializable
-class ExportLog(DB.Model):
-    __tablename__ = "t_exports_logs"
-    __table_args__ = {"schema": "gn_exports"}
-    id = DB.Column(DB.Integer, primary_key=True, nullable=False)  # noqa: A003
-    id_role = DB.Column(DB.Integer, DB.ForeignKey(User.id_role))
-    role = DB.relationship("User", foreign_keys=[id_role], lazy="joined")
-    id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
-    export = DB.relationship("Export", lazy="joined")
-    format = DB.Column(DB.String(10), nullable=False)  # noqa: A003
-    start_time = DB.Column(DB.DateTime, nullable=False)
-    end_time = DB.Column(DB.DateTime)
-    status = DB.Column(DB.Integer, default=-2)
-    log = DB.Column(DB.Text)
-
-    @classmethod
-    def record(cls, adict):
-        try:
-            exportLog = cls()
-            exportLog.from_dict(adict)
-            DB.session.add(exportLog)
-            DB.session.commit()
-        except Exception as e:
-            DB.session.rollback()
-
-
-class CorExportsRoles(DB.Model):
-    __tablename__ = "cor_exports_roles"
-    __table_args__ = {"schema": "gn_exports"}
-    id_export = DB.Column(
-        DB.Integer(), DB.ForeignKey(Export.id), primary_key=True, nullable=False
-    )
-
-    id_role = DB.Column(
-        DB.Integer, DB.ForeignKey(User.id_role), primary_key=True, nullable=False
-    )
-
-    export = DB.relationship("Export", lazy="joined", cascade="all,delete")
-    role = DB.relationship("UserRepr", lazy="joined")
+    def get_view_query(self, limit, offset, filters=None):
+        return GenericQueryGeo(
+            DB,
+            self.view_name,
+            self.schema_name,
+            filters,
+            limit,
+            offset,
+            self.geometry_field,
+        )
 
 
 class ExportSchedules(DB.Model):
@@ -141,3 +160,7 @@ class ExportSchedules(DB.Model):
     id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
 
     export = DB.relationship("Export", lazy="subquery", cascade="all,delete")
+
+    @property
+    def skip_newer_than(self):
+        return self.frequency * 24 * 60

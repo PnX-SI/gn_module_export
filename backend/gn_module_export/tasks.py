@@ -1,20 +1,32 @@
+import os
+
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from sqlalchemy import func
 from celery.utils.log import get_task_logger
 from celery.schedules import crontab
 
+from flask import current_app
 from geonature.utils.celery import celery_app
 
 from .models import Export, ExportSchedules
-from .utils_export import export_data_file, ExportGenerationNotNeeded
-
+from .utils_export import (
+    export_data_file,
+    ExportGenerationNotNeeded,
+    ExportRequest,
+)
 
 logger = get_task_logger(__name__)
 
 
 @celery_app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
+    sender.add_periodic_task(
+        crontab(minute="0", hour="2"),
+        clean_export_file.s(),
+        name="scheduled exports clean",
+    )
     sender.add_periodic_task(
         crontab(minute="0", hour="3"),
         generate_scheduled_exports.s(),
@@ -25,30 +37,54 @@ def setup_periodic_tasks(sender, **kwargs):
 @celery_app.task(bind=True)
 def generate_scheduled_exports(self):
     for scheduled_export in ExportSchedules.query.all():
-        export = scheduled_export.export
+        export_request = ExportRequest(
+            id_export=scheduled_export.id_export,
+            user=None,
+            format=scheduled_export.format,
+            skip_newer_than=scheduled_export.skip_newer_than,
+        )
         generate_export.delay(
-            export_id=export.id,
-            export_format=scheduled_export.format,
-            scheduled=True,
-            skip_newer_than=scheduled_export.frequency * 24 * 60,
+            export_id=export_request.export.id,
+            file_name=export_request.get_full_path_file_name(),
+            export_url=None,
+            format=export_request.format,
+            id_role=None,
+            filters=None,
         )
 
 
 @celery_app.task(bind=True, throws=ExportGenerationNotNeeded)
-def generate_export(
-    self, export_id, export_format, scheduled=False, skip_newer_than=None
-):
+def generate_export(self, export_id, file_name, export_url, format, id_role, filters):
     logger.info(f"Generate export {export_id}...")
     export = Export.query.get(export_id)
     if export is None:
         logger.warning("Export {export_id} does not exist")
-        return
-    if skip_newer_than is not None:
-        skip_newer_than = timedelta(minutes=skip_newer_than)
-    export_data_file(
-        id_export=export_id,
-        export_format=export_format,
-        isScheduler=scheduled,
-        skip_newer_than=skip_newer_than,
-    )
+    export_data_file(export_id, file_name, export_url, format, id_role, filters)
     logger.info(f"Export {export_id} generated.")
+
+
+@celery_app.task(bind=True)
+def clean_export_file(self):
+    """
+    Fonction permettant de supprimer les fichiers générés
+    par le module export ayant plus de X jours
+
+    .. :quickref: Fonction permettant de supprimer les
+        fichiers générés par le module export ayant plus de X jours
+
+    """
+
+    dirs_to_del_from = [
+        Path(current_app.config["MEDIA_FOLDER"]) / "exports/schedules",
+        Path(current_app.config["MEDIA_FOLDER"]) / "exports/usr_generated",
+    ]
+    # Date limite de suppression
+    time_to_del = datetime.timestamp(
+        datetime.today() - timedelta(days=current_app.config["EXPORTS"]["nb_days_keep_file"])
+    )
+    for dir in dirs_to_del_from:
+        for item in Path(dir).glob("**/*"):
+            item_time = item.stat().st_mtime
+            if item_time < time_to_del:
+                if item.is_file():
+                    item.unlink()

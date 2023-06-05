@@ -1,3 +1,9 @@
+# Frontend
+frontend/app/module.config.ts
+frontend/tsconfig.json
+frontend/node_modules/
+
+# Python
 *.egg-info
 *~
 *.orig
@@ -32,23 +38,3 @@ coverage.xml
 .hypothesis/
 *.swp
 *.swo
-
-uninstall.sh
-
-# instance tunable
-config/settings.ini
-config/conf_gn_module.toml
-
-# Overwritten with app start
-backend/assets/api.yml
-backend/assets/swagger-ui-dist/index.html
-
-# Surchage des specification swagger
-backend/templates/swagger/api_specification_*.json
-
-# generated/updated with geonature commands
-config/conf_gn_module.toml
-frontend/app/module.config.ts
-
-# logs
-var/
