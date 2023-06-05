@@ -1,4 +1,4 @@
 utils-flask-sqlalchemy
-utils-flask-sqlalchemy-geo>=2.8.0
+utils-flask-sqlalchemy-geo>=0.2.8
 geonature>=2.12.0
 rdflib
