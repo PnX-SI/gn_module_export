@@ -235,3 +235,14 @@ class TestExportsBlueprints:
         assert response.status_code == 200
         response_id_export = set([exp["id"] for exp in response.json])
         assert allowed_fixture_ids.issubset(response_id_export)
+
+    def test_get_all_exports_with_empty_response(self, users, group_and_user):
+        from geonature.utils.env import db
+
+        exports = Export.query.all()
+        for export in exports:
+            db.session.delete(export)
+        set_logged_user_cookie(self.client, group_and_user["user"])
+        response = self.client.get(url_for("exports.get_exports"))
+        assert response.status_code == 200
+        assert response.json == []

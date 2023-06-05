@@ -16,11 +16,9 @@ else:  # retro-compatibility Flask-SQLAlchemy 2 / SQLAlchemy 1.3
 from geonature.core.users.models import CorRole
 from geonature.utils.env import DB
 from pypnusershub.db.models import User
-from utils_flask_sqla.serializers import serializable
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 
-@serializable
 class CorExportsRoles(DB.Model):
     __tablename__ = "cor_exports_roles"
     __table_args__ = {"schema": "gn_exports"}
@@ -73,7 +71,6 @@ class ExportsQuery(Query):
         return self
 
 
-@serializable
 class Licences(DB.Model):
     __tablename__ = "t_licences"
     __table_args__ = {"schema": "gn_exports"}
@@ -88,7 +85,6 @@ class Licences(DB.Model):
     __repr__ = __str__
 
 
-@serializable
 class Export(DB.Model):
     __tablename__ = "t_exports"
     __table_args__ = {"schema": "gn_exports"}
