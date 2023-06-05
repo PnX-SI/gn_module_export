@@ -112,7 +112,7 @@ def export_data_file(export_id, file_name, export_url, format, id_role, filters)
     .. :quickref:  Fonction qui permet de générer un export fichier
 
     :query int id_export: Identifiant de l'export
-    :query str export_format: Format de l'export (csv, json, shp)
+    :query str export_format: Format de l'export (csv, json, gpkg)
     :query {} filters: Filtre à appliquer sur l'export
 
 
