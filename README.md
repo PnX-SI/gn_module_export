@@ -122,7 +122,10 @@ Pour chaque export créé, une API JSON filtrable est automatiquement créée à
 
 Si l'export est associé à certains rôles, ceux-ci peuvent accéder à l'API JSON de l'export grace à un token auto-généré pour chaque rôle associé à un export.
 <URL_GEONATURE>/api/export/<ID_EXPORT>?token=xxxxxxxxx.
+
 Il est aussi possible d'accéder à l'API en étant authentifié à GeoNature avec l'utilisateur ayant accès à l'export.
+
+Il est également possible de passer le token via le header de la requête ("Authorization": "Bearer <token>").
 
 Par défaut, une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres. Chaque champ est documenté automatiquement en affichant son commentaire défini dans la vue de l'export.
 
