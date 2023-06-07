@@ -14,12 +14,11 @@
 * Correction des performances de génération de gros fichiers en les construisant par blocs de lignes (#110, #132, #95, par @mvergez, @joelclems, @VicentCauchois, @bouttier)
 * Centralisation et factorisation des fonctions de génération de fichiers dans les sous-modules [Utils-Flask-SQLAlchemy](https://github.com/PnX-SI/Utils-Flask-SQLAlchemy) et [Utils-Flask-SQLAlchemy-Geo](https://github.com/PnX-SI/Utils-Flask-SQLAlchemy-Geo) (#143, par @joelclems, @mvergez, @VincentCauchois, @bouttier)
 * Suppression du mécanisme interne d'envoi d'emails quand la génération d'un export à la demande est terminé, au profit du mécanisme de notifications intégré à GeoNature (#127, par @amandine-sahl)
-* Ajout d'une notification par défaut envoyée par email et dans l'application quand l'export à la demande d'un utilisateur est terminé (#127, par @amandine-sahl)
 * Possibilité de customiser l'email envoyé lorsqu'un fichier d'export est généré, grace au mécanisme de notification dont les messages sont définis dans la BDD et modifiables dans le module "Admin" (#59, par @amandine-sahl)
 * Utilisation de Celery pour traiter les taches asynchrones de génération des fichiers exportés
 * Ajout d'une tache Celery Beat lancée automatiquement chaque nuit, pour supprimer les fichiers de plus de 15 jours (#126, par @Pierre-Narcisi)
 * Ajout d'un token à chaque utilisateur ou groupe pour chaque export auquel il a accès (table `gn_exports.cor_exports_roles.token`), permettant d'accéder à l'API sans devoir utiliser un login et mot de passe (#131, par @TheoLechemia, @andriacap, @ch-cbna)
-* Suppression du champs permettant de renseigner un email lors de la demande de téléchargement d'un export (#170, par @amandine-sahl)
+* Suppression du champ permettant de renseigner un email lors de la demande de téléchargement d'un export (#170, par @amandine-sahl)
 * Révision, simplification et correction des permissions du module (#154, par @TheoLechemia, @ch-cna)
 * Simplification de l'association de rôles aux exports dans le module "Admin" en associant ceux-ci directement depuis le formulaire d'édition d'un export (#78, par @andriacap)
 * Suppression de la table `gn_exports.t_exports_logs` traçant les exports (#136, par @amandine-sahl)
@@ -49,15 +48,14 @@ Si vous mettez à jour le module :
 * Les droits d'accès au module et aux exports ne se base désormais plus que sur l'action R (read), et non plus E (export).
 * Changement URL API et fichiers exportés ?
 * Mentionner nouvelle URL des API des exports (rétrocompatibilité)
-* Une colomne permettant d'indiquer le champs d'unicité des vues a été ajoutée dans la table des exports (gn_exports.t_exports.view_pk_column). Pour les exports existants, cette colonne est automatiquement remplie avec la valeur de la première colonne des vues exports. Vous pouvez vérifier ou modifier ce champs pour les exports existants.
-* Relancer Celery après MAJ ? Indiquer de relancer Celery dans la doc d'installation ?
-
-* Avant de lancer la commande d'installation ou de mise à jour du module, lancez les commandes suivantes afin de mettre à jour les sous modules
-```sh
-pip install utils-flask-sqlalchemy==0.3.4
-pip install utils-flask-sqlalchemy-geo==0.2.8
-pip install pypnusershub==1.6.7
-```
+* Une colomne permettant d'indiquer le champ d'unicité des vues a été ajoutée dans la table des exports (gn_exports.t_exports.view_pk_column). Pour les exports existants, cette colonne est automatiquement remplie avec la valeur de la première colonne des vues exports. Vous pouvez vérifier ou modifier ce champs pour les exports existants.
+* Si vous installez le module sur une version 2.12 de GeoNature, il est possible que vous deviez lancer les commandes suivantes afin de mettre à jour les sous-modules Python, avant la mise à jour du module :
+  ```sh
+  source ~/geonature/backend/venv/bin/activate
+  pip install utils-flask-sqlalchemy==0.3.4
+  pip install utils-flask-sqlalchemy-geo==0.2.8
+  pip install pypnusershub==1.6.7
+  ```
 
 1.4.0 (2023-03-27)
 ==================
