@@ -1,13 +1,6 @@
 
-1.5.0 (unreleased) - Workshop 2023
+1.5.0 (2023-06-07) - Workshop 2023
 ----------------------------------
-
-**TODO**
-
-* Renommer les fichiers UTILS du module
-
-**Perspectives**
-* Supprimer as_dict de generic_query
 
 **Nouveautés**
 
@@ -45,10 +38,8 @@ Si vous mettez à jour le module :
 * Si vous les aviez surcouché, supprimez les paramètres `export_schedules_dir`, `usr_generated_dirname` et `export_web_url` de la configuration du module
 * La table listant les exports réalisée (`gn_exports.t_exports_logs`) sera automatiquement supprimée
 * Les exports au format SHP seront convertis automatiquement en export au format GPKG. Attention si vous aviez des exports planifiés au format SHP, leur URL changera avec le même nom mais avec l'extension `.gpkg`.
-* Les droits d'accès au module et aux exports ne se base désormais plus que sur l'action R (read), et non plus E (export).
-* Changement URL API et fichiers exportés ?
-* Mentionner nouvelle URL des API des exports (rétrocompatibilité)
-* Une colomne permettant d'indiquer le champ d'unicité des vues a été ajoutée dans la table des exports (gn_exports.t_exports.view_pk_column). Pour les exports existants, cette colonne est automatiquement remplie avec la valeur de la première colonne des vues exports. Vous pouvez vérifier ou modifier ce champs pour les exports existants.
+* Les droits d'accès au module et aux exports ne se basent désormais plus que sur l'action R (read), et non plus E (export).
+* Une colomne permettant d'indiquer le champ d'unicité des vues a été ajoutée dans la table des exports (`gn_exports.t_exports.view_pk_column`). Pour les exports existants, cette colonne est automatiquement remplie avec la valeur de la première colonne des vues exports. Vous pouvez vérifier ou modifier ce champs pour les exports existants.
 * Si vous installez le module sur une version 2.12 de GeoNature, il est possible que vous deviez lancer les commandes suivantes afin de mettre à jour les sous-modules Python, avant la mise à jour du module :
   ```sh
   source ~/geonature/backend/venv/bin/activate
