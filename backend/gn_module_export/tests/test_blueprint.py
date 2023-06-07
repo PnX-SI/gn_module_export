@@ -1,4 +1,6 @@
+import os
 import pytest
+
 from jsonschema import validate as validate_json
 from flask import url_for
 from werkzeug.datastructures import Headers
@@ -44,6 +46,10 @@ class TestExportsBlueprints:
         )
         assert response.status_code == 200
 
+    @pytest.mark.skipif(
+        os.environ.get("CI") == "true",
+        reason="Test localy only cf https://github.com/PnX-SI/gn_module_export/issues/176",
+    )
     def test_private_export_with_token_in_header_Authorization_Bearer(self, users, exports):
         # With good token and good Authorization Bearer HTTP header
         token = exports["private_user_associated"].cor_roles_exports[0].token
