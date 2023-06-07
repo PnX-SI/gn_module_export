@@ -56,7 +56,7 @@ Si vous mettez à jour le module :
 ```sh
 pip install utils-flask-sqlalchemy==0.3.4
 pip install utils-flask-sqlalchemy-geo==0.2.8
-pip install pypnusershub==1.6.6
+pip install pypnusershub==1.6.7
 ```
 
 1.4.0 (2023-03-27)
