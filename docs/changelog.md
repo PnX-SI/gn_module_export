@@ -4,7 +4,7 @@
 
 **TODO**
 
-* Renommer les fichiers UTILS du module 
+* Renommer les fichiers UTILS du module
 
 **Perspectives**
 * Supprimer as_dict de generic_query
@@ -31,7 +31,7 @@
 * Nettoyage et refactoring global du code (#138, par @amandine-sahl, @Julien-Corny, @bouttier)
 * Nettoyage des fichiers git (#146, par @jpm-cbna)
 * Remplacement de l'utilisation de `as_dict` au profit de marshmallow (#172, par @amandine-sahl)
-* Correction de la vue complémentaire (`gn_exports.v_synthese_sinp_dee`) au format DEE (#159, par @jpm-cbna) 
+* Correction de la vue complémentaire (`gn_exports.v_synthese_sinp_dee`) au format DEE (#159, par @jpm-cbna)
 
 **Corrections**
 
@@ -52,6 +52,12 @@ Si vous mettez à jour le module :
 * Une colomne permettant d'indiquer le champs d'unicité des vues a été ajoutée dans la table des exports (gn_exports.t_exports.view_pk_column). Pour les exports existants, cette colonne est automatiquement remplie avec la valeur de la première colonne des vues exports. Vous pouvez vérifier ou modifier ce champs pour les exports existants.
 * Relancer Celery après MAJ ? Indiquer de relancer Celery dans la doc d'installation ?
 
+* Avant de lancer la commande d'installation ou de mise à jour du module, lancez les commandes suivantes afin de mettre à jour les sous modules
+```sh
+pip install utils-flask-sqlalchemy==0.3.4
+pip install utils-flask-sqlalchemy-geo==0.2.8
+pip install pypnusershub==1.6.7
+```
 
 1.4.0 (2023-03-27)
 ==================
