@@ -274,7 +274,7 @@ def get_one_export_api(id_export):
     export = Export.query.get_or_404(id_export)
     scope = None
     if user:
-        scope = get_scopes_by_action(user.id_role, "EXPORT")["R"]
+        scope = get_scopes_by_action(user.id_role, "EXPORTS")["R"]
     if not export.has_instance_permission(user=user, token=token, scope=scope):
         raise Forbidden
 
