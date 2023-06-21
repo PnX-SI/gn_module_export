@@ -110,11 +110,14 @@ Dans la rubrique "Exports", sélectionner le menu ``Export`` puis cliquer sur ``
 
 ## Associer les roles ayant la permission d'accéder à cet export
 
-Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs ayant accès au module pourront accéder à cet export. Sinon il est possible de définir les rôles (utilisateurs ou groupes) qui peuvent accéder à un export.
+Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs ayant accès au module pourront accéder à cet export.  
+Sinon il est possible de définir les rôles (utilisateurs ou groupes) qui peuvent accéder à un export.
 
-- R SCOPE 1 : J'accède au module, je vois et accède aux exports qui me sont associés ou à un groupe auquel j'appartiens.
-- R SCOPE 3 : J'accède au module, je vois et accède à tous les exports
-- C : Permet de créer des exports dans le module ADMIN (si j'ai accès à celui-ci)
+Les permissions, définies à l'utilisateur ou à son groupe sur le module, permettent de donner accès aux exports de cette manière :
+
+- Action R / SCOPE 1 : J'accède au module, je vois et accède aux exports qui me sont associés ou à un groupe auquel j'appartiens
+- Action R / SCOPE 3 : J'accède au module, je vois et accède à tous les exports
+- Action C, U et D : Permet de créer, modifier ou supprimer des exports dans le module ADMIN (si j'ai accès à celui-ci)
 
 # API JSON et documentation Swagger d'un export
 
