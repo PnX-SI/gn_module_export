@@ -38,7 +38,7 @@ def upgrade():
                 VALUES
                      ('EXPORTS', 'ALL', 'C', False, 'Créer des exports')
                     ,('EXPORTS', 'ALL', 'R', True, 'Voir les exports')
-                    ,('EXPORTS', 'ALL', 'U', False, 'Modifier exports')
+                    ,('EXPORTS', 'ALL', 'U', False, 'Modifier les exports')
                     ,('EXPORTS', 'ALL', 'D', False, 'Supprimer des exports')
             ) AS v (module_code, object_code, action_code, scope_filter, label)
         JOIN
