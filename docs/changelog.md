@@ -14,6 +14,7 @@
 * Suppression du champ permettant de renseigner un email lors de la demande de téléchargement d'un export (#170, par @amandine-sahl)
 * Révision, simplification et correction des permissions du module (#154, par @TheoLechemia, @ch-cna)
 * Simplification de l'association de rôles aux exports dans le module "Admin" en associant ceux-ci directement depuis le formulaire d'édition d'un export (#78, par @andriacap)
+* Les exports définis comme "Public" ont désormais leur API accessible de manière ouverte sans authentification
 * Suppression de la table `gn_exports.t_exports_logs` traçant les exports (#136, par @amandine-sahl)
 * Ajout du champ `gn_exports.t_exports.view_pk_column` permettant de spécifier la colonne d'unicité des vues d'exports (#149, par @amandine-sahl)
 * Mise en place d'une Github action pour lancer automatiquement les tests (#130 et #134, par @mvergez)
@@ -35,8 +36,9 @@
 
 Si vous mettez à jour le module :
 
+* Les exports définis comme "Public" ont désormais leur API accessible de manière ouverte sans authentification. C'est donc le cas votre export SINP, si vous aviez gardé cet export public créé par défaut lors de l'installation du module
 * Si vous les aviez surcouché, supprimez les paramètres `export_schedules_dir`, `usr_generated_dirname` et `export_web_url` de la configuration du module
-* La table listant les exports réalisée (`gn_exports.t_exports_logs`) sera automatiquement supprimée
+* La table listant les exports réalisés (`gn_exports.t_exports_logs`) sera automatiquement supprimée
 * Les exports au format SHP seront convertis automatiquement en export au format GPKG. Attention si vous aviez des exports planifiés au format SHP, leur URL changera avec le même nom mais avec l'extension `.gpkg`.
 * Les droits d'accès au module et aux exports ne se basent désormais plus que sur l'action R (read), et non plus E (export).
 * Une colomne permettant d'indiquer le champ d'unicité des vues a été ajoutée dans la table des exports (`gn_exports.t_exports.view_pk_column`). Pour les exports existants, cette colonne est automatiquement remplie avec la valeur de la première colonne des vues exports. Vous pouvez vérifier ou modifier ce champs pour les exports existants.
