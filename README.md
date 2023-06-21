@@ -17,6 +17,7 @@ Module permettant d'ajouter des fonctionnalités globales et transversales d'exp
 ## Configuration
 
 ### Paramètres
+
 * ``export_dsw_dir`` : chemin absolu ou relatif au dossier media du dossier où l'export sémantique au format Darwin-SW sera réalisé
 * ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
 * ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
@@ -98,7 +99,7 @@ Pour créer un nouvel export, il faut au préalable créer une vue dans la base 
 
 Pour des questions de lisibilité, il est conseillé de créer la vue dans le schéma ``gn_exports``.
 
-Par défaut, un export public (accessible à tous les utilisateurs ayant accès au module Export d'une instance GeoNature) est créé basé sur la vue ``gn_exports.v_synthese_sinp``, contenant toutes les données présentes dans la Synthèse. Il est possible de limiter les données dans cet exeport (en ajoutant des critères dans la clause WHERE de la vue ``gn_exports.v_synthese_sinp``), de supprimer cet export ou de le limiter à certains utilisateurs uniquement.
+Par défaut, un export est créé, basé sur la vue ``gn_exports.v_synthese_sinp``, contenant toutes les données présentes dans la Synthèse. Il est possible de limiter les données dans cet exeport (en ajoutant des critères dans la clause WHERE de la vue ``gn_exports.v_synthese_sinp``), de supprimer cet export, de le rendre public ou de définir quels utilisateur y ont accès.
 
 Les fichiers exportés sont automatiquement supprimés 15 jours après avoir été générés (durée configurable avec le paramètre ``nb_days_keep_file``).
 
@@ -110,7 +111,7 @@ Dans la rubrique "Exports", sélectionner le menu ``Export`` puis cliquer sur ``
 
 ## Associer les roles ayant la permission d'accéder à cet export
 
-Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs ayant accès au module pourront accéder à cet export.  
+Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs ayant accès au module pourront accéder à cet export. Et son API sera accessible et ouverte publiquement, sans authentification.
 Sinon il est possible de définir les rôles (utilisateurs ou groupes) qui peuvent accéder à un export.
 
 Les permissions, définies à l'utilisateur ou à son groupe sur le module, permettent de donner accès aux exports de cette manière :
