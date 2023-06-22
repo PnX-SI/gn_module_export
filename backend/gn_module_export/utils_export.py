@@ -70,7 +70,7 @@ class ExportRequest:
         self.user = user
         self.format = format
 
-        if user and not self.export.has_instance_permission(user):
+        if user and not self.export.has_instance_permission(user=user, scope=2):
             raise Forbidden
 
         self._generate_file_name_and_dir()
