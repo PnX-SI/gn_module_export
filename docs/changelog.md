@@ -3,7 +3,7 @@
 
 Nécessite la version 2.13.0 de GeoNature
 
-**Nouveautés**
+**🚀 Nouveautés**
 
 - Compatibilité avec GeoNature 2.13.0 et la refonte des permissions, en définissant les permissions disponibles du module (#183)
 - L'export "Synthese SINP", fourni par défaut lors de l'installation du module, n'est plus défini comme "public" pour les nouvelles installations, suite à l'ouverture sans authentification de l'API des exports publics (#184)
@@ -11,7 +11,7 @@ Nécessite la version 2.13.0 de GeoNature
 1.5.0 (2023-06-07) - Workshop 2023
 ----------------------------------
 
-**Nouveautés**
+**🚀 Nouveautés**
 
 * Correction des performances de génération de gros fichiers en les construisant par blocs de lignes (#110, #132, #95, par @mvergez, @joelclems, @VicentCauchois, @bouttier)
 * Centralisation et factorisation des fonctions de génération de fichiers dans les sous-modules [Utils-Flask-SQLAlchemy](https://github.com/PnX-SI/Utils-Flask-SQLAlchemy) et [Utils-Flask-SQLAlchemy-Geo](https://github.com/PnX-SI/Utils-Flask-SQLAlchemy-Geo) (#143, par @joelclems, @mvergez, @VincentCauchois, @bouttier)
@@ -35,7 +35,7 @@ Nécessite la version 2.13.0 de GeoNature
 * Remplacement de l'utilisation de `as_dict` au profit de marshmallow (#172, par @amandine-sahl)
 * Correction de la vue complémentaire (`gn_exports.v_synthese_sinp_dee`) au format DEE (#159, par @jpm-cbna)
 
-**Corrections**
+**🐛 Corrections**
 
 * Correction de l'installation (#133, par @ch-cbna)
 * Correction de l'URL de l'API listant les exports (#102, par @TheoLechemia)
