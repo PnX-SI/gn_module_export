@@ -1,3 +1,12 @@
+1.6.0 (unreleased)
+------------------
+
+Nécessite la version 2.13.0 de GeoNature
+
+**Nouveautés**
+
+- Compatibilité avec GeoNature 2.13.0 et la refonte des permissions, en définissant les permissions disponibles du module (#183)
+- L'export "Synthese SINP", fourni par défaut lors de l'installation du module, n'est plus défini comme "public" pour les nouvelles installations, suite à l'ouverture sans authentification de l'API des exports publics (#184)
 
 1.5.0 (2023-06-07) - Workshop 2023
 ----------------------------------
