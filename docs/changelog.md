@@ -1,7 +1,7 @@
 1.6.0 (unreleased)
 ------------------
 
-Nécessite la version 2.13.0 de GeoNature
+Nécessite la version 2.13.0 (ou plus) de GeoNature
 
 **🚀 Nouveautés**
 
