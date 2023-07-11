@@ -22,7 +22,10 @@ export interface ApiErrorResponse extends HttpErrorResponse {
 
 @Injectable()
 export class ExportService {
-  constructor(private _api: HttpClient, public config: ConfigService) {}
+  constructor(
+    private _api: HttpClient,
+    public config: ConfigService
+  ) {}
 
   getExports() {
     console.log(this.config.API_ENDPOINT, this.config.EXPORTS.MODULE_URL);
