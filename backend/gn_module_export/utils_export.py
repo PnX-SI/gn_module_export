@@ -24,6 +24,7 @@ from utils_flask_sqla_geo.utilsgeometry import (
 from geonature.utils.filemanager import removeDisallowedFilenameChars
 from geonature.utils.env import DB
 from geonature.core.notifications.utils import dispatch_notifications
+from geonature.core.gn_permissions.tools import get_scopes_by_action
 from pypnusershub.db.models import User
 
 from .models import Export
@@ -70,7 +71,7 @@ class ExportRequest:
         self.user = user
         self.format = format
 
-        if user and not self.export.has_instance_permission(user):
+        if user and not self.export.has_instance_permission(user, scope=get_scopes_by_action(user.id_role, "EXPORTS")["R"]):
             raise Forbidden
 
         self._generate_file_name_and_dir()
