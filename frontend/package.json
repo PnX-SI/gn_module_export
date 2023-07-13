@@ -7,8 +7,7 @@
     "format": "prettier --config .prettierrc --write '**/*.ts'",
     "format:check": "prettier --config .prettierrc --check '**/*.ts'"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "prettier": "^3.0.0"
   }
