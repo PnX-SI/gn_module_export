@@ -72,7 +72,7 @@ class ExportRequest:
         self.format = format
 
         if user and not self.export.has_instance_permission(
-            user=user, scope=get_scopes_by_action(user.id_role, "EXPORT")["R"]
+            user=user, scope=get_scopes_by_action(user.id_role, "EXPORTS")["R"]
         ):
             raise Forbidden
 
