@@ -71,7 +71,9 @@ class ExportRequest:
         self.user = user
         self.format = format
 
-        if user and not self.export.has_instance_permission(user, scope=get_scopes_by_action(user.id_role, "EXPORTS")["R"]):
+        if user and not self.export.has_instance_permission(
+            user=user, scope=get_scopes_by_action(user.id_role, "EXPORTS")["R"]
+        ):
             raise Forbidden
 
         self._generate_file_name_and_dir()
