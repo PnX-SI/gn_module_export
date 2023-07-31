@@ -13,7 +13,7 @@ import sqlalchemy as sa
 revision = "4cac712a2ce6"
 down_revision = "c2d02e345a06"
 branch_labels = None
-depends_on = None
+depends_on = ("09a637f06b96",)  # Geonature Notifications
 
 
 CATEGORY_CODE = "EXPORT-DONE"

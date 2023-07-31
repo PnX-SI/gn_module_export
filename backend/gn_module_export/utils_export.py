@@ -109,12 +109,11 @@ class ExportRequest:
                 raise ExportGenerationNotNeeded(self.export.id, self.skip_newer_than - age)
 
     def get_export_url(self):
-        with current_app.test_request_context():
-            return url_for(
-                "media",
-                filename=f"{self.media_dir}/{self.file_name}",
-                _external=True,
-            )
+        return url_for(
+            "media",
+            filename=f"{self.media_dir}/{self.file_name}",
+            _external=True,
+        )
 
     def get_full_path_file_name(self):
         return str(Path(self.export_dir) / self.file_name)
