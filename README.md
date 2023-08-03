@@ -78,7 +78,7 @@ mv ~/gn_module_export-X.Y.Z ~/gn_module_export
   copiez le vers le dossier de configuration centralisée de GeoNature :
 
 ```bash
-cp ~/gn_module_export_old/config/conf_gn_module.toml  ~/geonature/config/exports_conf.toml
+cp ~/gn_module_export_old/config/conf_gn_module.toml  ~/geonature/config/exports_config.toml
 ```
 
 - Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports depuis le dossier `~/gn_module_export_old/backend/templates/swagger/`.
