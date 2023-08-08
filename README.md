@@ -52,6 +52,7 @@ mv ~/gn_module_export-X.Y.Z ~/gn_module_export
 source ~/geonature/backend/venv/bin/activate
 geonature install-gn-module ~/gn_module_export EXPORTS
 sudo systemctl restart geonature
+sudo systemctl restart geonature-worker
 deactivate
 ```
 
