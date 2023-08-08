@@ -1,12 +1,13 @@
+CHANGELOG
+=========
 
 1.5.2 (2023-08-08)
 ------------------
 
 **🐛 Corrections**
 
-- Correction de l'echec des exports de gros volumes via la mise à jour de `utils-flask-sqlalchemy` en 0.3.5
-- Correction d'une mauvaise vérification des droits sur les exports privés (#191)
-- Correction de dépendances de révision alembic
+- Correction de l'échec des exports de gros volumes via la mise à jour de `utils-flask-sqlalchemy` en version 0.3.5
+- Correction d'une mauvaise vérification des permissions sur les exports privés (#191)
 
 1.5.1 (2023-07-11)
 ------------------
@@ -16,7 +17,6 @@
 - Correction de l'URL des exports générés à la demande (#187)
 - Correction de la dépendance de la migration d'ajout de notifications de génération des exports (#185)
 - Correction du module_code vérifié pour les permissions d'accès à un export
-
 
 1.5.0 (2023-06-07) - Workshop 2023
 ----------------------------------
@@ -68,7 +68,7 @@ Si vous mettez à jour le module :
   ```
 
 1.4.0 (2023-03-27)
-==================
+------------------
 
 Nécessite la version 2.12.0 (ou plus) de GeoNature.
 
@@ -121,7 +121,7 @@ Nécessite la version 2.12.0 (ou plus) de GeoNature.
     avec Celery Beat.
 
 1.3.0 (2022-11-02)
-==================
+------------------
 
 Nécessite la version 2.10.0 (ou plus) de GeoNature.
 
@@ -159,7 +159,7 @@ deactivate
 ```
 
 1.2.8 (2022-01-13)
-==================
+------------------
 
 Nécessite la version 2.9 de GeoNature. Non compatible avec les versions
 2.10 et supérieures de GeoNature.
@@ -172,7 +172,7 @@ Nécessite la version 2.9 de GeoNature. Non compatible avec les versions
     fichiers exportés
 
 1.2.7 (2021-12-21)
-==================
+------------------
 
 Nécessite la version 2.8.0 (ou plus) de GeoNature
 
@@ -192,7 +192,7 @@ gn_exports_run_cron_export_dsw  # Export des données de la synthese au format D
 * Correction du conflit de permissions entre rôle et organisme (#108)
 
 1.2.6 (2021-10-08)
-==================
+------------------
 
 Nécessite la version 2.8.0 (ou plus) de GeoNature
 
@@ -202,7 +202,7 @@ Nécessite la version 2.8.0 (ou plus) de GeoNature
 * Ajout des ID dans la liste des exports (#103)
 
 1.2.5 (2021-07-30)
-==================
+------------------
 
 **🐛 Corrections**
 
@@ -216,14 +216,14 @@ Nécessite la version 2.8.0 (ou plus) de GeoNature
     jour `data/migrations/1.2.4to1.2.5.sql`
 
 1.2.4 (2021-01-05)
-==================
+------------------
 
 **🐛 Corrections**
 
 * Ajout d'un test de chargement de la configuration du module (#90)
 
 1.2.3 (2020-12-22)
-==================
+------------------
 
 **🐛 Corrections**
 
@@ -231,7 +231,7 @@ Nécessite la version 2.8.0 (ou plus) de GeoNature
     `config/conf_schema_toml.py` (#90)
 
 1.2.2 (2020-12-18)
-==================
+------------------
 
 **🚀 Nouveautés**
 
@@ -244,7 +244,7 @@ Nécessite la version 2.8.0 (ou plus) de GeoNature
 * Le formulaire d'export conserve l'email de l'utilisateur connecté
 
 1.2.1 (2020-11-18)
-==================
+------------------
 
 Nécessite la version 2.5.4 de GeoNature.
 
@@ -254,7 +254,7 @@ Nécessite la version 2.5.4 de GeoNature.
     formulaire de téléchargement (#50)
 
 1.2.0 (2020-11-13)
-==================
+------------------
 
 Nécessite la version 2.5.0 minimum de GeoNature, du fait de la mise à
 jour du standard Occurrences de taxon du SINP en version 2.0
@@ -285,7 +285,7 @@ jour du standard Occurrences de taxon du SINP en version 2.0
     adaptez cette vue comme vous le souhaitez.
 
 1.1.0 (2020-07-02)
-==================
+------------------
 
 Compatible avec GeoNature 2.4 minimum.
 
@@ -324,7 +324,7 @@ Compatible avec GeoNature 2.4 minimum.
     (https://github.com/PnX-SI/gn_module_export/blob/master/README.md#url-des-fichiers).
 
 1.0.4 (2020-05-14)
-==================
+------------------
 
 **🚀 Nouveautés**
 
@@ -356,7 +356,7 @@ Compatible avec GeoNature 2.4 minimum.
     (`gn_exports.v_synthese_sinp`)
 
 1.0.3 (2020-04-24)
-==================
+------------------
 
 **🐛 Corrections**
 
@@ -373,14 +373,14 @@ Compatible avec GeoNature 2.4 minimum.
     module
 
 1.0.2 (2020-04-22)
-==================
+------------------
 
 **🐛 Corrections**
 
 * Correction d'un bug quand l'utilisateur n'a pas d'email
 
 1.0.1 (2020-04-20)
-==================
+------------------
 
 **🚀 Nouveautés**
 
@@ -397,7 +397,7 @@ Compatible avec GeoNature 2.4 minimum.
     l'utilisation du paramètre `export_format_map` (#53)
 
 1.0.0 (2020-02-21)
-==================
+------------------
 
 Compatible avec GeoNature 2.3.2.
 
@@ -432,7 +432,7 @@ Compatible avec GeoNature 2.3.2.
 * Ajout du format GeoJSON pour les exports
 
 0.2.0 (2019-12-30)
-==================
+------------------
 
 **🚀 Nouveautés**
 
@@ -446,7 +446,7 @@ Compatible avec GeoNature 2.3.2.
 * Corrections mineures de l'administration des exports
 
 0.1.0
-=====
+-----
 
 Première version fonctionelle du module Export de GeoNature
 
