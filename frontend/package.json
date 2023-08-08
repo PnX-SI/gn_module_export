@@ -3,6 +3,10 @@
   "version": "1.4.0",
   "description": "GeoNature export data module",
   "license": "GPLv3",
-  "dependencies": {},
-  "devDependencies": {}
+  "scripts": {
+    "format": "prettier --config .prettierrc --ignore-path .prettierignore --write '**/*.ts' "
+  },
+  "devDependencies": {
+    "prettier": "^3.0.1"
+  }
 }
