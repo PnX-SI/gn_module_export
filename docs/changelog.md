@@ -1,4 +1,23 @@
 
+1.5.2 (2023-08-08)
+------------------
+
+**🐛 Corrections**
+
+- Correction de l'echec des exports de gros volumes via la mise à jour de `utils-flask-sqlalchemy` en 0.3.5
+- Correction d'une mauvaise vérification des droits sur les exports privés (#191)
+- Correction de dépendances de révision alembic
+
+1.5.1 (2023-07-11)
+------------------
+
+**🐛 Corrections**
+
+- Correction de l'URL des exports générés à la demande (#187)
+- Correction de la dépendance de la migration d'ajout de notifications de génération des exports (#185)
+- Correction du module_code vérifié pour les permissions d'accès à un export
+
+
 1.5.0 (2023-06-07) - Workshop 2023
 ----------------------------------
 
