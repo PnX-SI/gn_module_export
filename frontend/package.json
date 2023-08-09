@@ -4,7 +4,8 @@
   "description": "GeoNature export data module",
   "license": "GPLv3",
   "scripts": {
-    "format": "prettier --config .prettierrc --ignore-path .prettierignore --write '**/*.ts' "
+    "format": "prettier --config .prettierrc --ignore-path .prettierignore --write '**/*.ts' ",
+    "format:check": "prettier --config .prettierrc --ignore-path .prettierignore '**/*.ts' "
   },
   "devDependencies": {
     "prettier": "^3.0.1"
