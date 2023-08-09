@@ -14,22 +14,7 @@ Module permettant d'ajouter des fonctionnalités globales et transversales d'exp
 
 # Installation du module
 
-## Configuration
-
-### Paramètres
-
-* ``export_dsw_dir`` : chemin absolu ou relatif au dossier media du dossier où l'export sémantique au format Darwin-SW sera réalisé
-* ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
-* ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
-
-Vous pouvez modifier la configuration du module en créant un fichier
-`exports_config.toml` dans le dossier `config` de GeoNature, en vous inspirant
-du fichier `exports_config.toml.example` et en surcouchant les paramètres que vous souhaitez.
-
-Pour appliquer les modifications de la configuration du module, consultez
-la [rubrique dédiée de la documentation de GeoNature](https://docs.geonature.fr/installation.html#module-config).
-
-## Commande d'installation
+## Commandes d'installation
 
 - Téléchargez le module dans ``/home/<myuser>/``, en remplacant ``X.Y.Z`` par la version souhaitée
 
@@ -55,6 +40,23 @@ sudo systemctl restart geonature
 sudo systemctl restart geonature-worker
 deactivate
 ```
+
+Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le module (voir https://docs.geonature.fr/admin-manual.html#gestion-des-droits). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
+
+## Configuration
+
+### Paramètres
+
+* ``export_dsw_dir`` : chemin absolu ou relatif au dossier media du dossier où l'export sémantique au format Darwin-SW sera réalisé
+* ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
+* ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
+
+Vous pouvez modifier la configuration du module en créant un fichier
+`exports_config.toml` dans le dossier `config` de GeoNature, en vous inspirant
+du fichier `exports_config.toml.example` et en surcouchant les paramètres que vous souhaitez.
+
+Pour appliquer les modifications de la configuration du module, consultez
+la [rubrique dédiée de la documentation de GeoNature](https://docs.geonature.fr/installation.html#module-config).
 
 ## Mise à jour du module
 
