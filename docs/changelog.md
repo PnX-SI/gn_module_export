@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-1.6.0 (unreleased)
+1.6.0 (2023-08-23)
 ------------------
 
 Nécessite la version 2.13.0 (ou plus) de GeoNature
