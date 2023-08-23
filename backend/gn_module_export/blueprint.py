@@ -182,7 +182,7 @@ def getOneExportThread(scope, id_export, export_format):
     return to_json_resp(
         {
             "api_success": "in_progress",
-            "message": "The Process is in progress ! You will receive an email shortly",  # noqa 501
+            "message": "La génération du fichier est en cours ! Vous recevrez une notification quand le fichier sera prêt",  # noqa 501
         },
         status=200,
     )

@@ -332,7 +332,7 @@ COMMENT ON COLUMN gn_exports.v_synthese_sinp."methode_determination"  IS 'Descri
 
 -- Ajout d'un export par défaut basé sur la vue gn_exports.v_synthese_sinp
 INSERT INTO gn_exports.t_exports (label, schema_name, view_name, "desc", geometry_field, geometry_srid, public, id_licence)
-VALUES ('Synthese SINP', 'gn_exports', 'v_synthese_sinp', 'Export des données de la synthèse au standard SINP', 'geom', 4326, TRUE, 1);
+VALUES ('Synthese SINP', 'gn_exports', 'v_synthese_sinp', 'Export des données de la synthèse au standard SINP', 'geom', 4326, FALSE, 1);
 
 
 -- Vue des données de la synthèse au format DEE du SINP

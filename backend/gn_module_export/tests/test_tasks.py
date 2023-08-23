@@ -80,26 +80,28 @@ class TestExportsTasks:
             )
 
     def test_generate_users_exports(
-        self, export_directories, notifications_enabled, users, export_synthese_sinp
+        self, export_directories, notifications_enabled, users, exports
     ):
         export_request = ExportRequest(
-            id_export=export_synthese_sinp.id, format="csv", user=users["admin_user"]
+            id_export=exports["private_user_associated"].id, format="csv", user=users["self_user"]
         )
         generate_export(
             export_id=export_request.export.id,
             file_name=export_request.get_full_path_file_name(),
             export_url=None,
             format=export_request.format,
-            id_role=users["admin_user"].id_role,
+            id_role=users["self_user"].id_role,
             filters=None,
         )
         assert Path(export_request.get_full_path_file_name()).is_file()
 
         # Test notifications
         notifications = Notification.query.filter(
-            Notification.id_role == users["admin_user"].id_role
+            Notification.id_role == users["self_user"].id_role
         ).all()
         assert {notification.id_role for notification in notifications} == {
-            users["admin_user"].id_role
+            users["self_user"].id_role
         }
-        assert all(export_synthese_sinp.label in notif.content for notif in notifications)
+        assert all(
+            exports["private_user_associated"].label in notif.content for notif in notifications
+        )

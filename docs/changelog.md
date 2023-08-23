@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+1.6.0 (unreleased)
+------------------
+
+Nécessite la version 2.13.0 (ou plus) de GeoNature
+
+**🚀 Nouveautés**
+
+- Compatibilité avec GeoNature 2.13.0 et la refonte des permissions, en définissant les permissions disponibles du module (#183)
+- L'export "Synthese SINP", fourni par défaut lors de l'installation du module, n'est plus défini comme "public" pour les nouvelles installations, suite à l'ouverture sans authentification de l'API des exports publics (#184)
+
 1.5.2 (2023-08-08)
 ------------------
 
@@ -14,14 +24,14 @@ CHANGELOG
 
 **🐛 Corrections**
 
-- Correction de l'URL des exports générés à la demande (#187)
-- Correction de la dépendance de la migration d'ajout de notifications de génération des exports (#185)
-- Correction du module_code vérifié pour les permissions d'accès à un export
+* Correction de l'URL des exports générés à la demande (#187)
+* Correction de la dépendance de la migration d'ajout de notifications de génération des exports (#185)
+* Correction du `module_code` vérifié pour les permissions d'accès à un export
 
 1.5.0 (2023-06-07) - Workshop 2023
 ----------------------------------
 
-**Nouveautés**
+**🚀 Nouveautés**
 
 * Correction des performances de génération de gros fichiers en les construisant par blocs de lignes (#110, #132, #95, par @mvergez, @joelclems, @VicentCauchois, @bouttier)
 * Centralisation et factorisation des fonctions de génération de fichiers dans les sous-modules [Utils-Flask-SQLAlchemy](https://github.com/PnX-SI/Utils-Flask-SQLAlchemy) et [Utils-Flask-SQLAlchemy-Geo](https://github.com/PnX-SI/Utils-Flask-SQLAlchemy-Geo) (#143, par @joelclems, @mvergez, @VincentCauchois, @bouttier)
@@ -33,6 +43,7 @@ CHANGELOG
 * Suppression du champ permettant de renseigner un email lors de la demande de téléchargement d'un export (#170, par @amandine-sahl)
 * Révision, simplification et correction des permissions du module (#154, par @TheoLechemia, @ch-cna)
 * Simplification de l'association de rôles aux exports dans le module "Admin" en associant ceux-ci directement depuis le formulaire d'édition d'un export (#78, par @andriacap)
+* Les exports définis comme "Public" ont désormais leur API accessible de manière ouverte sans authentification
 * Suppression de la table `gn_exports.t_exports_logs` traçant les exports (#136, par @amandine-sahl)
 * Ajout du champ `gn_exports.t_exports.view_pk_column` permettant de spécifier la colonne d'unicité des vues d'exports (#149, par @amandine-sahl)
 * Mise en place d'une Github action pour lancer automatiquement les tests (#130 et #134, par @mvergez)
@@ -44,7 +55,7 @@ CHANGELOG
 * Remplacement de l'utilisation de `as_dict` au profit de marshmallow (#172, par @amandine-sahl)
 * Correction de la vue complémentaire (`gn_exports.v_synthese_sinp_dee`) au format DEE (#159, par @jpm-cbna)
 
-**Corrections**
+**🐛 Corrections**
 
 * Correction de l'installation (#133, par @ch-cbna)
 * Correction de l'URL de l'API listant les exports (#102, par @TheoLechemia)
@@ -54,8 +65,9 @@ CHANGELOG
 
 Si vous mettez à jour le module :
 
+* Les exports définis comme "Public" ont désormais leur API accessible de manière ouverte sans authentification. C'est donc le cas votre export SINP, si vous aviez gardé cet export public créé par défaut lors de l'installation du module
 * Si vous les aviez surcouché, supprimez les paramètres `export_schedules_dir`, `usr_generated_dirname` et `export_web_url` de la configuration du module
-* La table listant les exports réalisée (`gn_exports.t_exports_logs`) sera automatiquement supprimée
+* La table listant les exports réalisés (`gn_exports.t_exports_logs`) sera automatiquement supprimée
 * Les exports au format SHP seront convertis automatiquement en export au format GPKG. Attention si vous aviez des exports planifiés au format SHP, leur URL changera avec le même nom mais avec l'extension `.gpkg`.
 * Les droits d'accès au module et aux exports ne se basent désormais plus que sur l'action R (read), et non plus E (export).
 * Une colomne permettant d'indiquer le champ d'unicité des vues a été ajoutée dans la table des exports (`gn_exports.t_exports.view_pk_column`). Pour les exports existants, cette colonne est automatiquement remplie avec la valeur de la première colonne des vues exports. Vous pouvez vérifier ou modifier ce champs pour les exports existants.

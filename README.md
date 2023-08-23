@@ -14,21 +14,7 @@ Module permettant d'ajouter des fonctionnalités globales et transversales d'exp
 
 # Installation du module
 
-## Configuration
-
-### Paramètres
-* ``export_dsw_dir`` : chemin absolu ou relatif au dossier media du dossier où l'export sémantique au format Darwin-SW sera réalisé
-* ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
-* ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
-
-Vous pouvez modifier la configuration du module en créant un fichier
-`exports_config.toml` dans le dossier `config` de GeoNature, en vous inspirant
-du fichier `exports_config.toml.example` et en surcouchant les paramètres que vous souhaitez.
-
-Pour appliquer les modifications de la configuration du module, consultez
-la [rubrique dédiée de la documentation de GeoNature](https://docs.geonature.fr/installation.html#module-config).
-
-## Commande d'installation
+## Commandes d'installation
 
 - Téléchargez le module dans ``/home/<myuser>/``, en remplacant ``X.Y.Z`` par la version souhaitée
 
@@ -51,8 +37,26 @@ mv ~/gn_module_export-X.Y.Z ~/gn_module_export
 source ~/geonature/backend/venv/bin/activate
 geonature install-gn-module ~/gn_module_export EXPORTS
 sudo systemctl restart geonature
+sudo systemctl restart geonature-worker
 deactivate
 ```
+
+Il vous faut désormais attribuer des permissions aux groupes ou utilisateurs que vous souhaitez, pour qu'ils puissent accéder et utiliser le module (voir https://docs.geonature.fr/admin-manual.html#gestion-des-droits). Si besoin une commande permet d'attribuer automatiquement toutes les permissions dans tous les modules à un groupe ou utilisateur administrateur.
+
+## Configuration
+
+### Paramètres
+
+* ``export_dsw_dir`` : chemin absolu ou relatif au dossier media du dossier où l'export sémantique au format Darwin-SW sera réalisé
+* ``export_dsw_filename`` : nom du fichier de l'export sémantique au format turtle (``.ttl``)
+* ``expose_dsw_api`` : Indique si la route d'appel à l'API du Darwin SW est active ou non. Par défaut la route n'est pas activée.
+
+Vous pouvez modifier la configuration du module en créant un fichier
+`exports_config.toml` dans le dossier `config` de GeoNature, en vous inspirant
+du fichier `exports_config.toml.example` et en surcouchant les paramètres que vous souhaitez.
+
+Pour appliquer les modifications de la configuration du module, consultez
+la [rubrique dédiée de la documentation de GeoNature](https://docs.geonature.fr/installation.html#module-config).
 
 ## Mise à jour du module
 
@@ -77,7 +81,7 @@ mv ~/gn_module_export-X.Y.Z ~/gn_module_export
   copiez le vers le dossier de configuration centralisée de GeoNature :
 
 ```bash
-cp ~/gn_module_export_old/config/conf_gn_module.toml  ~/geonature/config/exports_conf.toml
+cp ~/gn_module_export_old/config/conf_gn_module.toml  ~/geonature/config/exports_config.toml
 ```
 
 - Rapatriez aussi vos éventuelles surcouches des documentations Swagger des exports depuis le dossier `~/gn_module_export_old/backend/templates/swagger/`.
@@ -98,7 +102,7 @@ Pour créer un nouvel export, il faut au préalable créer une vue dans la base 
 
 Pour des questions de lisibilité, il est conseillé de créer la vue dans le schéma ``gn_exports``.
 
-Par défaut, un export public (accessible à tous les utilisateurs ayant accès au module Export d'une instance GeoNature) est créé basé sur la vue ``gn_exports.v_synthese_sinp``, contenant toutes les données présentes dans la Synthèse. Il est possible de limiter les données dans cet exeport (en ajoutant des critères dans la clause WHERE de la vue ``gn_exports.v_synthese_sinp``), de supprimer cet export ou de le limiter à certains utilisateurs uniquement.
+Par défaut, un export est créé, basé sur la vue ``gn_exports.v_synthese_sinp``, contenant toutes les données présentes dans la Synthèse. Il est possible de limiter les données dans cet exeport (en ajoutant des critères dans la clause WHERE de la vue ``gn_exports.v_synthese_sinp``), de supprimer cet export, de le rendre public ou de définir quels utilisateur y ont accès.
 
 Les fichiers exportés sont automatiquement supprimés 15 jours après avoir été générés (durée configurable avec le paramètre ``nb_days_keep_file``).
 
@@ -110,11 +114,14 @@ Dans la rubrique "Exports", sélectionner le menu ``Export`` puis cliquer sur ``
 
 ## Associer les roles ayant la permission d'accéder à cet export
 
-Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs ayant accès au module pourront accéder à cet export. Sinon il est possible de définir les rôles (utilisateurs ou groupes) qui peuvent accéder à un export.
+Si l'export est défini comme "Public" (``gn_exports.t_exports.public = True``), alors tous les utilisateurs ayant accès au module pourront accéder à cet export. Et son API sera accessible et ouverte publiquement, sans authentification.
+Sinon il est possible de définir les rôles (utilisateurs ou groupes) qui peuvent accéder à un export.
 
-- R SCOPE 1 : J'accède au module, je vois et accède aux exports qui me sont associés ou à un groupe auquel j'appartiens.
-- R SCOPE 3 : J'accède au module, je vois et accède à tous les exports
-- C : Permet de créer des exports dans le module ADMIN (si j'ai accès à celui-ci)
+Les permissions, définies à l'utilisateur ou à son groupe sur le module, permettent de donner accès aux exports de cette manière :
+
+- Action R / SCOPE 1 : J'accède au module, je vois et accède aux exports qui me sont associés ou à un groupe auquel j'appartiens
+- Action R / SCOPE 3 : J'accède au module, je vois et accède à tous les exports
+- Action C, U et D : Permet de créer, modifier ou supprimer des exports dans le module ADMIN (si j'ai accès à celui-ci)
 
 # API JSON et documentation Swagger d'un export
 
@@ -122,7 +129,10 @@ Pour chaque export créé, une API JSON filtrable est automatiquement créée à
 
 Si l'export est associé à certains rôles, ceux-ci peuvent accéder à l'API JSON de l'export grace à un token auto-généré pour chaque rôle associé à un export.
 <URL_GEONATURE>/api/export/<ID_EXPORT>?token=xxxxxxxxx.
+
 Il est aussi possible d'accéder à l'API en étant authentifié à GeoNature avec l'utilisateur ayant accès à l'export.
+
+Il est également possible de passer le token via le header de la requête ("Authorization": "Bearer <token>").
 
 Par défaut, une documentation Swagger est générée automatiquement pour chaque export à l'adresse ``<URL_GeoNature>/api/exports/swagger/<id_export>``, permettant de tester chaque API et d'identifier leurs filtres. Chaque champ est documenté automatiquement en affichant son commentaire défini dans la vue de l'export.
 
