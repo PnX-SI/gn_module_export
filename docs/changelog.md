@@ -65,7 +65,7 @@ Nécessite la version 2.13.0 (ou plus) de GeoNature
 
 Si vous mettez à jour le module :
 
-* Les exports définis comme "Public" ont désormais leur API accessible de manière ouverte sans authentification. C'est donc le cas votre export SINP, si vous aviez gardé cet export public créé par défaut lors de l'installation du module
+* Les exports définis comme "Public" ont désormais leur API accessible de manière ouverte sans authentification. C'est donc le cas de votre export SINP, si vous aviez gardé cet export public créé par défaut lors de l'installation du module
 * Si vous les aviez surcouché, supprimez les paramètres `export_schedules_dir`, `usr_generated_dirname` et `export_web_url` de la configuration du module
 * La table listant les exports réalisés (`gn_exports.t_exports_logs`) sera automatiquement supprimée
 * Les exports au format SHP seront convertis automatiquement en export au format GPKG. Attention si vous aviez des exports planifiés au format SHP, leur URL changera avec le même nom mais avec l'extension `.gpkg`.
