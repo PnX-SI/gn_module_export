@@ -217,7 +217,7 @@ def get_one_export_api(id_export):
     offset : numéro de page
     token : clé de l'API permettant de se passer de la connexion via un
         cookie. Peut aussi être transmis dans un entête HTTP
-        `Authorization: Bearer <token>`.
+        `AuthorizationExport: Bearer <token>`.
 
     FILTRES :
         nom_col=val: Si nom_col fait partie des colonnes
@@ -265,15 +265,16 @@ def get_one_export_api(id_export):
     token = request.args.get("token", default=None, type=str)
 
     # Try to extract token from Bearer Authorization HTTP Header
-    bearer = request.headers.get("Authorization", default=None, type=str)
-    if token is None and bearer is not None:
-        token = bearer.lstrip("Bearer ")
+    headerToken = request.headers.get("api-key", default=None, type=str)
+    if not token and headerToken:
+        token = headerToken
 
     user = g.current_user
 
     export = Export.query.get_or_404(id_export)
+
     scope = None
-    if user:
+    if user.is_authenticated:
         scope = get_scopes_by_action(user.id_role, "EXPORTS")["R"]
     if not export.has_instance_permission(user=user, token=token, scope=scope):
         raise Forbidden
