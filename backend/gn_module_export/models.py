@@ -121,6 +121,7 @@ class Export(DB.Model):
         scope=None,
         token=None,
     ):
+        print("test")
         if self.public:
             return True
         if token:

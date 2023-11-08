@@ -1,25 +1,16 @@
 """
     Fonctions permettant la génération des fichiers d'export
 """
-import os
-import json
-import shutil
-import time
 
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from flask import current_app, g, url_for
+from flask import current_app, url_for
 from geoalchemy2.shape import from_shape
 from shapely.geometry import asShape
 
 from werkzeug.exceptions import Forbidden
 
-from utils_flask_sqla.response import generate_csv_content
-from utils_flask_sqla_geo.utilsgeometry import (
-    FionaShapeService,
-    FionaGpkgService,
-)
 
 from geonature.utils.filemanager import removeDisallowedFilenameChars
 from geonature.utils.env import DB
@@ -67,14 +58,14 @@ class ExportRequest:
         format: str = None,
         skip_newer_than: int = None,
     ):
-        self.export = Export.query.get_or_404(id_export)
+        self.export: Export = Export.query.get_or_404(id_export)
         self.user = user
         self.format = format
-
-        if user and not self.export.has_instance_permission(
-            user=user, scope=get_scopes_by_action(user.id_role, "EXPORTS")["R"]
-        ):
-            raise Forbidden
+        if user:
+            scope = get_scopes_by_action(user.id_role, "EXPORTS")["R"]
+            permissions_ = self.export.has_instance_permission(user=user, scope=scope)
+            if not permissions_:
+                raise Forbidden
 
         self._generate_file_name_and_dir()
         if skip_newer_than:
@@ -134,7 +125,7 @@ def export_data_file(export_id, file_name, export_url, format, id_role, filters)
     .. str : nom du fichier
     """
 
-    export = Export.query.get(export_id)
+    export = DB.session.get(Export, export_id)
 
     try:
         export_as_file(

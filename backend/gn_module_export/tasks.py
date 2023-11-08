@@ -10,6 +10,8 @@ from celery.schedules import crontab
 from flask import current_app
 from geonature.utils.celery import celery_app
 
+from geonature.utils.env import db
+
 from .models import Export, ExportSchedules
 from .utils_export import (
     export_data_file,
@@ -56,7 +58,7 @@ def generate_scheduled_exports(self):
 @celery_app.task(bind=True, throws=ExportGenerationNotNeeded)
 def generate_export(self, export_id, file_name, export_url, format, id_role, filters):
     logger.info(f"Generate export {export_id}...")
-    export = Export.query.get(export_id)
+    export = db.session.get(Export, export_id)
     if export is None:
         logger.warning("Export {export_id} does not exist")
     export_data_file(export_id, file_name, export_url, format, id_role, filters)
