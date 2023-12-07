@@ -106,6 +106,7 @@ jobs:
       - name: Install export module backend
         run: |
           pip install -r requirements-dev.in
+          pip install .
       - name: Install import module database
         run: |
           geonature upgrade-modules-db EXPORTS

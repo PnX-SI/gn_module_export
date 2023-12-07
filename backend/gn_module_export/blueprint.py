@@ -271,7 +271,7 @@ def get_one_export_api(id_export):
 
     user = g.current_user
 
-    export = Export.query.get_or_404(id_export)
+    export = DB.get_or_404(Export, id_export)
 
     scope = None
     if user.is_authenticated:

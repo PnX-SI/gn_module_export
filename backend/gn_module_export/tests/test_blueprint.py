@@ -6,8 +6,6 @@ from flask import url_for
 from werkzeug.datastructures import Headers
 
 from geonature.tests.fixtures import *
-
-# from geonature.tests.utils import set_logged_user_cookie
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from .fixtures import *
