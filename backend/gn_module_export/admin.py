@@ -1,4 +1,5 @@
-from flask import Markup, current_app, flash
+from flask import current_app, flash
+from markupsafe import Markup
 from flask_admin.babel import gettext
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted

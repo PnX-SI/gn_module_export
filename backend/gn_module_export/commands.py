@@ -16,6 +16,7 @@ from gn_module_export.utils_export import (
     ExportGenerationNotNeeded,
     ExportRequest,
 )
+from geonature.utils.env import db
 
 
 @click.command()
@@ -38,30 +39,33 @@ def generate(export_id, export_format, user_id, skip_newer_than):
     """
     scheduled_export = None
     user = None
-
     if user_id:
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if not user:
             raise ClickException(f"User {user_id} not found.")
     else:
         # If not user_id => scheduled
+        print(1)
         scheduled_export = (
             ExportSchedules.query.filter(ExportSchedules.id_export == export_id)
             .filter(ExportSchedules.format == export_format)
             .first()
         )
+        print(2)
         if not scheduled_export:
             raise ClickException(f"Schedule export {export_id} format {export_format} not found.")
         # Parameter skip_newer_than overide scheduled_export.skip_newer_than property
         if not skip_newer_than:
             skip_newer_than = scheduled_export.skip_newer_than
     try:
+        print(3)
         export_request = ExportRequest(
             id_export=export_id,
             user=user,
             format=export_format,
             skip_newer_than=skip_newer_than,
         )
+        print(4)
     except NotFound:
         raise ClickException(f"Export {export_id} not found.")
     except Forbidden:

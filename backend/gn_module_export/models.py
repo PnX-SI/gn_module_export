@@ -125,13 +125,11 @@ class Export(DB.Model):
             return True
         if token:
             return token in map(lambda cor: cor.token, self.cor_roles_exports)
-        if user is None:
-            user = g.current_user
-        if user is None:  # no user provided and no user connected
+        if not user.is_authenticated:  # no user provided and no user connected
             return False
         if scope == 3:
             return True
-        if scope in (1, 2):
+        if 0 < scope < 3:
             allowed_id_roles = list(map(lambda user: user.id_role, self.allowed_roles))
             ids_group_of_user = list(map(lambda group: group.id_role, user.groups))
             return user.id_role in allowed_id_roles or set(ids_group_of_user) & set(

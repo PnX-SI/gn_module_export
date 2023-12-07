@@ -6,7 +6,6 @@ from flask import url_for
 from werkzeug.datastructures import Headers
 
 from geonature.tests.fixtures import *
-from geonature.tests.utils import set_logged_user_cookie
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from .fixtures import *
@@ -56,7 +55,7 @@ class TestExportsBlueprints:
         headers = Headers()
         headers.extend(
             {
-                "Authorization": f"Bearer {token}",
+                "api-key": token,
             }
         )
 
@@ -67,7 +66,7 @@ class TestExportsBlueprints:
             ),
             headers=headers,
         )
-        assert response.request.headers["Authorization"] == f"Bearer {token}"
+        assert response.request.headers["api-key"] == token
         assert response.status_code == 200
 
     def test_private_export_with_token_in_header_Authorization(self, users, exports):
@@ -76,7 +75,7 @@ class TestExportsBlueprints:
         headers = Headers()
         headers.extend(
             {
-                "Authorization": token,
+                "api-key": token,
             }
         )
 
@@ -87,7 +86,7 @@ class TestExportsBlueprints:
             ),
             headers=headers,
         )
-        assert response.request.headers["Authorization"] == token
+        assert response.request.headers["api-key"] == token
         assert response.status_code == 200
 
     def test_private_export_with_allowed_id_role(self, users, exports):

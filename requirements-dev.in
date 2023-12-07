@@ -1,0 +1,2 @@
+rdflib
+-r dependencies/GeoNature/backend/requirements-common.in

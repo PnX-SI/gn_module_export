@@ -7,7 +7,8 @@ import tempfile
 import os
 
 from geonature.tests.fixtures import *
-from geonature.tests.utils import set_logged_user_cookie
+
+# from geonature.tests.utils import set_logged_user_cookie
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from geonature.core.notifications.models import Notification
@@ -22,7 +23,7 @@ from gn_module_export.tests.fixtures import exports
 from .fixtures import *
 
 
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class", "temporary_transaction", "g_permissions")
 class TestExportsTasks:
     # deletes the files hand created files
     def test_export_clean(self, export_directories):

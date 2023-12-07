@@ -8,7 +8,7 @@ from gn_module_export.commands import generate
 from .fixtures import *
 
 
-@pytest.mark.usefixtures("client_class", "temporary_transaction")
+@pytest.mark.usefixtures("client_class", "temporary_transaction", "g_permissions")
 class TestExportsCommands:
     # deletes the files hand created files
     def test_generate_user(self, export_directories, exports, users):
@@ -23,6 +23,7 @@ class TestExportsCommands:
                 users["admin_user"].id_role,
             ],
         )
+        # print(result.stdout)
         assert result.exit_code == 0
 
         # Test skip-newer-than
@@ -67,4 +68,5 @@ class TestExportsCommands:
             generate,
             [str(exports_schedule.export.id), "--format", "csv"],
         )
+        print("-----", result.stdout)
         assert result.exit_code == 0
