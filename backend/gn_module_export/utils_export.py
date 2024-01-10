@@ -7,7 +7,6 @@ from pathlib import Path
 
 from flask import current_app, url_for
 from geoalchemy2.shape import from_shape
-from shapely.geometry import asShape
 
 from werkzeug.exceptions import Forbidden
 
