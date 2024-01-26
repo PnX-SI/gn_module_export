@@ -4,6 +4,7 @@ Revision ID: c2d02e345a06
 Create Date: 2022-01-13 16:32:22.721296
 
 """
+
 import importlib
 
 from alembic import op

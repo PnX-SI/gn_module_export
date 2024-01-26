@@ -5,6 +5,7 @@ Revises: c2d02e345a06
 Create Date: 2023-05-10 10:28:04.138154
 
 """
+
 from alembic import op
 from secrets import token_hex
 
