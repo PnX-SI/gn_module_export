@@ -21,7 +21,6 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from flask_cors import cross_origin
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scopes_by_action
 
@@ -144,11 +143,6 @@ def swagger_ressources(id_export=None):
 
 
 @blueprint.route("/<int:id_export>/<export_format>", methods=["POST"])
-@cross_origin(
-    supports_credentials=True,
-    allow_headers=["content-type", "content-disposition"],
-    expose_headers=["Content-Type", "Content-Disposition", "Authorization"],
-)
 @permissions.check_cruved_scope("R", module_code="EXPORTS", get_scope=True)
 def getOneExportThread(scope, id_export, export_format):
     """
