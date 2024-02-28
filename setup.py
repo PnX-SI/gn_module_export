@@ -41,6 +41,8 @@ setuptools.setup(
         "Intended Audience :: Developers",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.11",
         "License :: OSI Approved :: GNU Affero General Public License v3"
         "Operating System :: OS Independent",
     ],

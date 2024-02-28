@@ -1,6 +1,21 @@
 CHANGELOG
 =========
 
+1.7.0 (2023-08-23)
+------------------
+
+Nécessite la version 2.14.0 (ou plus) de GeoNature
+
+**🚀 Nouveautés**
+
+- Mise à jour vers SQLAlchemy 1.4 (#204)
+- Bump de `black` en version 24 (#206)
+
+**🐛 Corrections**
+
+- Fix de l'import de `shapely` (#205)
+- Changement des urls des sous-modules (SSH -> HTTPS) (#203)
+
 1.6.0 (2023-08-23)
 ------------------
 
