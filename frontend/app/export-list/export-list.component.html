@@ -1,4 +1,7 @@
-<div id="all" class="container-fluid">
+<div
+  id="all"
+  class="container-fluid"
+>
   <div class="wrapper row">
     <div class="container card">
       <div class="card-body">
@@ -8,12 +11,19 @@
         </div>
         <!-- Liste des exports disponibles au téléchargement -->
         <div *ngIf="exports">
-          <div class="card export-card mb-3" *ngFor="let export of exports; let i = index">
+          <div
+            class="card export-card mb-3"
+            *ngFor="let export of exports; let i = index"
+          >
             <div class="card-body">
               <h5 class="card-title">
-                <span class="badge badge-info" title="ID de l'export" data-toggle="tooltip">{{
-                  export.id
-                }}</span>
+                <span
+                  class="badge badge-info"
+                  title="ID de l'export"
+                  data-toggle="tooltip"
+                >
+                  {{ export.id }}
+                </span>
                 {{ export.label }}
               </h5>
               <p class="card-text">{{ export.desc }}</p>
@@ -43,7 +53,10 @@
                   Token
                 </button>
               </div>
-              <div class="ctn-token" [hidden]="!objectToken[i].display">
+              <div
+                class="ctn-token"
+                [hidden]="!objectToken[i].display"
+              >
                 <p>Token : "{{ objectToken[i].token }}" copié</p>
               </div>
             </div>
@@ -57,7 +70,11 @@
   </div>
 
   <!-- Modal Téléchargement Popup-->
-  <ng-template #export_download let-c="close" let-d="dismiss">
+  <ng-template
+    #export_download
+    let-c="close"
+    let-d="dismiss"
+  >
     <div class="modal-content">
       <!-- Modal content-->
       <div class="modal-header">
@@ -67,7 +84,7 @@
       <div class="modal-body">
         <!-- Formulaire pour le choix des standards et des formats de téléchargement des fichiers -->
         <form [formGroup]="modalForm">
-          <label> Choisissez un format </label>
+          <label>Choisissez un format</label>
           <select
             class="form-control"
             id="formatSelection"
@@ -91,7 +108,10 @@
             class="wrapper-licence"
             [ngClass]="{ 'checkbox-invalid': !modalForm.controls['exportLicence'].valid }"
           >
-            <div class="form-check" id="checkLicence">
+            <div
+              class="form-check"
+              id="checkLicence"
+            >
               <input
                 type="checkbox"
                 class="form-check-input"
@@ -99,7 +119,10 @@
                 formControlName="exportLicence"
                 required
               />
-              <label class="form-check-label" for="exportLicence">
+              <label
+                class="form-check-label"
+                for="exportLicence"
+              >
                 Accepter la licence
                 <a
                   href="{{ _export.licence.url_licence }}"
@@ -107,7 +130,7 @@
                   title="Lire la licence"
                   target="_blank"
                 >
-                  <b> {{ _export.licence.name_licence }} </b>
+                  <b>{{ _export.licence.name_licence }}</b>
                 </a>
               </label>
             </div>
@@ -115,7 +138,10 @@
         </form>
       </div>
       <!-- Bouton de fermeture de la modal pop-up ou lancement du téléchargement -->
-      <div class="modal-footer" id="choicePopup">
+      <div
+        class="modal-footer"
+        id="choicePopup"
+      >
         <button
           type="submit"
           class="btn btn-danger"

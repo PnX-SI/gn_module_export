@@ -38,7 +38,7 @@ export class ExportListComponent implements OnInit {
     private _commonService: CommonService,
     private _userService: UserDataService,
     public _authService: AuthService,
-    public config: ConfigService,
+    public config: ConfigService
   ) {
     this.exportFormat = this.config.EXPORTS['export_format_map'];
     this.api_endpoint = `${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}`;
@@ -62,7 +62,7 @@ export class ExportListComponent implements OnInit {
             element.cor_roles_exports.splice(1);
           });
           return exports;
-        }),
+        })
       )
       .subscribe(
         (exports: Export[]) => {
@@ -82,10 +82,10 @@ export class ExportListComponent implements OnInit {
         (errorMsg: ApiErrorResponse) => {
           this._commonService.regularToaster(
             'error',
-            errorMsg.error.message ? errorMsg.error.message : errorMsg.message,
+            errorMsg.error.message ? errorMsg.error.message : errorMsg.message
           );
           this.loadingIndicator = false;
-        },
+        }
       );
   }
 
@@ -118,15 +118,15 @@ export class ExportListComponent implements OnInit {
         (response) => {
           this._commonService.regularToaster(
             'success',
-            response && response.message ? response.message : '',
+            response && response.message ? response.message : ''
           );
         },
         (response: ApiErrorResponse) => {
           this._commonService.regularToaster(
             'error',
-            response.error.message ? response.error.message : response.message,
+            response.error.message ? response.error.message : response.message
           );
-        },
+        }
       );
     }
   }
