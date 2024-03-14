@@ -24,7 +24,7 @@ export interface ApiErrorResponse extends HttpErrorResponse {
 export class ExportService {
   constructor(
     private _api: HttpClient,
-    public config: ConfigService,
+    public config: ConfigService
   ) {}
 
   getExports() {
@@ -35,7 +35,7 @@ export class ExportService {
   downloadExport(x: Export, format: string) {
     return this._api.post<any>(
       `${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}/${x.id}/${format}`,
-      {},
+      {}
     );
   }
 }
