@@ -21,3 +21,5 @@ class GnModuleSchemaConf(Schema):
     nb_days_keep_file = fields.Int(load_default=15)
     csv_separator = fields.String(load_default=";")
     expose_dsw_api = fields.Boolean(load_default=False)
+    max_page_size = fields.Int(load_default=1000)
+    default_page_size = fields.Int(load_default=1000)

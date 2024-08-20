@@ -254,7 +254,9 @@ def get_one_export_api(id_export):
 
         order by : @TODO
     """
-    limit = request.args.get("limit", default=1000, type=int)
+    limit = request.args.get(
+        "limit", default=current_app.config["EXPORTS"]["default_page_size"], type=int
+    )
     offset = request.args.get("offset", default=0, type=int)
     token = request.args.get("token", default=None, type=str)
 
@@ -273,8 +275,8 @@ def get_one_export_api(id_export):
     if not export.has_instance_permission(user=user, token=token, scope=scope):
         raise Forbidden
 
-    if limit > 1000:
-        limit = 1000
+    # Capping of the “limit” variable
+    limit = min(limit, current_app.config["EXPORTS"]["max_page_size"])
 
     args = request.args.to_dict()
     if "limit" in args:
@@ -285,7 +287,7 @@ def get_one_export_api(id_export):
         args.pop("token")
     filters = {f: args.get(f) for f in args}
 
-    if not "orderby" in filters:
+    if "orderby" not in filters:
         filters["orderby"] = export.view_pk_column
 
     query = export.get_view_query(limit=limit, offset=offset, filters=filters)
@@ -343,7 +345,9 @@ if public_config.get("EXPORTS", False) and public_config["EXPORTS"]["expose_dsw_
 
         from .rdf import generate_store_dws
 
-        limit = request.args.get("limit", default=1000, type=int)
+        limit = request.args.get(
+            "limit", default=current_app.config["EXPORTS"]["default_page_size"], type=int
+        )
         offset = request.args.get("offset", default=0, type=int)
 
         args = request.args.to_dict()
