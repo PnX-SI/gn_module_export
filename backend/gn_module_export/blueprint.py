@@ -255,7 +255,7 @@ def get_one_export_api(id_export):
         order by : @TODO
     """
     limit = request.args.get(
-        "limit", default=current_app.config["EXPORTS"]["default_page_size"], type=int
+        "limit", default=current_app.config["EXPORTS"]["default_page_size_api"], type=int
     )
     offset = request.args.get("offset", default=0, type=int)
     token = request.args.get("token", default=None, type=str)
@@ -276,7 +276,7 @@ def get_one_export_api(id_export):
         raise Forbidden
 
     # Capping of the “limit” variable
-    limit = min(limit, current_app.config["EXPORTS"]["max_page_size"])
+    limit = min(limit, current_app.config["EXPORTS"]["max_page_size_api"])
 
     args = request.args.to_dict()
     if "limit" in args:
@@ -346,7 +346,7 @@ if public_config.get("EXPORTS", False) and public_config["EXPORTS"]["expose_dsw_
         from .rdf import generate_store_dws
 
         limit = request.args.get(
-            "limit", default=current_app.config["EXPORTS"]["default_page_size"], type=int
+            "limit", default=current_app.config["EXPORTS"]["default_page_size_api"], type=int
         )
         offset = request.args.get("offset", default=0, type=int)
 
