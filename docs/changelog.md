@@ -1,5 +1,10 @@
-CHANGELOG
-=========
+# CHANGELOG
+
+## 1.7.1 (2024-xx-xx)
+
+### 🐛 Corrections
+
+- Ajout de paramètres de configuration pour la pagination des exports (#212).
 
 1.7.0 (2023-08-23)
 ------------------
