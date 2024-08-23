@@ -1,7 +1,7 @@
 ## Nombre de jours après lequel les fichiers exportés sont supprimés automatiquement sur le serveur
 nb_days_keep_file = 15
 
-## Valeurs par défaut et max de la pagination des exports
+## Valeurs par défaut et max de la pagination des API des exports
 ## <!> Attention, une valeur trop grande peut impacter les performances du serveur
 default_page_size_api = 1000
 max_page_size_api = 1000
@@ -10,6 +10,5 @@ max_page_size_api = 1000
 export_dsw_dir = 'exports/dsw/'
 export_dsw_filename = 'export_dsw.ttl'
 
-
-# Indique si la route appel à l'api du Darwin SW est active ou non
+# Indique si la route appel à l'API du Darwin SW est active ou non
 expose_dsw_api = false
