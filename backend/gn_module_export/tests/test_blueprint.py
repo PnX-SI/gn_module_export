@@ -189,11 +189,13 @@ class TestExportsBlueprints:
         )
         assert response.status_code == 200, response.data
 
-        unordered_id_synthese = [i["id_synthese"] for i in response.json["items"]]
+        unordered_id_synthese = [
+            i["properties"]["id_synthese"] for i in response.json["items"]["features"]
+        ]
         ordered_id_synthese = sorted(unordered_id_synthese)
         assert ordered_id_synthese == unordered_id_synthese
 
-        unordered_cd_noms = [i["cd_nom"] for i in response.json["items"]]
+        unordered_cd_noms = [i["properties"]["cd_nom"] for i in response.json["items"]["features"]]
         ordered_cd_noms = sorted(unordered_cd_noms)
         assert ordered_cd_noms != unordered_cd_noms
         assert set(ordered_cd_noms).issubset(set(unordered_cd_noms))
@@ -204,7 +206,7 @@ class TestExportsBlueprints:
             )
         )
         assert response.status_code == 200, response.data
-        return_cd_noms = [i["cd_nom"] for i in response.json["items"]]
+        return_cd_noms = [i["properties"]["cd_nom"] for i in response.json["items"]["features"]]
         assert ordered_cd_noms == return_cd_noms
 
     def test_unknown_export(self, exports, users):
