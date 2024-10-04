@@ -1,11 +1,13 @@
 # CHANGELOG
 
-## 1.7.1 (2024-08-23)
+1.7.1 (2024-10-04)
+-----------------
 
 ### 🐛 Corrections
 
 - Ajout de paramètres de configuration pour la pagination des exports (#198, by @lpofredc)
 - Mise à jour de prettier pour le lint du code du frontend (#208)
+- La fonction `get_one_export_api` est corrigée et retourne un GeoJSON si une géométrie est présente (#214)
 
 1.7.0 (2023-08-23)
 ------------------
