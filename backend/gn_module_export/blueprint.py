@@ -291,8 +291,7 @@ def get_one_export_api(id_export):
         filters["orderby"] = export.view_pk_column
 
     query = export.get_view_query(limit=limit, offset=offset, filters=filters)
-
-    data = query.return_query()
+    data = query.as_geofeature() if query.geometry_field else query.return_query()
 
     export_license = export.licence
     data["license"] = dict()
