@@ -1,6 +1,13 @@
 
 # CHANGELOG
 
+1.7.3 (unreleased)
+-----------------
+
+**🚀 Nouveautés**
+
+- Documentation sur la récupération des données via logiciel `R` 
+
 1.7.2 (2024-10-04)
 -----------------
 
