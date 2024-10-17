@@ -1,9 +1,0 @@
-[submodule "dependencies/GeoNature"]
-	path = dependencies/GeoNature
-	url = ../GeoNature.git
-[submodule "dependencies/Utils-Flask-SQLAlchemy"]
-	path = dependencies/Utils-Flask-SQLAlchemy
-	url = ../Utils-Flask-SQLAlchemy.git
-[submodule "dependencies/Utils-Flask-SQLAlchemy-Geo"]
-	path = dependencies/Utils-Flask-SQLAlchemy-Geo
-	url = ../Utils-Flask-SQLAlchemy-Geo.git
