@@ -1,5 +1,5 @@
 """
-    Fonctions permettant la génération des fichiers d'export
+Fonctions permettant la génération des fichiers d'export
 """
 
 from datetime import datetime, timedelta
