@@ -235,7 +235,7 @@ def get_one_export_api(id_export):
         filter_n_lo_nom_col=val: Si nom_col fait partie des colonnes
             de la vue et que la colonne est de type numérique
             alors filtre nom_col <= val
-        inwkt=val: Si nom_col fait partie des colonnes
+        geometry=val: Si nom_col fait partie des colonnes
             de la vue et que la colonne est de type geometry
             alors ST_Intersects(nom_col, ST_GeomFromText(val))
     ORDONNANCEMENT :
