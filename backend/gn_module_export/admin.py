@@ -88,24 +88,6 @@ class ExportView(CruvedProtectedMixin, ModelView):
             val_list.append(val)
         return val_list
 
-    def generate_button_formater(view, _context, model, _name):
-        html_output = ""
-        for format_ in config["EXPORTS"]["export_format_map"]:
-            # if format return geometries, a geometry field and its srid must be declared
-            if format_ in ("geojson", "gpkg") and (
-                not model.geometry_field or not model.geometry_srid
-            ):
-                continue
-            link_to_generate = url_for(
-                "exports.getOneExportThread", id_export=model.id, export_format=format_
-            )
-            next_ = url_for("export.index_view")
-            link_to_generate = f"{link_to_generate}?next={next_}"
-            html_output += (
-                f"<a href='{link_to_generate}' class='btn btn-primary m-1'>{format_}</a>"
-            )
-        return Markup(html_output)
-
     # Order column to have licence at the end
     column_list = [
         "id",
@@ -118,7 +100,6 @@ class ExportView(CruvedProtectedMixin, ModelView):
         "public",
         "licence",
         "allowed_roles",
-        "generate",
     ]
 
     column_details_list = [
@@ -137,7 +118,6 @@ class ExportView(CruvedProtectedMixin, ModelView):
     column_formatters_detail = {"cor_roles_exports": _token_formatter}
     column_formatters = {
         "allowed_roles": list_label_allowed_role_formatter,
-        "generate": generate_button_formater,
     }
 
     column_labels = dict(
@@ -151,7 +131,6 @@ class ExportView(CruvedProtectedMixin, ModelView):
         geometry_srid="SRID du champ géométrique",
         allowed_roles="Nom du role",
         cor_roles_exports="Role et token associé à l'export",
-        generate="Générer",
     )
     column_descriptions = dict(
         label="Nom libre de l'export",
@@ -238,6 +217,21 @@ class ExportView(CruvedProtectedMixin, ModelView):
         return super(ModelView, self).handle_view_exception(exc)
 
 
+def generate_button_formater(view, _context, model, _name):
+    format_ = model.format
+    export = model.export
+    html_output = ""
+    if format_ in ("geojson", "gpkg") and (not export.geometry_field or not export.geometry_srid):
+        html_output = "<span style='color:red'>SRID ou Champs géométrique manquant : impossible de générer l'export dans ce format.</span>"
+    link_to_generate = url_for(
+        "exports.forceScheduleExport", id_export=model.id_export, export_format=model.format
+    )
+    next_ = url_for("exportschedules.index_view")
+    link_to_generate = f"{link_to_generate}?next={next_}"
+    html_output = f"<a href='{link_to_generate}' class='btn btn-primary m-1'>{format_}</a>"
+    return Markup(html_output)
+
+
 class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     """
     Surcharge de l'administration de l'export Schedules
@@ -246,16 +240,19 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     module_code = "EXPORTS"
     object_code = None
 
+    column_list = ["export", "frequency", "format", "generate"]
     column_descriptions = dict(
         export="Nom de l'export à planifier",
         frequency="Fréquence de la génération de l'export (en jours)",
         format="Format de l'export à générer",
     )
+    column_labels = {"generate": "Générer"}
 
     form_args = {
         "export": {"validators": [validators.DataRequired()]},
         "frequency": {"validators": [validators.NumberRange(1, 365)]},
     }
+    column_formatters = {"generate": generate_button_formater}
 
     if "EXPORTS" in current_app.config:
         format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
