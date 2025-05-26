@@ -36,6 +36,7 @@ from gn_module_export.tasks import generate_export
 from gn_module_export.schemas import ExportSchema
 from .utils_export import ExportRequest
 from sqlalchemy.orm.exc import NoResultFound
+import sqlalchemy as sa
 from utils_flask_sqla.response import json_resp, to_json_resp
 from utils_flask_sqla.db import ordered
 from werkzeug.exceptions import Forbidden
@@ -145,6 +146,47 @@ def swagger_ressources(id_export=None):
 """
 
 
+@blueprint.route("/scheduled/<int:id_export>/<export_format>", methods=["GET"])
+@permissions.check_cruved_scope("R", module_code="EXPORTS", get_scope=True)
+def forceScheduleExport(scope, id_export, export_format):
+
+    if not export_format in config["EXPORTS"]["export_format_map"]:
+        raise BadRequest(f"Format {export_format} is not accepted !")
+
+    schedule_export: ExportSchedules = DB.session.execute(
+        sa.select(ExportSchedules).where(
+            ExportSchedules.id_export == id_export, ExportSchedules.format == export_format
+        )
+    ).scalar_one_or_none()
+
+    if not schedule_export:
+        raise BadRequest
+    export: Export = schedule_export.export
+
+    if not export.has_instance_permission(scope=scope):
+        raise Forbidden
+
+    export_request = ExportRequest(
+        id_export=id_export, format=schedule_export.format, skip_newer_than=None, user=None
+    )
+
+    generate_export(
+        export_id=export_request.export.id,
+        file_name=str(export_request.get_full_path_file_name()),
+        export_url=None,
+        id_role=None,
+        filters=None,
+        format=export_request.format,
+    )
+    next_ = request.args.get("next", None, type=str)
+
+    message = f"La génération de l'export planifié {export.label} (id={export.id}) au format {export_format} est en cours..."
+    if next_:
+        flash(message)
+        return redirect(next_)
+    return jsonify(message)
+
+
 @blueprint.route("/<int:id_export>/<export_format>", methods=["GET", "POST"])
 @permissions.check_cruved_scope("R", module_code="EXPORTS", get_scope=True)
 def getOneExportThread(scope, id_export, export_format):
@@ -177,12 +219,6 @@ def getOneExportThread(scope, id_export, export_format):
     )
 
     message = "La génération du fichier est en cours ! Vous recevrez une notification quand le fichier sera prêt"
-
-    # When generation is triggered from the flask admin
-    if request.method == "GET":
-        next_ = request.args.get("next", "/", type=str)
-        flash(message)
-        return redirect(next_)
 
     return to_json_resp(
         {
