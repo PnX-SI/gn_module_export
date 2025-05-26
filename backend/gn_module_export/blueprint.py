@@ -201,12 +201,13 @@ def get_exports(scope):
         search_string = "%".join(search_string.split(" "))
         query = query.where(Export.label.ilike(f"%{search_string}%"))
 
+    schema = ExportSchema(many=True, only=["licence", "cor_roles_exports"])
     if per_page and page:
-        g.pagination_schema = ExportSchema(many=True, only=["licence", "cor_roles_exports"])
+        g.pagination_schema = schema
         return DB.paginate(query, page=page, per_page=per_page)
 
     exports = query.all()
-    return ExportSchema(many=True, only=["licence", "cor_roles_exports"]).dump(exports)
+    return schema.dump(exports)
 
 
 @blueprint.route("/api/<int:id_export>", methods=["GET"])
