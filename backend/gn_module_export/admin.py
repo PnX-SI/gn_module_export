@@ -1,4 +1,4 @@
-from flask import current_app, flash
+from flask import current_app, flash, url_for
 from markupsafe import Markup
 from flask_admin.babel import gettext
 from flask_admin.contrib.sqla import ModelView
@@ -7,14 +7,10 @@ from geonature.core.admin.admin import CruvedProtectedMixin
 from geonature.core.admin.admin import admin as flask_admin
 from geonature.core.users.models import CorRole
 from geonature.utils.env import DB
+from geonature.utils.config import config
 from gn_module_export.models import Export, ExportSchedules, Licences
 from psycopg2.errors import ForeignKeyViolation
-from pypnusershub.db.models import (
-    Application,
-    AppRole,
-    User,
-    UserApplicationRight,
-)
+from pypnusershub.db.models import Application, AppRole, User, UserApplicationRight
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from utils_flask_sqla_geo.generic import GenericQueryGeo
@@ -92,6 +88,19 @@ class ExportView(CruvedProtectedMixin, ModelView):
             val_list.append(val)
         return val_list
 
+    def generate_button_formater(view, _context, model, _name):
+        html_output = ""
+        for format_ in config["EXPORTS"]["export_format_map"]:
+            link_to_generate = url_for(
+                "exports.getOneExportThread", id_export=model.id, export_format=format_
+            )
+            next_ = url_for("export.index_view")
+            link_to_generate = f"{link_to_generate}?next={next_}"
+            html_output += (
+                f"<a href='{link_to_generate}' class='btn btn-primary m-1'>{format_}</a>"
+            )
+        return Markup(html_output)
+
     # Order column to have licence at the end
     column_list = [
         "id",
@@ -104,6 +113,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         "public",
         "licence",
         "allowed_roles",
+        "generate",
     ]
 
     column_details_list = [
@@ -120,7 +130,10 @@ class ExportView(CruvedProtectedMixin, ModelView):
     ]
     column_searchable_list = ("label",)
     column_formatters_detail = {"cor_roles_exports": _token_formatter}
-    column_formatters = {"allowed_roles": list_label_allowed_role_formatter}
+    column_formatters = {
+        "allowed_roles": list_label_allowed_role_formatter,
+        "generate": generate_button_formater,
+    }
 
     column_labels = dict(
         id="Identifiant",
@@ -133,6 +146,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         geometry_srid="SRID du champ géométrique",
         allowed_roles="Nom du role",
         cor_roles_exports="Role et token associé à l'export",
+        generate="Générer",
     )
     column_descriptions = dict(
         label="Nom libre de l'export",

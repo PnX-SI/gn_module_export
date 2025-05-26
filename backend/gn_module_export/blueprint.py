@@ -21,6 +21,7 @@ from flask import (
     request,
     send_from_directory,
     url_for,
+    redirect,
 )
 from geonature.core.gn_permissions import decorators as permissions
 from geonature.core.gn_permissions.tools import get_scopes_by_action
@@ -144,7 +145,7 @@ def swagger_ressources(id_export=None):
 """
 
 
-@blueprint.route("/<int:id_export>/<export_format>", methods=["POST"])
+@blueprint.route("/<int:id_export>/<export_format>", methods=["GET", "POST"])
 @permissions.check_cruved_scope("R", module_code="EXPORTS", get_scope=True)
 def getOneExportThread(scope, id_export, export_format):
     """
@@ -175,10 +176,18 @@ def getOneExportThread(scope, id_export, export_format):
         filters=filters,
     )
 
+    message = "La génération du fichier est en cours ! Vous recevrez une notification quand le fichier sera prêt"
+
+    # When generation is triggered from the flask admin
+    if request.method == "GET":
+        next_ = request.args.get("next", "/", type=str)
+        flash(message)
+        return redirect(next_)
+
     return to_json_resp(
         {
             "api_success": "in_progress",
-            "message": "La génération du fichier est en cours ! Vous recevrez une notification quand le fichier sera prêt",  # noqa 501
+            "message": message,  # noqa 501
         },
         status=200,
     )
