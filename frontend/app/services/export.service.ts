@@ -15,6 +15,16 @@ export interface Export {
   cor_roles_exports: JsonData[];
 }
 
+export interface ExportListPagination {
+  items?: Export[];
+  next_num?: number;
+  page?: number;
+  pages?: number;
+  per_page?: number;
+  prev_num?: number;
+  total?: number;
+}
+
 export interface ApiErrorResponse extends HttpErrorResponse {
   error: any | null;
   message: string;
@@ -27,9 +37,9 @@ export class ExportService {
     public config: ConfigService
   ) {}
 
-  getExports() {
+  getExports(params?) {
     console.log(this.config.API_ENDPOINT, this.config.EXPORTS.MODULE_URL);
-    return this._api.get(`${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}/`);
+    return this._api.get(`${this.config.API_ENDPOINT}${this.config.EXPORTS.MODULE_URL}/`, {params: params});
   }
 
   downloadExport(x: Export, format: string) {

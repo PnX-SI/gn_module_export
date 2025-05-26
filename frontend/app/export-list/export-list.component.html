@@ -22,13 +22,13 @@
             data-qa="import-list-toolbar-search"
           />
         </div>
-        <div *ngIf="exports">
-          <ng-container *ngFor="let export of exports; let i = index">
-            <div
-              class="card export-card mb-3"
-              *ngIf="labelSearched(export.label)"
-            >
-              <div class="card-body">
+        <div *ngIf="pagination.total > 0">
+          <div
+            class="card export-card mb-3"
+            *ngFor="let export of exports; let i = index"
+          >
+            <div class="card-body export-card">
+              <div class="flex-grow-1">
                 <h5 class="card-title">
                   <span
                     class="badge badge-info"
@@ -40,45 +40,52 @@
                   {{ export.label }}
                 </h5>
                 <p class="card-text">{{ export.desc }}</p>
-                <div class="d-flex justify-content-end">
-                  <button
-                    id="{{ export.id }}"
-                    type="submit"
-                    class="btn btn-primary btn-sm ml-3"
-                    (click)="selectFormat(export.id, export_download)"
-                  >
-                    Télécharger
-                  </button>
-                  <a
-                    class="btn btn-warning btn-sm ml-3"
-                    href="{{ api_endpoint }}/swagger/{{ export.id }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    API JSON
-                  </a>
-                  <button
-                    (click)="copyToken(objectToken[i].token, i)"
-                    value="click to copy"
-                    class="btn btn-secondary btn-sm ml-3"
-                    *ngIf="objectToken[i].token != null"
-                  >
-                    Token
-                  </button>
-                </div>
-                <div
-                  class="ctn-token"
-                  [hidden]="!objectToken[i].display"
+              </div>
+              <div class="align-content-end">
+                <button
+                  id="{{ export.id }}"
+                  type="submit"
+                  class="btn btn-primary btn-sm ml-3"
+                  (click)="selectFormat(export.id, export_download)"
                 >
-                  <p>Token : "{{ objectToken[i].token }}" copié</p>
-                </div>
+                  Télécharger
+                </button>
+                <a
+                  class="btn btn-warning btn-sm ml-3"
+                  href="{{ api_endpoint }}/swagger/{{ export.id }}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  API JSON
+                </a>
+                <button
+                  (click)="copyToken(objectToken[i].token, i)"
+                  value="click to copy"
+                  class="btn btn-secondary btn-sm ml-3"
+                  *ngIf="objectToken[i].token != null"
+                >
+                  Token
+                </button>
+              </div>
+              <div
+                class="ctn-token"
+                [hidden]="!objectToken[i].display"
+              >
+                <p>Token : "{{ objectToken[i].token }}" copié</p>
               </div>
             </div>
-          </ng-container>
+          </div>
         </div>
-        <div *ngIf="!exports">
+        <div *ngIf="pagination.total == 0">
           <div class="alert alert-warning text-center">Aucun export n'est disponible</div>
         </div>
+        <mat-paginator
+          (page)="handlePageChange($event)"
+          [pageSize]="pagination.per_page"
+          [pageIndex]="pagination.page - 1"
+          [length]="pagination.total"
+          [pageSizeOptions]="[5, 10, 20]"
+        ></mat-paginator>
       </div>
     </div>
   </div>

@@ -4,9 +4,10 @@ import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { CommonService } from '@geonature_common/service/common.service';
 import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { ConfigService } from '@geonature/services/config.service';
-import { map } from 'rxjs/operators';
-import { Export, ExportService, ApiErrorResponse } from '../services/export.service';
+import { map, take } from 'rxjs/operators';
+import { Export, ExportListPagination, ExportService, ApiErrorResponse } from '../services/export.service';
 import { FormControl } from '@angular/forms';
+import {PageEvent} from '@angular/material/paginator';
 
 import { UserDataService } from '@geonature/userModule/services/user-data.service';
 @Component({
@@ -27,6 +28,10 @@ export class ExportListComponent implements OnInit {
   public search = new FormControl();
   public objectToken: { token: string; display: boolean }[] = [];
   public searchString: string = '';
+  public pagination: ExportListPagination = {
+    per_page:5,
+    page: 1
+  };
 
   private _export: Export;
   private _modalRef: NgbModalRef;
@@ -53,27 +58,47 @@ export class ExportListComponent implements OnInit {
       exportLicence: ['', Validators.required],
     });
     
-    this.search.valueChanges.subscribe((value) => {
-      this.searchString = value;
-    });
 
     this.currentUser = this._authService.getCurrentUser();
 
     this.loadingIndicator = true;
 
+    this.search.valueChanges.subscribe((value) => {
+      setTimeout(() => {
+        if (value == this.search.value) {
+          this.pagination.page = 1;
+          this.searchString = value;
+          this.getExports();;
+        }
+      }, 500);
+    });
+
+    this.getExports();
+  }
+
+  getExports() {
     this._exportService
-      .getExports()
+      .getExports(
+        {
+          search: this.searchString,
+          per_page: this.pagination.per_page,
+          page: this.pagination.page
+        }
+      )
       .pipe(
-        map((exports: Export[]) => {
-          exports.forEach((element) => {
+        map((response: ExportListPagination) => {
+          response.items.forEach((element) => {
             element.cor_roles_exports.splice(1);
           });
-          return exports;
-        })
+          return response;
+        }),
+        take(1)
       )
       .subscribe(
-        (exports: Export[]) => {
+        (response: ExportListPagination) => {
           // exports.forEach((element)=>{this.listToken.push(element.cor_roles_exports[0],false)})
+          this.pagination = response;
+          let exports = response.items;
           exports.forEach((element) => {
             element.cor_roles_exports.length > 0
               ? this.objectToken.push({ token: element.cor_roles_exports[0].token, display: false })
@@ -166,5 +191,11 @@ export class ExportListComponent implements OnInit {
 
   labelSearched(label: string) {
     return label.toLowerCase().includes(this.searchString.toLowerCase());
+  }
+
+  handlePageChange(e: PageEvent) {
+    this.pagination.page = e.pageIndex + 1;
+    this.pagination.per_page = e.pageSize; 
+    this.getExports();
   }
 }
