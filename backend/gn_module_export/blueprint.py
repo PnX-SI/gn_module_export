@@ -191,7 +191,21 @@ def get_exports(scope):
     Fonction qui renvoie la liste des exports
     accessibles pour un role donné
     """
-    exports = Export.query.filter_by_scope(scope).all()
+
+    search_string = request.args.get("search", None, type=str)
+    page = request.args.get("page", None, type=int)
+    per_page = request.args.get("per_page", None, type=int)
+
+    query = Export.query.filter_by_scope(scope)
+    if search_string:
+        search_string = "%".join(search_string.split(" "))
+        query = query.where(Export.label.ilike(f"%{search_string}%"))
+
+    if per_page and page:
+        g.pagination_schema = ExportSchema(many=True, only=["licence", "cor_roles_exports"])
+        return DB.paginate(query, page=page, per_page=per_page)
+
+    exports = query.all()
     return ExportSchema(many=True, only=["licence", "cor_roles_exports"]).dump(exports)
 
 
