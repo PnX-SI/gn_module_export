@@ -118,6 +118,7 @@ class ExportView(CruvedProtectedMixin, ModelView):
         "licence",
         "cor_roles_exports",
     ]
+    column_searchable_list = ("label",)
     column_formatters_detail = {"cor_roles_exports": _token_formatter}
     column_formatters = {"allowed_roles": list_label_allowed_role_formatter}
 

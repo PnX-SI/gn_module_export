@@ -6,6 +6,7 @@ import { AuthService, User } from '@geonature/components/auth/auth.service';
 import { ConfigService } from '@geonature/services/config.service';
 import { map } from 'rxjs/operators';
 import { Export, ExportService, ApiErrorResponse } from '../services/export.service';
+import { FormControl } from '@angular/forms';
 
 import { UserDataService } from '@geonature/userModule/services/user-data.service';
 @Component({
@@ -23,7 +24,9 @@ export class ExportListComponent implements OnInit {
   public loadingIndicator = false;
   public closeResult: string;
   public isDiplayedToken: boolean = false;
+  public search = new FormControl();
   public objectToken: { token: string; display: boolean }[] = [];
+  public searchString: string = '';
 
   private _export: Export;
   private _modalRef: NgbModalRef;
@@ -48,6 +51,10 @@ export class ExportListComponent implements OnInit {
     this.modalForm = this._fb.group({
       formatSelection: ['', Validators.required],
       exportLicence: ['', Validators.required],
+    });
+    
+    this.search.valueChanges.subscribe((value) => {
+      this.searchString = value;
     });
 
     this.currentUser = this._authService.getCurrentUser();
@@ -155,5 +162,9 @@ export class ExportListComponent implements OnInit {
     if (this._modalRef) {
       this._modalRef.close();
     }
+  }
+
+  labelSearched(label: string) {
+    return label.toLowerCase().includes(this.searchString.toLowerCase());
   }
 }
