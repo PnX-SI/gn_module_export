@@ -228,7 +228,7 @@ def generate_button_formater(view, _context, model, _name):
     )
     next_ = url_for("exportschedules.index_view")
     link_to_generate = f"{link_to_generate}?next={next_}"
-    html_output = f"<a href='{link_to_generate}' class='btn btn-primary m-1'>{format_}</a>"
+    html_output = f"<a href='{link_to_generate}' class='btn btn-primary m-1'>Générer</a>"
     return Markup(html_output)
 
 
@@ -246,7 +246,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
         frequency="Fréquence de la génération de l'export (en jours)",
         format="Format de l'export à générer",
     )
-    column_labels = {"generate": "Générer"}
+    column_labels = {"generate": ""}
 
     form_args = {
         "export": {"validators": [validators.DataRequired()]},
