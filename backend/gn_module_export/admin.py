@@ -91,6 +91,11 @@ class ExportView(CruvedProtectedMixin, ModelView):
     def generate_button_formater(view, _context, model, _name):
         html_output = ""
         for format_ in config["EXPORTS"]["export_format_map"]:
+            # if format return geometries, a geometry field and its srid must be declared
+            if format_ in ("geojson", "gpkg") and (
+                not model.geometry_field or not model.geometry_srid
+            ):
+                continue
             link_to_generate = url_for(
                 "exports.getOneExportThread", id_export=model.id, export_format=format_
             )
