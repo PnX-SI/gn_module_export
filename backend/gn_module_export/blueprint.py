@@ -170,15 +170,17 @@ def forceScheduleExport(scope, id_export, export_format):
         id_export=id_export, format=schedule_export.format, skip_newer_than=None, user=None
     )
 
-    generate_export(
+    next_ = request.args.get("next", None, type=str)
+
+    generate_export.delay(
         export_id=export_request.export.id,
         file_name=str(export_request.get_full_path_file_name()),
         export_url=None,
         id_role=None,
         filters=None,
         format=export_request.format,
+        schedule_id=schedule_export.id_export_schedule,
     )
-    next_ = request.args.get("next", None, type=str)
 
     message = f"La génération de l'export planifié {export.label} (id={export.id}) au format {export_format} est en cours..."
     if next_:

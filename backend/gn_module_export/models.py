@@ -161,6 +161,8 @@ class ExportSchedules(DB.Model):
 
     export = DB.relationship("Export", lazy="subquery", cascade="all,delete")
 
+    in_process = DB.Column(DB.Boolean, default=False)
+
     @property
     def skip_newer_than(self):
         return self.frequency * 24 * 60

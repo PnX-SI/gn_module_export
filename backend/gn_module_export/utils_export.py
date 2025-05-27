@@ -26,6 +26,10 @@ class ExportGenerationNotNeeded(Exception):
     pass
 
 
+class ExportGenerationInProcess(Exception):
+    pass
+
+
 def notify_export_file_generated(export, user, export_url, export_failed=False):
     if user:
         dispatch_notifications(
@@ -109,7 +113,7 @@ class ExportRequest:
         return str(Path(self.export_dir) / self.file_name)
 
 
-def export_data_file(export_id, file_name, export_url, format, id_role, filters):
+def export_data_file(export_id, file_name, export_url, format, id_role, filters, schedule_id):
     """
     Fonction qui permet de générer un export fichier
 
@@ -118,7 +122,7 @@ def export_data_file(export_id, file_name, export_url, format, id_role, filters)
     :query int id_export: Identifiant de l'export
     :query str export_format: Format de l'export (csv, json, gpkg)
     :query {} filters: Filtre à appliquer sur l'export
-
+    :query
 
     **Returns:**
     .. str : nom du fichier

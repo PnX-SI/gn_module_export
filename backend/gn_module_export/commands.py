@@ -38,6 +38,7 @@ def generate(export_id, export_format, user_id, skip_newer_than):
     Lance la génération d’un fichier d’export
     """
     scheduled_export = None
+    scheduled_export_id = None
     user = None
     if user_id:
         user = db.session.get(User, user_id)
@@ -52,9 +53,12 @@ def generate(export_id, export_format, user_id, skip_newer_than):
         )
         if not scheduled_export:
             raise ClickException(f"Schedule export {export_id} format {export_format} not found.")
+        scheduled_export_id = scheduled_export.id_export_schedule
         # Parameter skip_newer_than overide scheduled_export.skip_newer_than property
         if not skip_newer_than:
             skip_newer_than = scheduled_export.skip_newer_than
+        if scheduled_export.in_process:
+            raise ClickException(f"Export {export_id} already in process.")
     try:
         export_request = ExportRequest(
             id_export=export_id,
@@ -76,6 +80,7 @@ def generate(export_id, export_format, user_id, skip_newer_than):
         format=export_request.format,
         id_role=None,
         filters=None,
+        schedule_id=scheduled_export_id,
     )
 
 

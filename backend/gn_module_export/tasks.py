@@ -16,6 +16,7 @@ from .models import Export, ExportSchedules
 from .utils_export import (
     export_data_file,
     ExportGenerationNotNeeded,
+    ExportGenerationInProcess,
     ExportRequest,
 )
 
@@ -52,16 +53,28 @@ def generate_scheduled_exports(self):
             format=export_request.format,
             id_role=None,
             filters=None,
+            schedule_id=scheduled_export.scheduled_export_id,
         )
 
 
 @celery_app.task(bind=True, throws=ExportGenerationNotNeeded)
-def generate_export(self, export_id, file_name, export_url, format, id_role, filters):
-    logger.info(f"Generate export {export_id}...")
+def generate_export(self, export_id, file_name, export_url, format, id_role, filters, schedule_id):
+    logger.info(f"Generate export {export_id} {schedule_id}...")
     export = db.session.get(Export, export_id)
+    if schedule_id:
+        schedule_export = db.session.get(ExportSchedules, schedule_id)
+        if schedule_export.in_process:
+            raise ExportGenerationInProcess("Export {export_id} in process")
+        schedule_export.in_process = True
+        db.session.add(schedule_export)
+        db.session.commit()
     if export is None:
         logger.warning("Export {export_id} does not exist")
     export_data_file(export_id, file_name, export_url, format, id_role, filters)
+    if schedule_id:
+        schedule_export.in_process = False
+        db.session.add(schedule_export)
+        db.session.commit()
     logger.info(f"Export {export_id} generated.")
 
 

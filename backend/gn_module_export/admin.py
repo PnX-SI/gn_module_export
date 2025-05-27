@@ -1,5 +1,7 @@
 from flask import current_app, flash, url_for
 from markupsafe import Markup
+from pathlib import Path
+from datetime import datetime
 from flask_admin.babel import gettext
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.helpers import is_form_submitted
@@ -8,6 +10,7 @@ from geonature.core.admin.admin import admin as flask_admin
 from geonature.core.users.models import CorRole
 from geonature.utils.env import DB
 from geonature.utils.config import config
+from geonature.utils.filemanager import removeDisallowedFilenameChars
 from gn_module_export.models import Export, ExportSchedules, Licences
 from psycopg2.errors import ForeignKeyViolation
 from pypnusershub.db.models import Application, AppRole, User, UserApplicationRight
@@ -228,7 +231,8 @@ def generate_button_formater(view, _context, model, _name):
     )
     next_ = url_for("exportschedules.index_view")
     link_to_generate = f"{link_to_generate}?next={next_}"
-    html_output = f"<a href='{link_to_generate}' class='btn btn-primary m-1'>Générer</a>"
+    css_class = "btn-light disabled" if model.in_process else "btn-primary"
+    html_output = f"<a href='{link_to_generate}' class='btn m-1 {css_class}'>Générer</a>"
     return Markup(html_output)
 
 
@@ -240,7 +244,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     module_code = "EXPORTS"
     object_code = None
 
-    column_list = ["export", "frequency", "format", "generate"]
+    column_list = ["export", "frequency", "format", "last_export", "generate"]
     column_descriptions = dict(
         export="Nom de l'export à planifier",
         frequency="Fréquence de la génération de l'export (en jours)",
@@ -248,11 +252,23 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     )
     column_labels = {"generate": ""}
 
+    def _last_export_formatter(view, context, model, name):
+        media_dir = "exports/schedules"
+        export_dir = Path(current_app.config["MEDIA_FOLDER"]) / media_dir
+        file_name = "{}.{}".format(removeDisallowedFilenameChars(model.export.label), model.format)
+        for file in Path(export_dir).glob("*{}".format(file_name)):
+            stat_result = file.stat()
+            modified = datetime.fromtimestamp(stat_result.st_mtime)
+            return modified
+
     form_args = {
         "export": {"validators": [validators.DataRequired()]},
         "frequency": {"validators": [validators.NumberRange(1, 365)]},
     }
-    column_formatters = {"generate": generate_button_formater}
+    column_formatters = {
+        "generate": generate_button_formater,
+        "last_export": _last_export_formatter,
+    }
 
     if "EXPORTS" in current_app.config:
         format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
