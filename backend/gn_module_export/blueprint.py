@@ -36,6 +36,7 @@ from gn_module_export.schemas import ExportSchema
 from .utils_export import ExportRequest
 from sqlalchemy.orm.exc import NoResultFound
 from utils_flask_sqla.response import json_resp, to_json_resp
+from utils_flask_sqla.db import ordered
 from werkzeug.exceptions import Forbidden
 
 LOGGER = current_app.logger
@@ -202,6 +203,7 @@ def get_exports(scope):
         query = query.where(Export.label.ilike(f"%{search_string}%"))
 
     schema = ExportSchema(many=True, only=["licence", "cor_roles_exports"])
+    query = ordered(query, Export, order_by=Export.label)
     if per_page and page:
         g.pagination_schema = schema
         return DB.paginate(query, page=page, per_page=per_page)
