@@ -2,27 +2,29 @@
   id="all"
   class="container-fluid"
 >
-    <div class="container card">
-        <div id="title">
-          <h2>EXPORTS</h2>
-          <hr />
-        </div>
+    <div class="container card flex" id="export-container">
         <!-- Liste des exports disponibles au téléchargement -->
-        <div class="flex-fill search">
-          <input
+        <div class="search">
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <div class="input-group-text"><i class="fa fa-search"></i></div>
+            </div>
+            <input
             id="search"
             [formControl]="search"
             type="text"
             class="form-control"
-            placeholder="{{ 'Actions.Search' | translate }}"
+            placeholder="{{ 'Actions.Search' | translate }} un export"
             aria-label="Search"
             aria-describedby="basic-addon1"
             data-qa="import-list-toolbar-search"
           />
+          </div>
+
         </div>
-        <div *ngIf="pagination.total > 0">
+        <div *ngIf="pagination.total > 0" id="list-export">
           <div
-            class="card mb-3"
+            class="card mb-3 export"
             *ngFor="let export of exports; let i = index"
           >
             <div class="card-body">
@@ -84,6 +86,7 @@
           [pageIndex]="pagination.page - 1"
           [length]="pagination.total"
           [pageSizeOptions]="[5, 10, 20]"
+          class="mb-2"
         ></mat-paginator>
 
     </div>
