@@ -61,6 +61,8 @@ def generate_scheduled_exports(self):
 def generate_export(self, export_id, file_name, export_url, format, id_role, filters, schedule_id):
     logger.info(f"Generate export {export_id} {schedule_id}...")
     export = db.session.get(Export, export_id)
+    if export is None:
+        logger.warning("Export {export_id} does not exist")
     if schedule_id:
         schedule_export = db.session.get(ExportSchedules, schedule_id)
         if schedule_export.in_process:
@@ -68,9 +70,7 @@ def generate_export(self, export_id, file_name, export_url, format, id_role, fil
         schedule_export.in_process = True
         db.session.add(schedule_export)
         db.session.commit()
-    if export is None:
-        logger.warning("Export {export_id} does not exist")
-    export_data_file(export_id, file_name, export_url, format, id_role, filters)
+    export_data_file(export_id, file_name, export_url, format, id_role, filters, schedule_id)
     if schedule_id:
         schedule_export.in_process = False
         db.session.add(schedule_export)

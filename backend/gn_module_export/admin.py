@@ -1,4 +1,5 @@
 from flask import current_app, flash, url_for
+from gn_module_export.utils_export import ExportRequest
 from markupsafe import Markup
 from pathlib import Path
 from datetime import datetime
@@ -220,22 +221,6 @@ class ExportView(CruvedProtectedMixin, ModelView):
         return super(ModelView, self).handle_view_exception(exc)
 
 
-def generate_button_formater(view, _context, model, _name):
-    format_ = model.format
-    export = model.export
-    html_output = ""
-    if format_ in ("geojson", "gpkg") and (not export.geometry_field or not export.geometry_srid):
-        html_output = "<span style='color:red'>SRID ou Champs géométrique manquant : impossible de générer l'export dans ce format.</span>"
-    link_to_generate = url_for(
-        "exports.forceScheduleExport", id_export=model.id_export, export_format=model.format
-    )
-    next_ = url_for("exportschedules.index_view")
-    link_to_generate = f"{link_to_generate}?next={next_}"
-    css_class = "btn-light disabled" if model.in_process else "btn-primary"
-    html_output = f"<a href='{link_to_generate}' class='btn m-1 {css_class}'>Générer</a>"
-    return Markup(html_output)
-
-
 class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     """
     Surcharge de l'administration de l'export Schedules
@@ -250,7 +235,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
         frequency="Fréquence de la génération de l'export (en jours)",
         format="Format de l'export à générer",
     )
-    column_labels = {"generate": ""}
+    column_labels = {"generate": "", "last_export": "Date du dernier export"}
 
     def _last_export_formatter(view, context, model, name):
         media_dir = "exports/schedules"
@@ -258,8 +243,40 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
         file_name = "{}.{}".format(removeDisallowedFilenameChars(model.export.label), model.format)
         for file in Path(export_dir).glob("*{}".format(file_name)):
             stat_result = file.stat()
-            modified = datetime.fromtimestamp(stat_result.st_mtime)
+            modified = datetime.fromtimestamp(stat_result.st_mtime).strftime("%d/%m/%Y %H:%M")
             return modified
+
+    def _url_export_formatter(view, context, model, name):
+        export_request = ExportRequest(
+            id_export=model.id_export,
+            user=None,
+            format=model.format,
+            skip_newer_than=None,
+        )
+        file_path = Path(export_request.get_full_path_file_name())
+        if file_path.exists():
+            return f"<a href='{export_request.get_export_url()}' target='_blank' class='btn m-1 btn-primary'>Télécharger</a>"
+        return ""
+
+    def generate_button_formater(view, _context, model, _name):
+        format_ = model.format
+        export = model.export
+        html_output = ""
+        if format_ in ("geojson", "gpkg") and (
+            not export.geometry_field or not export.geometry_srid
+        ):
+            html_output = "<span style='color:red'>SRID ou Champs géométrique manquant : impossible de générer l'export dans ce format.</span>"
+        link_to_generate = url_for(
+            "exports.forceScheduleExport", id_export=model.id_export, export_format=model.format
+        )
+        next_ = url_for("exportschedules.index_view")
+        link_to_generate = f"{link_to_generate}?next={next_}"
+        css_class = "btn-light disabled" if model.in_process else "btn-primary"
+        btn_content = "Génération en cours..." if model.in_process else "Générer"
+        html_output = f"<a href='{link_to_generate}' class='btn m-1 {css_class}'>{btn_content}</a>"
+        html_output += ExportSchedulesView._url_export_formatter(view, _context, model, _name)
+
+        return Markup(html_output)
 
     form_args = {
         "export": {"validators": [validators.DataRequired()]},
