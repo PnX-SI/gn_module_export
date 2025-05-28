@@ -4,7 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { HttpClientModule, HttpClientXsrfModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { GN2CommonModule } from '@geonature_common/GN2Common.module';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-
+import { ClipboardModule } from '@angular/cdk/clipboard';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 // import { NgbModalBackdrop } from "@ng-bootstrap/ng-bootstrap/modal/modal-backdrop";
 
@@ -21,6 +21,7 @@ const routes: Routes = [{ path: '', component: ExportListComponent }];
       headerName: 'token',
     }),
     CommonModule,
+    ClipboardModule,
     GN2CommonModule,
     NgbModule,
     RouterModule.forChild(routes),

@@ -9,6 +9,7 @@ import { Export, ExportListPagination, ExportService, ApiErrorResponse } from '.
 import { FormControl } from '@angular/forms';
 import {PageEvent} from '@angular/material/paginator';
 
+
 import { UserDataService } from '@geonature/userModule/services/user-data.service';
 @Component({
   selector: 'pnx-export-list',
@@ -29,7 +30,7 @@ export class ExportListComponent implements OnInit {
   public objectToken: { token: string; display: boolean }[] = [];
   public searchString: string = '';
   public pagination: ExportListPagination = {
-    per_page:5,
+    per_page:10,
     page: 1
   };
 
@@ -57,7 +58,7 @@ export class ExportListComponent implements OnInit {
       formatSelection: ['', Validators.required],
       exportLicence: ['', Validators.required],
     });
-    
+
 
     this.currentUser = this._authService.getCurrentUser();
 
@@ -82,7 +83,7 @@ export class ExportListComponent implements OnInit {
         {
           search: this.searchString,
           per_page: this.pagination.per_page,
-          page: this.pagination.page
+          page: this.pagination.page,
         }
       )
       .pipe(
@@ -168,21 +169,6 @@ export class ExportListComponent implements OnInit {
     this._modalRef.close();
   }
 
-  copyToken(val: string, index_token: string) {
-    const selBox = document.createElement('textarea');
-    selBox.style.position = 'fixed';
-    selBox.style.left = '0';
-    selBox.style.top = '0';
-    selBox.style.opacity = '0';
-    selBox.value = val;
-    document.body.appendChild(selBox);
-    selBox.focus();
-    selBox.select();
-    document.execCommand('copy');
-    document.body.removeChild(selBox);
-    this.objectToken[index_token].display = true;
-  }
-
   ngOnDestroy() {
     if (this._modalRef) {
       this._modalRef.close();
@@ -195,7 +181,7 @@ export class ExportListComponent implements OnInit {
 
   handlePageChange(e: PageEvent) {
     this.pagination.page = e.pageIndex + 1;
-    this.pagination.per_page = e.pageSize; 
+    this.pagination.per_page = e.pageSize;
     this.getExports();
   }
 }
