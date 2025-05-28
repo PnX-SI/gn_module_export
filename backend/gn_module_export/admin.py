@@ -255,7 +255,8 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
         )
         file_path = Path(export_request.get_full_path_file_name())
         if file_path.exists():
-            return f"<a href='{export_request.get_export_url()}' target='_blank' class='btn m-1 btn-primary'>Télécharger</a>"
+            size_file = file_path.stat().st_size / 1024 / 1024  # in MB
+            return f"<a href='{export_request.get_export_url()}' target='_blank' class='btn m-1 btn-primary'><i class='fa fa-download'></i> {size_file:.1f} MB</a>"
         return ""
 
     def generate_button_formater(view, _context, model, _name):
