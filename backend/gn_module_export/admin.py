@@ -242,43 +242,49 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     }
 
     def _last_export_formatter(view, context, model, name):
-        media_dir = "exports/schedules"
-        export_dir = Path(current_app.config["MEDIA_FOLDER"]) / media_dir
-        file_name = "{}.{}".format(removeDisallowedFilenameChars(model.export.label), model.format)
-        for file in Path(export_dir).glob("*{}".format(file_name)):
-            stat_result = file.stat()
-            modified = datetime.fromtimestamp(stat_result.st_mtime).strftime("%d/%m/%Y %H:%M")
-            return modified
+        """
+        Display the date when the last export was made.
+        """
+        file_path = model.filepath()
+        if file_path.exists() and not model.in_process:
+            return datetime.fromtimestamp(file_path.stat().st_mtime).strftime("%d/%m/%Y %H:%M")
 
     def _url_export_formatter(view, context, model, name):
-        export_request = ExportRequest(
-            id_export=model.id_export,
-            user=None,
-            format=model.format,
-            skip_newer_than=None,
-        )
-        file_path = Path(export_request.get_full_path_file_name())
+        """
+        Return a link button that allows the user to download the latest export file
+        """
+        file_path = model.filepath()
         if file_path.exists() and not model.in_process:
             size_file = file_path.stat().st_size / 1024 / 1024  # in MB
-            return f"<a href='{export_request.get_export_url()}' target='_blank' class='btn m-1 btn-primary'><i class='fa fa-download'></i> {size_file:.1f} MB</a>"
+            return f"<a href='{model.file_url_access()}' target='_blank' class='btn m-1 btn-primary'><i class='fa fa-download'></i> {size_file:.1f} MB</a>"
         return ""
 
     def generate_button_formater(view, _context, model, _name):
-        format_ = model.format
-        export = model.export
+        """
+        Return the `generate` column content :
+         * If an existing export file exists, display an button to download it
+         * If an export to geojson, or gpkg file is invalid (no geom column or SRID given in the Export), shows
+         an error message
+         * If an export is being generated, the generate button is disabled
+        """
         html_output = ""
-        if format_ in ("geojson", "gpkg") and (
-            not export.geometry_field or not export.geometry_srid
-        ):
+        print("aaaa", not model.is_export_available())
+        if not model.is_export_available():
             html_output = "<span style='color:red'>SRID ou Champs géométrique manquant : impossible de générer l'export dans ce format.</span>"
-        link_to_generate = url_for(
-            "exports.forceScheduleExport", id_export=model.id_export, export_format=model.format
-        )
-        next_ = url_for("exportschedules.index_view")
-        link_to_generate = f"{link_to_generate}?next={next_}"
-        css_class = "btn-light disabled" if model.in_process else "btn-primary"
-        btn_content = "Génération en cours..." if model.in_process else "Générer"
-        html_output = f"<a href='{link_to_generate}' class='btn m-1 {css_class}'>{btn_content}</a>"
+        else:
+            link_to_generate = url_for(
+                "exports.forceScheduleExport",
+                id_export=model.id_export,
+                export_format=model.format,
+            )
+            next_ = url_for("exportschedules.index_view")
+            link_to_generate = "" if model.in_process else f"{link_to_generate}?next={next_}"
+            css_class = "btn-light disabled" if model.in_process else "btn-primary"
+            btn_content = "Génération en cours..." if model.in_process else "Générer"
+            html_output += (
+                f"<a href='{link_to_generate}' class='btn m-1 {css_class}'>{btn_content}</a>"
+            )
+
         html_output += ExportSchedulesView._url_export_formatter(view, _context, model, _name)
 
         return Markup(html_output)
