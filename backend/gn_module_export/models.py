@@ -1,3 +1,4 @@
+from pathlib import Path
 from secrets import token_hex
 
 import flask_sqlalchemy
@@ -150,6 +151,27 @@ class Export(DB.Model):
             self.geometry_field,
         )
 
+    def is_export_available(self, destination_format: str) -> bool:
+        """
+        Indicate if the export is available in a given format.
+
+        An export is not available if the format requested is either a geojson (or a gpkg)
+        and the SRID or the geometry field are not set in the export definition.
+
+        Parameters
+        ----------
+        destination_format : str
+            extension string (e.g. *.json*,*.gpkg*)
+
+        Returns
+        -------
+        bool
+            is the export available
+        """
+        if destination_format in ("geojson", "gpkg"):
+            return self.geometry_field and self.geometry_srid
+        return True
+
 
 class ExportSchedules(DB.Model):
     __tablename__ = "t_export_schedules"
@@ -166,3 +188,22 @@ class ExportSchedules(DB.Model):
     @property
     def skip_newer_than(self):
         return self.frequency * 24 * 60
+
+    def is_export_available(self):
+        return self.export.is_export_available(self.format)
+
+    @property
+    def __export_request_instance(self):
+        # To avoid circular import
+        from gn_module_export.utils_export import ExportRequest
+
+        return ExportRequest(
+            id_export=self.id_export,
+            format=self.format,
+        )
+
+    def file_url_access(self) -> Path:
+        return Path(self.__export_request_instance.get_export_url())
+
+    def filepath(self) -> Path:
+        return Path(self.__export_request_instance.get_full_path_file_name())
