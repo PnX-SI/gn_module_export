@@ -20,7 +20,7 @@ depends_on = None
 def upgrade():
     op.add_column(
         "t_export_schedules",
-        sa.Column("in_process", sa.Boolean, nullable=False, server_default=False),
+        sa.Column("in_process", sa.Boolean, nullable=False, server_default=sa.false()),
         schema="gn_exports",
     )
 
