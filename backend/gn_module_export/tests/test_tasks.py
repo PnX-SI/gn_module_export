@@ -69,7 +69,7 @@ class TestExportsTasks:
             format=export_request.format,
             id_role=None,
             filters=None,
-            schedule_id=exports_schedule.export_schedule_id,
+            schedule_id=None,
         )
         assert Path(export_request.get_full_path_file_name()).is_file()
 
