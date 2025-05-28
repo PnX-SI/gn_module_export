@@ -235,7 +235,11 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
         frequency="Fréquence de la génération de l'export (en jours)",
         format="Format de l'export à générer",
     )
-    column_labels = {"generate": "", "last_export": "Date du dernier export"}
+    column_labels = {
+        "generate": "",
+        "last_export": "Date du dernier export",
+        "frequency": "Fréquence",
+    }
 
     def _last_export_formatter(view, context, model, name):
         media_dir = "exports/schedules"
@@ -254,7 +258,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
             skip_newer_than=None,
         )
         file_path = Path(export_request.get_full_path_file_name())
-        if file_path.exists():
+        if file_path.exists() and not model.in_process:
             size_file = file_path.stat().st_size / 1024 / 1024  # in MB
             return f"<a href='{export_request.get_export_url()}' target='_blank' class='btn m-1 btn-primary'><i class='fa fa-download'></i> {size_file:.1f} MB</a>"
         return ""
