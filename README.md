@@ -104,7 +104,7 @@ Pour des questions de lisibilité, il est conseillé de créer la vue dans le sc
 
 Par défaut, un export est créé, basé sur la vue ``gn_exports.v_synthese_sinp``, contenant toutes les données présentes dans la Synthèse. Il est possible de limiter les données dans cet exeport (en ajoutant des critères dans la clause WHERE de la vue ``gn_exports.v_synthese_sinp``), de supprimer cet export, de le rendre public ou de définir quels utilisateur y ont accès.
 
-Les fichiers exportés sont automatiquement supprimés 15 jours après avoir été générés (durée configurable avec le paramètre ``nb_days_keep_file``).
+Les fichiers exportés sont automatiquement supprimés 15 jours après avoir été générés via un mécanisme du coeur de GeoNature
 
 ## Enregistrer l'export créé dans le module Admin
 

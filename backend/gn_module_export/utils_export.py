@@ -38,7 +38,7 @@ def notify_export_file_generated(export, user, export_url, export_failed=False):
             url=export_url,
             context={
                 "export": export,
-                "nb_keep_day": str(current_app.config["EXPORTS"]["nb_days_keep_file"]),
+                "nb_keep_day": 15,
                 "export_failed": export_failed,
             },
         )
