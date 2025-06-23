@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "cbcf99cdb9a8"
-down_revision = "1db24d9b23bc"
+down_revision = "8db5a13cf0d2"
 branch_labels = None
 depends_on = None
 
@@ -22,7 +22,7 @@ def upgrade():
         """
         DROP VIEW IF EXISTS gn_exports.v_synthese_sinp_dee_blurred ;
 
-        CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_dee_blurred AS 
+        CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_dee_blurred AS
             WITH actors AS (
                 SELECT td.id_dataset,
                     td.id_acquisition_framework,
@@ -130,7 +130,7 @@ def upgrade():
                 JOIN taxonomie.taxref AS t ON t.cd_nom = s.cd_nom
                 left join geom_blurred on s.id_synthese = geom_blurred.id_synthese
                 left join gn_sensitivity.cor_sensitivity_area_type csat on csat.id_nomenclature_sensitivity = s.id_nomenclature_sensitivity
-                left join ref_geo.bib_areas_types sensi_bat on sensi_bat.id_type = csat.id_area_type 
+                left join ref_geo.bib_areas_types sensi_bat on sensi_bat.id_type = csat.id_area_type
 			    left JOIN ref_nomenclatures.t_nomenclatures sensi ON sensi.id_nomenclature = s.id_nomenclature_sensitivity
                 LEFT JOIN LATERAL (
                     SELECT
@@ -174,7 +174,7 @@ def upgrade():
                 LEFT JOIN ref_nomenclatures.t_nomenclatures AS n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature
                 LEFT JOIN ref_nomenclatures.t_nomenclatures AS n20 ON s.id_nomenclature_behaviour = n20.id_nomenclature
                 LEFT JOIN ref_nomenclatures.t_nomenclatures AS n21 ON actors.id_nomenclature_data_origin = n21.id_nomenclature ;
-        
+
         COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee_blurred."ID_synthese" IS 'Identifiant de la donnée dans la table synthese';
         COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee_blurred."idOrigine" IS 'Identifiant de la donnée dans la table source';
         COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee_blurred."idSINPOccTax" IS 'Identifiant permanent de l''occurrence';
@@ -365,7 +365,7 @@ def upgrade():
                 LEFT JOIN ref_nomenclatures.t_nomenclatures n18 ON s.id_nomenclature_info_geo_type = n18.id_nomenclature
                 LEFT JOIN ref_nomenclatures.t_nomenclatures n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature;
 
-                
+
             COMMENT ON COLUMN gn_exports.v_synthese_sinp_blurred."id_synthese"            IS 'Identifiant de la donnée dans la table synthese';
             COMMENT ON COLUMN gn_exports.v_synthese_sinp_blurred."id_source"              IS 'Identifiant de la donnée dans la table source';
             COMMENT ON COLUMN gn_exports.v_synthese_sinp_blurred."id_perm_sinp"           IS 'Identifiant permanent de l''occurrence';
@@ -452,7 +452,7 @@ def downgrade():
     op.execute(
         """
             DELETE FROM gn_exports.t_exports WHERE view_name = 'v_synthese_sinp_blurred';
-        
+
             DROP VIEW IF EXISTS gn_exports.v_synthese_sinp_dee_blurred;
 
             DROP VIEW IF EXISTS gn_exports.v_synthese_sinp_blurred;
