@@ -8,6 +8,7 @@ from celery.utils.log import get_task_logger
 from celery.schedules import crontab
 
 from flask import current_app
+from flask.cli import with_appcontext
 from geonature.utils.celery import celery_app
 
 from geonature.utils.env import db
@@ -25,11 +26,6 @@ logger = get_task_logger(__name__)
 
 @celery_app.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(
-        crontab(minute="0", hour="2"),
-        clean_export_file.s(),
-        name="scheduled exports clean",
-    )
     sender.add_periodic_task(
         crontab(minute="0", hour="3"),
         generate_scheduled_exports.s(),
@@ -78,30 +74,3 @@ def generate_export(
         db.session.add(schedule_export)
         db.session.commit()
     logger.info(f"Export {export_id} generated.")
-
-
-@celery_app.task(bind=True)
-def clean_export_file(self):
-    """
-    Fonction permettant de supprimer les fichiers générés
-    par le module export ayant plus de X jours
-
-    .. :quickref: Fonction permettant de supprimer les
-        fichiers générés par le module export ayant plus de X jours
-
-    """
-
-    dirs_to_del_from = [
-        Path(current_app.config["MEDIA_FOLDER"]) / "exports/schedules",
-        Path(current_app.config["MEDIA_FOLDER"]) / "exports/usr_generated",
-    ]
-    # Date limite de suppression
-    time_to_del = datetime.timestamp(
-        datetime.today() - timedelta(days=current_app.config["EXPORTS"]["nb_days_keep_file"])
-    )
-    for dir in dirs_to_del_from:
-        for item in Path(dir).glob("**/*"):
-            item_time = item.stat().st_mtime
-            if item_time < time_to_del:
-                if item.is_file():
-                    item.unlink()

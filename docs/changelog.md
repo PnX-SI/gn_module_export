@@ -7,6 +7,10 @@
 
 - Correction du JSON de configuration du Swagger permettant de documenter automatiquement l'API des exports (#222, par @jbrieuclp)
 
+**Développement**
+
+- Suppression du paramètre `nb_days_keep_file`. Le nettoyage des fichiers est maintenant géré par GeoNature.
+
 1.7.2 (2024-10-04)
 ------------------
 
