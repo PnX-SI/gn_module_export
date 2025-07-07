@@ -1,5 +1,5 @@
 utils-flask-sqlalchemy>=0.4.2
 utils-flask-sqlalchemy-geo>=0.3.3
 pypnusershub>=3.0.3
-geonature>=2.15.4
+geonature>=2.16.0
 rdflib
