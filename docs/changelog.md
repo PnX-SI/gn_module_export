@@ -14,6 +14,7 @@ Compatible uniquement avec les versions de GeoNature >= 2.16.0.
 ### 🐛 Corrections
 
 - Correction du JSON de configuration du Swagger permettant de documenter automatiquement l'API des exports (#222, par @jbrieuclp)
+- Correction du problème de la suppression en cascade d'un export avec l'export planifié (par @jacquesfize)
 
 ## 1.7.2 (2024-10-04)
 
