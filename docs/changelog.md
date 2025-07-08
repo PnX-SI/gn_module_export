@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## 1.8.0 (2025-07-XX)
+## 1.8.0 (2025-07-08)
 
 Compatible uniquement avec les versions de GeoNature >= 2.16.0.
 
