@@ -6,10 +6,10 @@ Compatible uniquement avec les versions de GeoNature >= 2.16.0.
 
 ### 🚀 Nouveautés
 
-- [API] Possibilité de filter les résultats avec une géométrie (#223 par @jacquesfize)
-- [Interface] Amélioration de l'interface de l'export (#229, #231 par @Pierre-Narcisi et @jacquesfize)
-- [Planification] Possibilité de lancer manuellement les exports planifiés (#228 par @jacquesfize et @amandine-sahl)
-- [Synthèse] Ajout d'une vue d'export applicant un floutage sur les données (#232 par @Pierre-Narcisi et @TheoLechemia)
+- [API] Possibilité de filtrer les résultats avec une géométrie (paramètre `geometry` dans les filtres de l'API d'un export) (#223 par @jacquesfize)
+- [Interface] Amélioration de l'interface de la liste des exports (recherche, pagination et design) (#229, #231 par @Pierre-Narcisi et @jacquesfize)
+- [Planification] Possibilité de lancer manuellement les exports planifiés depuis le module Admin, mais aussi de télécharger et d'afficher la taille et la date de dernière génération d'un export planifié (#228 par @jacquesfize et @amandine-sahl)
+- [Synthèse] Ajout d'une nouvelle vue d'export Synthèse SINP appliquant le floutage sur les données sensibles (#232 par @Pierre-Narcisi et @TheoLechemia)
 
 ### 🐛 Corrections
 
