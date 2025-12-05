@@ -53,7 +53,7 @@ def generate_scheduled_exports(self):
             format=export_request.format,
             id_role=None,
             filters=None,
-            schedule_id=scheduled_export.scheduled_export_id,
+            schedule_id=scheduled_export.id_export_schedule,
         )
 
 
