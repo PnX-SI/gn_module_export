@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.8.1 (2025-12-09)
+
+### 🐛 Corrections
+
+- Correction de la génération automatique des exports planifiés (#239)
+- Mise en place d'une dépendance à la branche ref_geo pour la migration cbcf99cdb9a8 (#239)
+
 ## 1.8.0 (2025-07-08)
 
 Compatible uniquement avec les versions de GeoNature >= 2.16.0.
