@@ -24,7 +24,7 @@ Il a été décidé, dans la mesure où la synthèse ne comporte qu'un seul iden
 étant lié à un type de regroupement) que les trois niveaux `Evenement`, `SujetObservation` et `Descriptif` récupèrerait
 ce même identifiant pour permettre une traçabilité de la donnée sur ces trois niveaux.
 
-⚠️ Cette mesure devra être corrigée une fois que Géonature sera passé au SOTv3. Auquel cas chaque donnée devra avoir des
+⚠️ Cette mesure devra être corrigée une fois que GeoNature sera passé au SOTv3. Auquel cas chaque donnée devra avoir des
 identifiants différents
 pour chacun de ces niveaux.
 
