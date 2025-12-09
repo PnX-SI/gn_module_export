@@ -106,7 +106,8 @@ OccTax_v2** du SINP. Elle n'est par contre pas compatible avec un Géonature qui
 > L'utilisation de cette vue dans un environnement hybride risque de générer également des incohérences ou des erreurs
 
 > lors du traitement des données.
-> Il est donc important de restreindre strictement l'utilisation de cette vue dans le context qui lui est dédié
+> Il est donc important de restreindre strictement l'utilisation de cette vue dans le contexte qui lui est dédié
+
 
 ### 2. Une seule échelle de validation possible
 
