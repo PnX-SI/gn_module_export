@@ -5,7 +5,7 @@
 ### 🐛 Corrections
 
 - Correction de la génération automatique des exports planifiés (#239)
-- Mise en place d'une dépendance à la branche ref_geo pour la migration cbcf99cdb9a8 (#239)
+- Mise en place d'une dépendance à la branche "ref_geo" pour la migration "cbcf99cdb9a8" (#237)
 
 ## 1.8.0 (2025-07-08)
 
