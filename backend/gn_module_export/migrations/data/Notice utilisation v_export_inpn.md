@@ -43,7 +43,7 @@ valeurs sont laissées à l'interprétation du receveur (PatriNat dans le cas d'
 correspondances pouvant être complexes pour certains champs, il a été choisi de ne pas fixer ces associations de valuers
 dans cette vue. Les labels d'origine ont été conservé volontairement pour permettre une meilleure lecture.
 
-Les correspondances entre les deux standards seront fixées une fois Géonature passé au SOTv3. Il faudra prévoir une
+Les correspondances entre les deux standards seront fixées une fois GeoNature passé au SOTv3. Il faudra prévoir une
 réintégration complète des données depuis les Géonature pour assurer l'homogénéité entre les bases.
 
 ### 3. Les champs xxxx_label
