@@ -200,7 +200,8 @@ standard :
 
     - Une mise à jour de l'environnement GeoNature doit faire l'objet d'une nouvelle vue pour récupérer les informations
 
-      avec la nouvelle structuration de Géonature quand elle sera disponible.
+      avec la nouvelle structuration de GeoNature quand elle sera disponible.
+
     - La correspondance des nomenclatures sera directement compatible sans besoin de faire attention à la provenance de
       la donnée.
 - ### La gestion de plusieurs échelles de validation
