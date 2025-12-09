@@ -72,7 +72,8 @@ conforme à l'appellation dans référentiel organisme.
 Les métadonnées sont récupérées depuis les tables du module métadonnées et compilées dans un json compatible avec le
 formalisme nécessaire à **gn2pg**.
 
-### 6. Casse des noms de champ
+### 6. Casse des noms de champs
+
 Les noms de champs en sortie sont directement issue du standard SOTv3 pour les champs qui sont récupérés. La
 casse doit donc être respectée : il est donc nécessaire d'apposer les doubles quotes quand cela est nécessaire.
 
