@@ -39,7 +39,8 @@ Les valeurs des différents champs régis par des nomenclatures ne font l'objet 
 
 Il n'y a pas de prise en compte de l'évolution des nomenclatures dans cette vue entre le standard de GeoNature et le standard SOT v3. Il n'y a pas de transformation de valeur, pourtant nécessaire pour retranscrire la bonne
 
-information au SOTv3. Ainsi les codes récupérés ne sont pas utilisable tels quel dans leur nouvel intitulé. Les
+information au SOTv3. Ainsi les codes récupérés ne sont pas utilisables tels quels dans leur nouvel intitulé. Les
+
 modifications de
 valeurs sont laissées à l'interprétation du receveur (PatriNat dans le cas d'une transmission au niveau national). Les
 correspondances pouvant être complexes pour certains champs, il a été choisi de ne pas fixer ces associations de valuers
