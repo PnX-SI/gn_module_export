@@ -205,6 +205,7 @@ standard :
     - La correspondance des nomenclatures sera directement compatible sans besoin de faire attention à la provenance de
       la donnée.
 - ### La gestion de plusieurs échelles de validation
-Actuellement un seul niveau de validation est possible sur Géonature. Il est possible de discriminer l'échelle à 
+Actuellement un seul niveau de validation est possible sur GeoNature. Il est possible de discriminer l'échelle à 
+
 laquelle il faut l'affecter avec le validateur, mais cela ne constitue pas une manière pérenne et transposable à
 toutes les utilisations de Géonature. 
