@@ -103,7 +103,8 @@ OccTax_v2** du SINP. Elle n'est par contre pas compatible avec un Géonature qui
 > par la requête seront toujours à l'ancien standard. Si les données sont intégrées en l'état, cela générera
 > potentiellement des incohérences au niveau des nomenclatures qui ont subi de forts changements.
 >
-> L'utilisation de cette vue dans un environnement hybride risque de générer également des incohérences ou des errreurs
+> L'utilisation de cette vue dans un environnement hybride risque de générer également des incohérences ou des erreurs
+
 > lors du traitement des données.
 > Il est donc important de restreindre strictement l'utilisation de cette vue dans le context qui lui est dédié
 
