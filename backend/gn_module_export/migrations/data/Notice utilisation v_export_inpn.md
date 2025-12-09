@@ -74,7 +74,8 @@ formalisme nécessaire à **gn2pg**.
 
 ### 6. Casse des noms de champs
 
-Les noms de champs en sortie sont directement issue du standard SOTv3 pour les champs qui sont récupérés. La
+Les noms de champs en sortie sont directement issus du standard SOTv3 pour les champs qui sont récupérés. La
+
 casse doit donc être respectée : il est donc nécessaire d'apposer les doubles quotes quand cela est nécessaire.
 
 ### 7. Le niveau de sensibilité
