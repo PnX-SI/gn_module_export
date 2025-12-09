@@ -57,7 +57,8 @@ réintégration complète des données depuis les GeoNature pour assurer l'homog
 Pour plus de transparence et de lisibilité en cas d'export CSV, les champs `xxxx_label` sont les seuls champs qui n'ont
 pas été renommés et qui comportent le libellé de la valeur d'origine présent dans la synthèse. Il est possible de
 
-se baser sur ces champs pour réaliser la retranscription des valeurs des nomenclatures.
+s'appuyer sur ces champs pour réaliser la retranscription des valeurs des nomenclatures.
+
 
 ### 4. Renseigner la base de production
 
