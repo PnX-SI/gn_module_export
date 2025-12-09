@@ -4,7 +4,7 @@ Notice d'utilisation de la vue export_inpn
 ## Contexte d'utilisation
 
 Cette vue est proposée et conçue pour répondre au besoin d'avoir qu'un seul format de référence pour la transmission des
-données depuis un **Géonature** vers le **niveau national**. Elle réorganise les informations de la synthèse pour les
+données depuis une instance **GeoNature** vers les plateformes SINP. Elle réorganise les informations de la synthèse pour les
 réassigner aux champs attendus du standard SOTv3, mais elle ne retranscrit pas le contenu initial. En conséquence, elle
 n'est utilisable qu'avec les nomenclatures et la structure des GeoNature au standard OccTax_v2
 
