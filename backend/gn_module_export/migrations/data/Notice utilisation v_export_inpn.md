@@ -80,7 +80,8 @@ casse doit donc être respectée : il est donc nécessaire d'apposer les doubles
 
 ### 7. Le niveau de sensibilité
 
-La sensibilité est incluse dans cette vue pour répondre à des besoins autre que l'intégration des données au niveau
+La sensibilité est incluse dans cette vue pour répondre à des besoins autres que l'intégration des données au niveau
+
 national. Dans le cadre d'une intégration au niveau de l'INPN, ces champs ne seront pas utilisés. La sensibilité sera
 recalculée en fonction des listes de sensibilité en vigueur.
 
