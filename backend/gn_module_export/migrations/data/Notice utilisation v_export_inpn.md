@@ -9,7 +9,7 @@ réassigner aux champs attendus du standard SOTv3, mais elle ne retranscrit pas 
 n'est utilisable qu'avec les nomenclatures et la structure des GeoNature au standard OccTax_v2
 
 La connexion de cette vue à un élément du module d'export pourra être mise en place pour permettre une transmission des
-données au format CSV ou via l'API intégrée de Géonature. Cette vue est également compatible avec l'outil **gn2pg**. Par
+données au format CSV ou via l'API intégrée de GeoNature. Cette vue est également compatible avec l'outil **GN2PG**. Par
 conséquent, la
 transmission via cet outil est aussi possible.
 
