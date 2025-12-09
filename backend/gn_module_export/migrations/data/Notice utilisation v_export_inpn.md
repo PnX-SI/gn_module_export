@@ -43,7 +43,8 @@ information au SOTv3. Ainsi les codes récupérés ne sont pas utilisables tels 
 
 modifications de
 valeurs sont laissées à l'interprétation du receveur (PatriNat dans le cas d'une transmission au niveau national). Les
-correspondances pouvant être complexes pour certains champs, il a été choisi de ne pas fixer ces associations de valuers
+correspondances pouvant être complexes pour certains champs, il a été choisi de ne pas fixer ces associations de valeurs
+
 dans cette vue. Les labels d'origine ont été conservé volontairement pour permettre une meilleure lecture.
 
 Les correspondances entre les deux standards seront fixées une fois GeoNature passé au SOTv3. Il faudra prévoir une
