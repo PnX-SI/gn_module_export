@@ -192,7 +192,8 @@ faudra modifier la vue pour ajouter les sous requêtes nécessaires.
 ---------------------------------------------------------------------------------------------------------------------
 
 ## 🚧Perspectives🚧
-Certaines évolutions de Géonature pourront amener à réviser le formalisme de cette vue afin de toujours correspondre au 
+Certaines évolutions de GeoNature pourront amener à réviser le formalisme de cette vue afin de toujours correspondre au 
+
 standard :
 - ### Le passage de Géonature au standard SOT_v3
     - Une mise à jour de l'environnement Géonature doit fait l'objet d'une nouvelle vue pour récupérer les informations
