@@ -49,7 +49,8 @@ dans cette vue. Les labels d'origine ont été conservés volontairement pour pe
 
 
 Les correspondances entre les deux standards seront fixées une fois GeoNature passé au SOTv3. Il faudra prévoir une
-réintégration complète des données depuis les Géonature pour assurer l'homogénéité entre les bases.
+réintégration complète des données depuis les GeoNature pour assurer l'homogénéité entre les bases.
+
 
 ### 3. Les champs xxxx_label
 
