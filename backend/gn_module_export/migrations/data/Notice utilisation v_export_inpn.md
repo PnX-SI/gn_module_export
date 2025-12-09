@@ -16,7 +16,7 @@ transmission via cet outil est aussi possible.
 ## Description
 
 La vue export_inpn récupère toutes les informations nécessaires de la synthèse et des métadonnées pour permettre de
-transmettre facilement les données de Géonature vers l'INPN.
+transmettre facilement les données de GeoNature vers l'INPN.
 
 ### 1. La récupération des identifiants uniques
 
