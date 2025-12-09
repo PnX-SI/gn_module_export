@@ -10,8 +10,7 @@ n'est utilisable qu'avec les nomenclatures et la structure des GeoNature au stan
 
 La connexion de cette vue à un élément du module d'export pourra être mise en place pour permettre une transmission des
 données au format CSV ou via l'API intégrée de GeoNature. Cette vue est également compatible avec l'outil **GN2PG**. Par
-conséquent, la
-transmission via cet outil est aussi possible.
+conséquent, la transmission via cet outil est aussi possible.
 
 ## Description
 
@@ -25,28 +24,21 @@ Il a été décidé, dans la mesure où la synthèse ne comporte qu'un seul iden
 ce même identifiant pour permettre une traçabilité de la donnée sur ces trois niveaux.
 
 ⚠️ Cette mesure devra être corrigée une fois que GeoNature sera passé au SOTv3. Auquel cas chaque donnée devra avoir des
-identifiants différents
-pour chacun de ces niveaux.
+identifiants différents pour chacun de ces niveaux.
 
 Il peut être envisagé de gérer cette multiplicité des identifiants via des champs/tables supplémentaires, mais il faudra
 modifier la requête de la vue en conséquence avant utilisation. Les changements imputés à la base devront être
-répercutée
-dans la vue en conséquences selon la solution adoptée.
+répercutés dans la vue en conséquences selon la solution adoptée.
 
 ### 2. La récupération des nomenclatures
 
 Les valeurs des différents champs régis par des nomenclatures ne font l'objet que d'une correspondance champ à champ.
 
 Il n'y a pas de prise en compte de l'évolution des nomenclatures dans cette vue entre le standard de GeoNature et le standard SOT v3. Il n'y a pas de transformation de valeur, pourtant nécessaire pour retranscrire la bonne
-
 information au SOTv3. Ainsi les codes récupérés ne sont pas utilisables tels quels dans leur nouvel intitulé. Les
-
-modifications de
-valeurs sont laissées à l'interprétation du receveur (PatriNat dans le cas d'une transmission au niveau national). Les
+modifications de valeurs sont laissées à l'interprétation du receveur (PatriNat dans le cas d'une transmission au niveau national). Les
 correspondances pouvant être complexes pour certains champs, il a été choisi de ne pas fixer ces associations de valeurs
-
 dans cette vue. Les labels d'origine ont été conservés volontairement pour permettre une meilleure lecture.
-
 
 Les correspondances entre les deux standards seront fixées une fois GeoNature passé au SOTv3. Il faudra prévoir une
 réintégration complète des données depuis les GeoNature pour assurer l'homogénéité entre les bases.
@@ -56,7 +48,6 @@ réintégration complète des données depuis les GeoNature pour assurer l'homog
 
 Pour plus de transparence et de lisibilité en cas d'export CSV, les champs `xxxx_label` sont les seuls champs qui n'ont
 pas été renommés et qui comportent le libellé de la valeur d'origine présent dans la synthèse. Il est possible de
-
 s'appuyer sur ces champs pour réaliser la retranscription des valeurs des nomenclatures.
 
 
@@ -75,13 +66,11 @@ formalisme nécessaire à **gn2pg**.
 ### 6. Casse des noms de champs
 
 Les noms de champs en sortie sont directement issus du standard SOTv3 pour les champs qui sont récupérés. La
-
 casse doit donc être respectée : il est donc nécessaire d'apposer les doubles quotes quand cela est nécessaire.
 
 ### 7. Le niveau de sensibilité
 
 La sensibilité est incluse dans cette vue pour répondre à des besoins autres que l'intégration des données au niveau
-
 national. Dans le cadre d'une intégration au niveau de l'INPN, ces champs ne seront pas utilisés. La sensibilité sera
 recalculée en fonction des listes de sensibilité en vigueur.
 
@@ -118,84 +107,87 @@ faudra modifier la vue pour ajouter les sous requêtes nécessaires.
 
 ## Dictionnaire de données
 
-| champ                           |      format       |           champ géonature           | nomenclature Occtax_v2 |
-|:--------------------------------|:-----------------:|:-----------------------------------:|:----------------------:|
-| id_synthese                     |      integer      |             id_synthese             |                        |
-| id_perm_sinp                    |       uuid        |           unique_id_sinp            |                        |
-| "idSinpSujetObs"                |       uuid        |           unique_id_sinp            |                        |
-| "idSinpEvenement"               |       uuid        |           unique_id_sinp            |                        |
-| "idSinpDescriptif"              |       uuid        |           unique_id_sinp            |                        |
-| "idOrigineSujetObs"             |      varchar      |             id_origine              |                        |
-| "idSinpRegroupement"            |       uuid        |         unique_id_sinp_grp          |                        |
-| "dateDebut"                     |       date        |              date_min               |                        |
-| "dateFin"                       |       date        |              date_max               |                        |
-| "heureDebut"                    |       heure       |  date_min::time without time zone   |                        |
-| "heureFin"                      |       heure       |  date_max::time without time zone   |                        |
-| "cdNom"                         |    code TaxRef    |               cd_nom                |                        |
-| "nomCite"                       |      varchar      |              nom_cite               |                        |
-| "denombrementMin"               |      entier       |              count_min              |                        |
-| "denombrementMax"               |      entier       |              count_max              |                        |
-| "altitudeMin"                   |       float       |            altitude_min             |                        |
-| "altitudeMax"                   |       float       |            altitude_max             |                        |
-| "profondeurMin"                 |       float       |              depth_min              |                        |
-| "profondeurMax"                 |       float       |              depth_max              |                        |
-| observateur                     |      varchar      |              observers              |                        |
-| determinateur                   |      varchar      |             determiner              |                        |
-| "echelleValidation"             |   nomenclature    |                  -                  |                        |
-| "validateurValRegOuNat"         |      varchar      |              validator              |                        |
-| "validateurValProd"             |      varchar      |              validator              |                        |
-| "niveauValidationValReg"        |   nomenclature    |           cd_nomenclature           |           ✓            |
-| "niveauValidationValProd"       |   nomenclature    |           cd_nomenclature           |           ✓            |
-| "niveauValidationValProd_label" |      varchar      |            label_default            |                        |
-| "commentaireValidation"         |      varchar      |         validation_comment          |                        |
-| "urlPreuveNumerique"            |        url        |            digital_proof            |                        |
-| "preuveNonNumerique"            |      varchar      |          non_digital_proof          |                        |
-| geometrie                       |        wkt        |            the_geom_4326            |                        |
-| cd_geo                          | code_localisation |              area_code              |                        |
-| "typeLocalisation"              |   nomenclature    |                  -                  |                        |
-| "commentaireEvenement"          |      varchar      |           comment_context           |                        |
-| "commentaireDescriptif"         |      varchar      |         comment_description         |                        |
-| "idSinpJdd"                     |       uuid        |          unique_dataset_id          |                        |
-| "referenceSource"               |      varchar      |          reference_biblio           |                        |
-| "cdHab"                         |    code HabRef    |               cd_hab                |                        |
-| habitat_label                   |      varchar      |              lb_hab_fr              |                        |
-| "nomLocalisation"               |      varchar      |             place_name              |                        |
-| "precisionGeometrie"            |       float       |              precision              |                        |
-| "natureObjetGeo"                |   nomenclature    |           cd_nomenclature           |           ✓            |
-| natureobjetgeo_label            |      varchar      |            label_default            |                        |
-| "typeRegroupement"              |   nomenclature    |           cd_nomenclature           |           ✓            |
-| typeregroupement_label          |      varchar      |            label_default            |                        |
-| "nomRegroupement"               |      varchar      |             grp_method              |                        |
-| comportement                    |   nomenclature    |           cd_nomenclature           |           ✓            |
-| comportement_label              |      varchar      |            label_default            |                        |
-| "indicePresence"                |   nomenclature    |           cd_nomenclature           |           ✓            |
-| technique_obs_label             |      varchar      |            label_default            |                        |
-| "phaseBiologique"               |   nomenclature    |           cd_nomenclature           |           ✓            |
-| statut_biologique_label         |      varchar      |            label_default            |                        |
-| "etatBiologique"                |   nomenclature    |           cd_nomenclature           |           ✓            |
-| etat_biologique_label           |      varchar      |            label_default            |                        |
-| spontaneite                     |   nomenclature    |           cd_nomenclature           |           ✓            |
-| naturalite_label                |      varchar      |            label_default            |                        |
-| "stadeBiologique"               |   nomenclature    |           cd_nomenclature           |           ✓            |
-| stade_vie_label                 |      varchar      |            label_default            |                        |
-| sexe                            |   nomenclature    |           cd_nomenclature           |           ✓            |
-| sexe_label                      |      varchar      |            label_default            |                        |
-| "objetDenombrement"             |   nomenclature    |           cd_nomenclature           |           ✓            |
-| objet_denombrement_label        |      varchar      |            label_default            |                        |
-| "methodeDenombrement"           |   nomenclature    |           cd_nomenclature           |           ✓            |
-| type_denombrement_label         |      varchar      |            label_default            |                        |
-| niveau_sensibilite              |   nomenclature    |           cd_nomenclature           |           ✓            |
-| niveau_sensibilite_label        |      varchar      |            label_default            |                        |
-| "statutObservation"             |   nomenclature    |           cd_nomenclature           |           ✓            |
-| statut_observation_label        |      varchar      |            label_default            |                        |
-| "statutSource"                  |   nomenclature    |           cd_nomenclature           |           ✓            |
-| statut_source_label             |      varchar      |            label_default            |                        |
-| methode_determination           |   nomenclature    |           cd_nomenclature           |           ✓            |
-| methode_determination_label     |      varchar      |            label_default            |                        |
-| "AttributAdditionnel"           |       json        |           additional_data           |                        |
-| jdd_data                        |     json_mtd      |                                     |                        |
-| ca_data                         |     json_mtd      |                                     |                        |
-| derniere_action                 |       date        | meta_update_date / meta_create_date |                        |
+| champ                            |      format       |           champ geonature           | nomenclature Occtax_v2 |
+|:---------------------------------|:-----------------:|:-----------------------------------:|:----------------------:|
+| id_synthese                      |      integer      |             id_synthese             |                        |
+| id_perm_sinp                     |       uuid        |           unique_id_sinp            |                        |
+| "idSinpSujetObs"                 |       uuid        |           unique_id_sinp            |                        |
+| "idSinpEvenement"                |       uuid        |           unique_id_sinp            |                        |
+| "idSinpDescriptif"               |       uuid        |           unique_id_sinp            |                        |
+| "idOrigineSujetObs"              |      varchar      |             id_origine              |                        |
+| "idSinpRegroupement"             |       uuid        |         unique_id_sinp_grp          |                        |
+| "dateDebut"                      |       date        |              date_min               |                        |
+| "dateFin"                        |       date        |              date_max               |                        |
+| "heureDebut"                     |       heure       |  date_min::time without time zone   |                        |
+| "heureFin"                       |       heure       |  date_max::time without time zone   |                        |
+| "cdNom"                          |    code TaxRef    |               cd_nom                |                        |
+| "nomCite"                        |      varchar      |              nom_cite               |                        |
+| "denombrementMin"                |      entier       |              count_min              |                        |
+| "denombrementMax"                |      entier       |              count_max              |                        |
+| "altitudeMin"                    |       float       |            altitude_min             |                        |
+| "altitudeMax"                    |       float       |            altitude_max             |                        |
+| "profondeurMin"                  |       float       |              depth_min              |                        |
+| "profondeurMax"                  |       float       |              depth_max              |                        |
+| observateur                      |      varchar      |              observers              |                        |
+| determinateur                    |      varchar      |             determiner              |                        |
+| "echelleValidation"              |   nomenclature    |                  -                  |                        |
+| "validateurValRegOuNat"          |      varchar      |              validator              |                        |
+| "validateurValProd"              |      varchar      |              validator              |                        |
+| "nivValidationValRegOuNat"       |   nomenclature    |           cd_nomenclature           |           ✓            |
+| "niveauValidationValProd"        |   nomenclature    |           cd_nomenclature           |           ✓            |
+| "nivValidationValRegOuNat_label" |      varchar      |            label_default            |                        |
+| "niveauValidationValProd_label"  |      varchar      |            label_default            |                        |
+| "dateValRegOuNat"                |       date        |        meta_validation_date         |                        |
+| "dateValProd"                    |       date        |        meta_validation_date         |                        |
+| "commentaireValidation"          |      varchar      |         validation_comment          |                        |
+| "urlPreuveNumerique"             |        url        |            digital_proof            |                        |
+| "preuveNonNumerique"             |      varchar      |          non_digital_proof          |                        |
+| geometrie                        |        wkt        |            the_geom_4326            |                        |
+| cd_geo                           | code_localisation |              area_code              |                        |
+| "typeLocalisation"               |   nomenclature    |                  -                  |                        |
+| "commentaireEvenement"           |      varchar      |           comment_context           |                        |
+| "commentaireDescriptif"          |      varchar      |         comment_description         |                        |
+| "idSinpJdd"                      |       uuid        |          unique_dataset_id          |                        |
+| "referenceSource"                |      varchar      |          reference_biblio           |                        |
+| "cdHab"                          |    code HabRef    |               cd_hab                |                        |
+| habitat_label                    |      varchar      |              lb_hab_fr              |                        |
+| "nomLocalisation"                |      varchar      |             place_name              |                        |
+| "precisionGeometrie"             |       float       |              precision              |                        |
+| "natureObjetGeo"                 |   nomenclature    |           cd_nomenclature           |           ✓            |
+| natureobjetgeo_label             |      varchar      |            label_default            |                        |
+| "typeRegroupement"               |   nomenclature    |           cd_nomenclature           |           ✓            |
+| typeregroupement_label           |      varchar      |            label_default            |                        |
+| "nomRegroupement"                |      varchar      |             grp_method              |                        |
+| comportement                     |   nomenclature    |           cd_nomenclature           |           ✓            |
+| comportement_label               |      varchar      |            label_default            |                        |
+| "indicePresence"                 |   nomenclature    |           cd_nomenclature           |           ✓            |
+| technique_obs_label              |      varchar      |            label_default            |                        |
+| "phaseBiologique"                |   nomenclature    |           cd_nomenclature           |           ✓            |
+| statut_biologique_label          |      varchar      |            label_default            |                        |
+| "etatBiologique"                 |   nomenclature    |           cd_nomenclature           |           ✓            |
+| etat_biologique_label            |      varchar      |            label_default            |                        |
+| spontaneite                      |   nomenclature    |           cd_nomenclature           |           ✓            |
+| naturalite_label                 |      varchar      |            label_default            |                        |
+| "stadeBiologique"                |   nomenclature    |           cd_nomenclature           |           ✓            |
+| stade_vie_label                  |      varchar      |            label_default            |                        |
+| sexe                             |   nomenclature    |           cd_nomenclature           |           ✓            |
+| sexe_label                       |      varchar      |            label_default            |                        |
+| "objetDenombrement"              |   nomenclature    |           cd_nomenclature           |           ✓            |
+| objet_denombrement_label         |      varchar      |            label_default            |                        |
+| "methodeDenombrement"            |   nomenclature    |           cd_nomenclature           |           ✓            |
+| type_denombrement_label          |      varchar      |            label_default            |                        |
+| niveau_sensibilite               |   nomenclature    |           cd_nomenclature           |           ✓            |
+| niveau_sensibilite_label         |      varchar      |            label_default            |                        |
+| "statutObservation"              |   nomenclature    |           cd_nomenclature           |           ✓            |
+| statut_observation_label         |      varchar      |            label_default            |                        |
+| "statutSource"                   |   nomenclature    |           cd_nomenclature           |           ✓            |
+| statut_source_label              |      varchar      |            label_default            |                        |
+| methode_determination            |   nomenclature    |           cd_nomenclature           |           ✓            |
+| methode_determination_label      |      varchar      |            label_default            |                        |
+| "AttributAdditionnel"            |       json        |           additional_data           |                        |
+| jdd_data                         |     json_mtd      |                                     |                        |
+| ca_data                          |     json_mtd      |                                     |                        |
+| derniere_action                  |       date        | meta_update_date / meta_create_date |                        |
 
 ---------------------------------------------------------------------------------------------------------------------
 
@@ -213,6 +205,5 @@ standard :
       la donnée.
 - ### La gestion de plusieurs échelles de validation
 Actuellement un seul niveau de validation est possible sur GeoNature. Il est possible de discriminer l'échelle à 
-
 laquelle il faut l'affecter avec le validateur, mais cela ne constitue pas une manière pérenne et transposable à
-toutes les utilisations de Géonature. 
+toutes les utilisations de Geonature. 

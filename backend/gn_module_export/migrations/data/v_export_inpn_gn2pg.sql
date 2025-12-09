@@ -1,15 +1,16 @@
-CREATE VIEW gn_exports.v_export_inpn
-            (id_synthese, id_perm_sinp, "idSinpSujetObs", "idSinpEvenement", "idSinpDescriptif", "idOrigineSujetObs",
+CREATE VIEW gn_exports.v_export_sot_v2tov3
+    (id_synthese, id_perm_sinp, "idSinpSujetObs", "idSinpEvenement", "idSinpDescriptif", "idOrigineSujetObs",
              "idSinpRegroupement", "dateDebut", "dateFin", "heureDebut", "heureFin", "cdNom", "nomCite",
              "denombrementMin", "denombrementMax", "altitudeMin", "altitudeMax", "profondeurMin", "profondeurMax",
              observateur, determinateur, "echelleValidation", "validateurValRegOuNat", "validateurValProd",
-             "niveauValidationValReg", "niveauValidationValProd", "niveauValidationValProd_label",
-             "commentaireValidation", "urlPreuveNumerique", "preuveNonNumerique", geometrie, cd_geo, "typeLocalisation",
-             "commentaireEvenement", "commentaireDescriptif", "idSinpJdd", "referenceSource", "cdHab", habitat_label,
-             "nomLocalisation", "precisionGeometrie", "natureObjetGeo", natureobjetgeo_label, "typeRegroupement",
-             typeregroupement_label, "nomRegroupement", comportement, comportement_label, "indicePresence",
-             technique_obs_label, statut_biologique, statut_biologique_label, "etatBiologique", etat_biologique_label,
-             spontaneite, naturalite_label, "stadeBiologique", stade_vie_label, sexe, sexe_label, "objetDenombrement",
+             "nivValidationValRegOuNat", "niveauValidationValProd", nivvalidationvalregounat_label,
+             niveauvalidationvalprod_label, "dateValRegOuNat", "dateValProd", "commentaireValidation",
+             "urlPreuveNumerique", "preuveNonNumerique", geometrie, cd_geo, "typeLocalisation", "commentaireEvenement",
+             "commentaireDescriptif", "idSinpJdd", "referenceSource", "cdHab", habitat_label, "nomLocalisation",
+             "precisionGeometrie", "natureObjetGeo", natureobjetgeo_label, "typeRegroupement", typeregroupement_label,
+             "nomRegroupement", comportement, comportement_label, "indicePresence", technique_obs_label,
+             "phaseBiologique", statut_biologique_label, "etatBiologique", etat_biologique_label, spontaneite,
+             naturalite_label, "stadeBiologique", stade_vie_label, sexe, sexe_label, "objetDenombrement",
              objet_denombrement_label, "methodeDenombrement", type_denombrement_label, niveau_sensibilite,
              niveau_sensibilite_label, "statutObservation", statut_observation_label, "statutSource",
              statut_source_label, methode_determination, methode_determination_label, "AttributAdditionnel", jdd_data,
@@ -280,13 +281,32 @@ SELECT s.id_synthese,
            WHEN ((SELECT params.echelle_validation
                   FROM params)) = 'region'::text THEN n20.cd_nomenclature
            ELSE NULL::character varying
-           END                                                                         AS "niveauValidationValReg",
+           END                                                                         AS "nivValidationValRegOuNat",
        CASE
            WHEN ((SELECT params.echelle_validation
                   FROM params)) <> 'region'::text THEN n20.cd_nomenclature
            ELSE NULL::character varying
            END                                                                         AS "niveauValidationValProd",
-       n20.label_default                                                               AS "niveauValidationValProd_label",
+       CASE
+           WHEN ((SELECT params.echelle_validation
+                  FROM params)) = 'region'::text THEN n20.label_default
+           ELSE NULL::character varying
+           END                                                                         AS nivValidationValRegOuNat_label,
+       CASE
+           WHEN ((SELECT params.echelle_validation
+                  FROM params)) <> 'region'::text THEN n20.label_default
+           ELSE NULL::character varying
+           END                                                                         AS niveauValidationValProd_label,
+       CASE
+           WHEN ((SELECT params.echelle_validation
+                  FROM params)) = 'region'::text THEN s.meta_validation_date::date
+           ELSE NULL::date
+           END                                                                         AS "dateValRegOuNat",
+       CASE
+           WHEN ((SELECT params.echelle_validation
+                  FROM params)) <> 'region'::text THEN s.meta_validation_date::date
+           ELSE NULL::date
+           END                                                                         AS "dateValProd",
        s.validation_comment                                                            AS "commentaireValidation",
        s.digital_proof                                                                 AS "urlPreuveNumerique",
        s.non_digital_proof                                                             AS "preuveNonNumerique",
@@ -344,7 +364,7 @@ SELECT s.id_synthese,
        COALESCE(s.meta_update_date, s.meta_create_date)                                AS derniere_action
 FROM gn_synthese.synthese s
          JOIN gn_meta.t_datasets tds ON tds.id_dataset = s.id_dataset
-         JOIN gn_meta.t_acquisition_frameworks taf ON tds.id_acquisition_frameworfk = taf.id_acquisition_frameworfk
+         JOIN gn_meta.t_acquisition_frameworks taf ON tds.id_acquisition_framework = taf.id_acquisition_framework
          JOIN ds ON ds."IdentifiantJeuDonnees" = tds.unique_dataset_id
          JOIN af ON af."IdentifiantCadreAcquisition" = taf.unique_acquisition_framework_id
          JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
