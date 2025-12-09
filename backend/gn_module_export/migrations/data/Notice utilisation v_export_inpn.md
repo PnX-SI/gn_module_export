@@ -35,7 +35,8 @@ dans la vue en conséquences selon la solution adoptée.
 
 ### 2. La récupération des nomenclatures
 
-Les valeurs des différents champs régies par des nomenclatures ne font l'objet que d'une correspondance champs à champ.
+Les valeurs des différents champs régis par des nomenclatures ne font l'objet que d'une correspondance champ à champ.
+
 Il n'y a pas de prise en compte transformation et des changements de valeur nécessaire pour retranscrire la bonne
 information au SOTv3. Ainsi les codes récupérés ne sont pas utilisable tels quel dans leur nouvel intitulé. Les
 modifications de
