@@ -196,7 +196,8 @@ faudra modifier la vue pour ajouter les sous requêtes nécessaires.
 Certaines évolutions de GeoNature pourront amener à réviser le formalisme de cette vue afin de toujours correspondre au 
 
 standard :
-- ### Le passage de Géonature au standard SOT_v3
+- ### Le passage de GeoNature au standard SOT_v3
+
     - Une mise à jour de l'environnement Géonature doit fait l'objet d'une nouvelle vue pour récupérer les informations
       avec la nouvelle structuration de Géonature quand elle sera disponible.
     - La correspondance des nomenclatures sera directement compatible sans besoin de faire attention à la provenance de
