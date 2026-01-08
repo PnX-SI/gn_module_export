@@ -19,9 +19,12 @@ transmettre facilement les données de GeoNature vers l'INPN.
 
 ### 1. La récupération des identifiants uniques
 
-Il a été décidé, dans la mesure où la synthèse ne comporte qu'un seul identifiant unique pour une donnée (le second
-étant lié à un type de regroupement) que les trois niveaux `Evenement`, `SujetObservation` et `Descriptif` récupèrerait
+Pour les données intégrées via le module d'import, il a été décidé, dans la mesure où la synthèse ne comporte qu'un seul identifiant unique pour une donnée (le second
+étant lié à un type de regroupement dans le module d'import) que les trois niveaux `Evenement`, `SujetObservation` et `Descriptif` récupèrerait
 ce même identifiant pour permettre une traçabilité de la donnée sur ces trois niveaux.
+Pour les données issues des autres modules, les `unique_id_sinp_grp` non-nulls sont redirigés vers l'`Evenement` pour 
+correspondre à l'utilisation qui est faite de ce champ. Si le champ est tout de même vide, `unique_id_sinp` est récupéré
+comme pour le module d'import.
 
 ⚠️ Cette mesure devra être corrigée une fois que GeoNature sera passé au SOTv3. Auquel cas chaque donnée devra avoir des
 identifiants différents pour chacun de ces niveaux.

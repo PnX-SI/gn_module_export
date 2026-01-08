@@ -1,5 +1,5 @@
 CREATE VIEW gn_exports.v_export_sot_v2tov3
-    (id_synthese, id_perm_sinp, "idSinpSujetObs", "idSinpEvenement", "idSinpDescriptif", "idOrigineSujetObs",
+            (id_synthese, id_perm_sinp, "idSinpSujetObs", "idSinpEvenement", "idSinpDescriptif", "idOrigineSujetObs",
              "idSinpRegroupement", "dateDebut", "dateFin", "heureDebut", "heureFin", "cdNom", "nomCite",
              "denombrementMin", "denombrementMax", "altitudeMin", "altitudeMax", "profondeurMin", "profondeurMax",
              observateur, determinateur, "echelleValidation", "validateurValRegOuNat", "validateurValProd",
@@ -30,26 +30,26 @@ WITH params(echelle_validation) AS (VALUES ('region'::text)),
                                JOIN ref_nomenclatures.t_nomenclatures tn
                                     ON tn.id_nomenclature = c.id_nomenclature_objectif
                       GROUP BY c.id_acquisition_framework),
-     af_principal AS (SELECT taf_1.unique_acquisition_framework_id                                              AS "IdentifiantCadreAcquisition",
-                             taf_1.acquisition_framework_name                                                   AS "LibelleCadreAcquisition",
-                             taf_1.acquisition_framework_desc                                                   AS "DescriptionCadreAcquisition",
-                             o.objectifs                                                                        AS "Objectifs",
-                             taf_1.keywords                                                                     AS "MotsCles",
-                             taf_1.territory_desc                                                               AS "PrecisionGeographique",
-                             meta.unique_acquisition_framework_id                                               AS "ReferenceMetacadre",
-                             taf_1.territory_desc                                                               AS " Territoires",
-                             tnf.label_default                                                                  AS "TypeFinancement",
-                             v.voletsinp                                                                        AS "VoletSINP",
-                             tnt.label_default                                                                  AS "NiveauTerritorial",
-                             NULL::text                                                                         AS "NomFichierTaxonomique",
-                             NULL::text                                                                         AS "StatutAvancement",
-                             taf_1.acquisition_framework_end_date                                               AS "DateCloture",
-                             taf_1.acquisition_framework_start_date                                             AS "DateLancement",
+     af_principal AS (SELECT taf_1.unique_acquisition_framework_id        AS "IdentifiantCadreAcquisition",
+                             taf_1.acquisition_framework_name             AS "LibelleCadreAcquisition",
+                             taf_1.acquisition_framework_desc             AS "DescriptionCadreAcquisition",
+                             o.objectifs                                  AS "Objectifs",
+                             taf_1.keywords                               AS "MotsCles",
+                             taf_1.territory_desc                         AS "PrecisionGeographique",
+                             meta.unique_acquisition_framework_id         AS "ReferenceMetacadre",
+                             taf_1.territory_desc                         AS " Territoires",
+                             tnf.label_default                            AS "TypeFinancement",
+                             v.voletsinp                                  AS "VoletSINP",
+                             tnt.label_default                            AS "NiveauTerritorial",
+                             NULL::text                                   AS "NomFichierTaxonomique",
+                             NULL::text                                   AS "StatutAvancement",
+                             taf_1.acquisition_framework_end_date         AS "DateCloture",
+                             taf_1.acquisition_framework_start_date       AS "DateLancement",
                              CONCAT_WS(', '::text, taf_1.target_description,
-                                       taf_1.ecologic_or_geologic_target)                                       AS "DescriptionCibleTaxo",
-                             'Non'::text                                                                        AS "FichierJointOuiNon",
-                             NULL::text                                                                         AS "IdentifiantProcedureDepot",
-                             taf_1.is_parent                                                                    AS "estMetaCadre"
+                                       taf_1.ecologic_or_geologic_target) AS "DescriptionCibleTaxo",
+                             'Non'::text                                  AS "FichierJointOuiNon",
+                             NULL::text                                   AS "IdentifiantProcedureDepot",
+                             taf_1.is_parent                              AS "estMetaCadre"
                       FROM gn_meta.t_acquisition_frameworks taf_1
                                LEFT JOIN gn_meta.t_acquisition_frameworks meta
                                          ON meta.id_acquisition_framework = taf_1.acquisition_framework_parent_id
@@ -244,10 +244,15 @@ WITH params(echelle_validation) AS (VALUES ('region'::text)),
 SELECT s.id_synthese,
        s.unique_id_sinp                                                                AS id_perm_sinp,
        s.unique_id_sinp                                                                AS "idSinpSujetObs",
-       s.unique_id_sinp                                                                AS "idSinpEvenement",
+       CASE
+           WHEN sc.name_source = 'Import' THEN s.unique_id_sinp::text
+           ELSE COALESCE(NULLIF(s.unique_id_sinp_grp::text, ''::text), s.unique_id_sinp::text)
+           END                                                                         AS "idSinpEvenement",
        s.unique_id_sinp                                                                AS "idSinpDescriptif",
        COALESCE(NULLIF(s.entity_source_pk_value::text, ''::text), s.id_synthese::text) AS "idOrigineSujetObs",
-       s.unique_id_sinp_grp                                                            AS "idSinpRegroupement",
+       CASE
+           WHEN sc.name_source = 'Import' THEN s.unique_id_sinp_grp::text
+           END                                                                         AS "idSinpRegroupement",
        s.date_min::date                                                                AS "dateDebut",
        s.date_max::date                                                                AS "dateFin",
        s.date_min::time without time zone                                              AS "heureDebut",
@@ -369,7 +374,7 @@ FROM gn_synthese.synthese s
          JOIN af ON af."IdentifiantCadreAcquisition" = taf.unique_acquisition_framework_id
          JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
          JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
-         JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
+         JOIN gn_synthese.t_sources sc ON sc.id_source = s.id_source
          LEFT JOIN ref_habitats.habref h ON h.cd_hab = s.cd_hab
          LEFT JOIN ref_geo.l_areas ta ON ta.id_area = s.id_area_attachment
          LEFT JOIN ref_nomenclatures.t_nomenclatures n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
