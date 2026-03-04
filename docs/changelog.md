@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.8.2 (2026-03-09)
+
+### 🚀 Nouveautés
+
+- La liste des exports dans le panneau administration est triée par identifiant et en ordre croissant (#243 par @jacquesfize)
+- Compatibilité avec les versions de GeoNature >= 2.17.0 (#244 par @jacquesfize)
+
 ## 1.8.1 (2025-12-09)
 
 ### 🐛 Corrections
@@ -118,12 +125,12 @@ Si vous mettez à jour le module :
 - Les permissions de lecture des exports prennent désormais en compte le scope (appartenance, portée) de l'utilisateur pour lister seulement les exports auquel il est associé ou tous les exports (https://github.com/PnX-SI/gn_module_export/#associer-les-roles-ayant-la-permission-dacc%C3%A9der-%C3%A0-cet-export)
 - Une colonne permettant d'indiquer le champ d'unicité des vues a été ajoutée dans la table des exports (`gn_exports.t_exports.view_pk_column`). Pour les exports existants, cette colonne est automatiquement remplie avec la valeur de la première colonne des vues exports. Vous pouvez vérifier ou modifier ce champs pour les exports existants.
 - Si vous installez le module sur une version 2.12 de GeoNature, il est possible que vous deviez lancer les commandes suivantes afin de mettre à jour les sous-modules Python, avant la mise à jour du module :
-  ```sh
-  source ~/geonature/backend/venv/bin/activate
-  pip install utils-flask-sqlalchemy==0.3.4
-  pip install utils-flask-sqlalchemy-geo==0.2.8
-  pip install pypnusershub==1.6.7
-  ```
+    ```sh
+    source ~/geonature/backend/venv/bin/activate
+    pip install utils-flask-sqlalchemy==0.3.4
+    pip install utils-flask-sqlalchemy-geo==0.2.8
+    pip install pypnusershub==1.6.7
+    ```
 
 ## 1.4.0 (2023-03-27)
 
@@ -226,7 +233,7 @@ Nécessite la version 2.9 de GeoNature. Non compatible avec les versions
 - Correction de l'URL générée par défaut pour l'envoi des emails des
   fichiers exportés
 
-  1.2.7 (2021-12-21)
+    1.2.7 (2021-12-21)
 
 Nécessite la version 2.8.0 (ou plus) de GeoNature
 
@@ -375,13 +382,13 @@ Compatible avec GeoNature 2.4 minimum.
 
 - Amélioration de la vue SINP par défaut
   (`gn_exports.v_synthese_sinp`) (#70) :
-  - Amélioration des performances des jointures comme dans l'export
-    Synthèse, revu dans la version 2.3.0 de GeoNature
-    (https://github.com/PnX-SI/GeoNature/commit/6633de4825c3a57b868bbe284aefdb99a260ced2)
-  - Ajout du champs `nom_valide`, des infos taxonomiques, des cadres
-    d'acquisition, des acteurs des jeux de données dans la vue
-  - Amélioration des noms de champs plus lisibles
-  - Complément des commentaires des champs
+    - Amélioration des performances des jointures comme dans l'export
+      Synthèse, revu dans la version 2.3.0 de GeoNature
+      (https://github.com/PnX-SI/GeoNature/commit/6633de4825c3a57b868bbe284aefdb99a260ced2)
+    - Ajout du champs `nom_valide`, des infos taxonomiques, des cadres
+      d'acquisition, des acteurs des jeux de données dans la vue
+    - Amélioration des noms de champs plus lisibles
+    - Complément des commentaires des champs
 - Ajout de la licence ouverte 2.0 d'Etalab par défaut
 - Compléments de la documentation (Export public par défaut,
   Suppression automatique des fichiers, Fichiers des exports planifiés
@@ -446,27 +453,27 @@ Compatible avec GeoNature 2.3.2.
 
 - Possibilité de générer automatiquement des exports de manière
   planifiée
-  - Création d'une table `gn_exports.t_export_schedules` permettant
-    de lister les exports à générer automatiquement
-  - Création d'une fonction Python `gn_exports_run_cron_export()`
-    permettant de générer les fichiers des exports planifiées, dans
-    le répertoire `static/exports/schedules`, accessible en http
-  - Création d'un cron à l'installation du module qui va éxecuter
-    le script `gn_export_cron.sh` chaque nuit à minuit, éxecutant la
-    fonction python `gn_exports_run_cron_export()`, qui génère les
-    fichiers des exports planifiés dans la table
-    `gn_exports.t_export_schedules`
+    - Création d'une table `gn_exports.t_export_schedules` permettant
+      de lister les exports à générer automatiquement
+    - Création d'une fonction Python `gn_exports_run_cron_export()`
+      permettant de générer les fichiers des exports planifiées, dans
+      le répertoire `static/exports/schedules`, accessible en http
+    - Création d'un cron à l'installation du module qui va éxecuter
+      le script `gn_export_cron.sh` chaque nuit à minuit, éxecutant la
+      fonction python `gn_exports_run_cron_export()`, qui génère les
+      fichiers des exports planifiés dans la table
+      `gn_exports.t_export_schedules`
 - Export sémantique RDF au format Darwin-SW
-  - Création d'une vue spécifique
-    `gn_exports.v_exports_synthese_sinp_rdf` pour l'export RDF
-  - Mapping des champs de la synthèse avec le format Darwin-SW
-  - Création d'une fonction Python
-    `gn_exports_run_cron_export_dsw()` permettant de générer les
-    fichiers des exports planifiées, dans le répertoire
-    `static/exports/dsw`, accessible en http
-  - Création d'une API permettant d'interroger la vue
-    `gn_exports.v_exports_synthese_sinp_rdf` et de récupérer les
-    données au format Darwin-SW (ttl)
+    - Création d'une vue spécifique
+      `gn_exports.v_exports_synthese_sinp_rdf` pour l'export RDF
+    - Mapping des champs de la synthèse avec le format Darwin-SW
+    - Création d'une fonction Python
+      `gn_exports_run_cron_export_dsw()` permettant de générer les
+      fichiers des exports planifiées, dans le répertoire
+      `static/exports/dsw`, accessible en http
+    - Création d'une API permettant d'interroger la vue
+      `gn_exports.v_exports_synthese_sinp_rdf` et de récupérer les
+      données au format Darwin-SW (ttl)
 - Utilisation généralisée des nouvelles librairies externalisées de
   sérialisation (https://github.com/PnX-SI/Utils-Flask-SQLAlchemy et
   https://github.com/PnX-SI/Utils-Flask-SQLAlchemy-Geo)
