@@ -9,7 +9,6 @@ Create Date: 2023-05-10 10:43:45.661554
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "bcee745e5647"
 down_revision = "7876d042e673"
@@ -18,17 +17,14 @@ depends_on = None
 
 
 def upgrade():
-    op.execute(
-        """
+    op.execute("""
     DROP VIEW gn_exports.v_exports_logs;
     DROP TABLE gn_exports.t_exports_logs;
-    """
-    )
+    """)
 
 
 def downgrade():
-    op.execute(
-        """
+    op.execute("""
     CREATE TABLE gn_exports.t_exports_logs
     (
         id SERIAL NOT NULL PRIMARY KEY,
@@ -65,5 +61,4 @@ def downgrade():
     JOIN utilisateurs.t_roles r ON r.id_role = l.id_role
     JOIN gn_exports.t_exports e ON e.id = l.id_export
     ORDER BY start_time;
-    """
-    )
+    """)
