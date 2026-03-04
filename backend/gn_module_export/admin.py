@@ -158,6 +158,9 @@ class ExportView(CruvedProtectedMixin, ModelView):
         "allowed_roles",
     )
 
+    column_default_sort = ("id", False)
+    column_sortable_list = ("id", "label")
+
     def fiter_user_by_app():
         return User.query.filter_by_app().order_by(User.groupe.desc(), User.identifiant)
 
