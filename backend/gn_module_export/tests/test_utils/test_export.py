@@ -6,10 +6,6 @@ import fiona
 import pytest
 
 from gn_module_export.utils.export import _export_as_file, export_as_file
-from gn_module_export.tests.fixtures import (
-    export_synthese_sinp,
-    export_synthese_sinp_query,
-)
 
 
 @pytest.mark.usefixtures("temporary_transaction")

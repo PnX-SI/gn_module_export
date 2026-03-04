@@ -1,5 +1,4 @@
 import pytest
-from geonature.tests.fixtures import users
 from geonature.utils.env import db
 from pypnusershub.db.models import User
 from utils_flask_sqla_geo.generic import GenericQueryGeo
