@@ -9,7 +9,6 @@ Create Date: 2025-04-23 17:22:36.362008
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "cbcf99cdb9a8"
 down_revision = "8db5a13cf0d2"
@@ -18,8 +17,7 @@ depends_on = "bc2fcc772b46"
 
 
 def upgrade():
-    op.execute(
-        """
+    op.execute("""
 
             CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp_sensitive_blurred AS
 			WITH jdd_acteurs AS (
@@ -212,21 +210,16 @@ def upgrade():
             COMMENT ON COLUMN gn_exports.v_synthese_sinp_sensitive_blurred."type_info_geo"          IS 'Type d''information géographique';
             COMMENT ON COLUMN gn_exports.v_synthese_sinp_sensitive_blurred."methode_determination"  IS 'Description de la méthode utilisée pour déterminer le taxon lors de l''observation';
 
-        """
-    )
+        """)
 
-    op.execute(
-        """
+    op.execute("""
             INSERT INTO gn_exports.t_exports (view_pk_column, label, schema_name, view_name, "desc", geometry_field, geometry_srid, public, id_licence)
             VALUES ('id_synthese', 'Synthese SINP (données sensibles floutées)', 'gn_exports', 'v_synthese_sinp_sensitive_blurred', 'Export des données de la synthèse au standard SINP avec données sensibles floutées', 'geom', 4326, FALSE, 1);
-        """
-    )
+        """)
 
 
 def downgrade():
-    op.execute(
-        """
+    op.execute("""
             DELETE FROM gn_exports.t_exports WHERE view_name = 'v_synthese_sinp_sensitive_blurred';
             DROP VIEW IF EXISTS gn_exports.v_synthese_sinp_sensitive_blurred;
-        """
-    )
+        """)
