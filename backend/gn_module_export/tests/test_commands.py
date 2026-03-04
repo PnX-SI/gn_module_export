@@ -1,17 +1,13 @@
 import pytest
 
 from click.testing import CliRunner
-
-from geonature.tests.fixtures import *
-
 from gn_module_export.commands import generate
-from .fixtures import *
 
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction", "g_permissions")
 class TestExportsCommands:
     # deletes the files hand created files
-    def test_generate_user(self, export_directories, exports, users):
+    def test_generate_user(self, users, export_directories, exports):
         runner = CliRunner()
         result = runner.invoke(
             generate,

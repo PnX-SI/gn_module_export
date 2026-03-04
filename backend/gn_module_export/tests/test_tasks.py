@@ -5,6 +5,7 @@ from pathlib import Path
 import datetime
 import tempfile
 import os
+from flask import current_app
 
 from geonature.tests.fixtures import *
 
@@ -18,9 +19,6 @@ from gn_module_export.tasks import (
     generate_scheduled_exports,
 )
 from gn_module_export.utils_export import ExportGenerationNotNeeded, ExportRequest
-from gn_module_export.tests.fixtures import exports
-
-from .fixtures import *
 
 
 @pytest.mark.usefixtures("client_class", "temporary_transaction", "g_permissions")
