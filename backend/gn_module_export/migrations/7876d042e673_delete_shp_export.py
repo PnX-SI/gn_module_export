@@ -9,7 +9,6 @@ Create Date: 2023-05-26 18:43:43.816196
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "7876d042e673"
 down_revision = "fe1347f4805f"
@@ -18,8 +17,7 @@ depends_on = None
 
 
 def upgrade():
-    op.execute(
-        """
+    op.execute("""
     -- Transformation des shp en gpkg
     UPDATE gn_exports.t_export_schedules AS tes SET format = 'gpkg' WHERE format='shp';
 
@@ -34,8 +32,7 @@ def upgrade():
     DELETE FROM gn_exports.t_export_schedules e
     USING d
     WHERE format = 'gpkg' AND e.id_export = d.id_export AND NOT e.id_export_schedule = d.min ;
-    """
-    )
+    """)
 
 
 def downgrade():

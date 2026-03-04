@@ -9,7 +9,6 @@ Create Date: 2023-05-10 17:36:14.073847
 from alembic import op
 import sqlalchemy as sa
 
-
 # revision identifiers, used by Alembic.
 revision = "4cac712a2ce6"
 down_revision = "c2d02e345a06"
@@ -91,15 +90,13 @@ def upgrade():
     ]
 
     bind.execute(notification_template.insert(values=values))
-    op.execute(
-        f"""
+    op.execute(f"""
         INSERT INTO
             gn_notifications.t_notifications_rules (code_category, code_method)
         VALUES
             ('{CATEGORY_CODE}', 'DB'),
             ('{CATEGORY_CODE}', 'EMAIL')
-        """
-    )
+        """)
 
 
 def downgrade():
@@ -135,13 +132,11 @@ def downgrade():
     bind.execute(
         notification_category.delete().where(notification_category.c.code == CATEGORY_CODE)
     )
-    op.execute(
-        f"""
+    op.execute(f"""
         DELETE FROM
             gn_notifications.t_notifications_rules
         WHERE
             code_category = '{CATEGORY_CODE}'
         AND
             id_role IS NULL
-        """
-    )
+        """)

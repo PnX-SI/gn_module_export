@@ -9,7 +9,6 @@ from utils_flask_sqla_geo.generic import GenericTableGeo
 
 from .models import Export, ExportSchedules
 
-
 SWAGGER_TYPE_COR = {
     "INTEGER": {"type": "int", "format": "int32"},
     "BIGINT": {"type": "int", "format": "int64"},
