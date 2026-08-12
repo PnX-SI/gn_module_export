@@ -55,29 +55,31 @@ DB_CONTENT = """
 
 def upgrade():
     bind = op.get_bind()
-    metadata = sa.MetaData(bind=op.get_bind())
+    metadata = sa.MetaData()
     notification_category = sa.Table(
         "bib_notifications_categories",
         metadata,
-        autoload=True,
+        autoload_with=bind,
         schema="gn_notifications",
     )
 
     iterator = bind.execute(
-        notification_category.insert(
-            values={
+        notification_category.insert()
+        .values(
+            {
                 "code": CATEGORY_CODE,
                 "label": "Fichier d'export généré",
                 "description": "Se déclenche lorsque la génération d'un fichier d'export est terminée",
             }
-        ).returning(notification_category.c.code)
+        )
+        .returning(notification_category.c.code)
     )
     result = next(iterator)
 
     notification_template = sa.Table(
         "bib_notifications_templates",
         metadata,
-        autoload=True,
+        autoload_with=bind,
         schema="gn_notifications",
     )
     values = [
@@ -89,7 +91,7 @@ def upgrade():
         for method, content in (("EMAIL", EMAIL_CONTENT), ("DB", DB_CONTENT))
     ]
 
-    bind.execute(notification_template.insert(values=values))
+    bind.execute(notification_template.insert().values(values))
     op.execute(f"""
         INSERT INTO
             gn_notifications.t_notifications_rules (code_category, code_method)
@@ -101,23 +103,23 @@ def upgrade():
 
 def downgrade():
     bind = op.get_bind()
-    metadata = sa.MetaData(bind=op.get_bind())
+    metadata = sa.MetaData()
     notification_category = sa.Table(
         "bib_notifications_categories",
         metadata,
-        autoload=True,
+        autoload_with=bind,
         schema="gn_notifications",
     )
     notification_template = sa.Table(
         "bib_notifications_templates",
         metadata,
-        autoload=True,
+        autoload_with=bind,
         schema="gn_notifications",
     )
     notification_rules = sa.Table(
         "t_notifications_rules",
         metadata,
-        autoload=True,
+        autoload_with=bind,
         schema="gn_notifications",
     )
 

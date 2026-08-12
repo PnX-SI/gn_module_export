@@ -1,13 +1,14 @@
 from pathlib import Path
 from secrets import token_hex
+from typing import Optional
 
 import flask_sqlalchemy
 from flask import g
 from packaging import version
-from sqlalchemy import or_, false
+from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, or_, false
 import flask_sqlalchemy
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 
 if version.parse(flask_sqlalchemy.__version__) >= version.parse("3"):
     from flask_sqlalchemy.query import Query
@@ -25,27 +26,25 @@ from utils_flask_sqla_geo.generic import GenericQueryGeo
 class CorExportsRoles(DB.Model):
     __tablename__ = "cor_exports_roles"
     __table_args__ = {"schema": "gn_exports"}
-    id_export = DB.Column(
-        DB.Integer(),
-        DB.ForeignKey("gn_exports.t_exports.id"),
+    id_export: Mapped[int] = mapped_column(
+        Integer(),
+        ForeignKey("gn_exports.t_exports.id"),
         primary_key=True,
-        nullable=False,
     )
 
-    id_role = DB.Column(
-        DB.Integer,
-        DB.ForeignKey("utilisateurs.t_roles.id_role"),
+    id_role: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("utilisateurs.t_roles.id_role"),
         primary_key=True,
-        nullable=False,
     )
-    token = DB.Column(DB.String(80), nullable=False, default=token_hex(16))
+    token: Mapped[str] = mapped_column(String(80), default=token_hex(16))
 
-    export = DB.relationship(
+    export = relationship(
         "Export",
         lazy="joined",
         backref=backref("cor_roles_exports", cascade="all, delete-orphan"),
     )
-    role = DB.relationship(
+    role = relationship(
         "User",
         lazy="joined",
     )
@@ -78,9 +77,9 @@ class Licences(DB.Model):
     __tablename__ = "t_licences"
     __table_args__ = {"schema": "gn_exports"}
 
-    id_licence = DB.Column(DB.Integer, primary_key=True, nullable=False)
-    name_licence = DB.Column(DB.Text, nullable=False)
-    url_licence = DB.Column(DB.Text, nullable=False)
+    id_licence: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name_licence: Mapped[str] = mapped_column(Text)
+    url_licence: Mapped[str] = mapped_column(Text)
 
     def __str__(self):
         return "{}".format(self.name_licence)
@@ -93,17 +92,17 @@ class Export(DB.Model):
     __table_args__ = {"schema": "gn_exports"}
     query_class = ExportsQuery
 
-    id = DB.Column(DB.Integer, primary_key=True, nullable=False)  # noqa: A003
-    label = DB.Column(DB.Text, nullable=False, unique=True, index=True)
-    schema_name = DB.Column(DB.Text, nullable=False)
-    view_name = DB.Column(DB.Text, nullable=False)
-    view_pk_column = DB.Column(DB.Text, nullable=False)
-    desc = DB.Column(DB.Text)
-    geometry_field = DB.Column(DB.Text)
-    geometry_srid = DB.Column(DB.Integer)
-    public = DB.Column(DB.Boolean, nullable=False, default=False)
-    id_licence = DB.Column(DB.Integer(), DB.ForeignKey(Licences.id_licence), nullable=False)
-    licence = DB.relationship("Licences")
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)  # noqa: A003
+    label: Mapped[str] = mapped_column(Text, unique=True, index=True)
+    schema_name: Mapped[str] = mapped_column(Text)
+    view_name: Mapped[str] = mapped_column(Text)
+    view_pk_column: Mapped[str] = mapped_column(Text)
+    desc: Mapped[Optional[str]] = mapped_column(Text)
+    geometry_field: Mapped[Optional[str]] = mapped_column(Text)
+    geometry_srid: Mapped[Optional[int]] = mapped_column(Integer)
+    public: Mapped[bool] = mapped_column(Boolean, default=False)
+    id_licence: Mapped[int] = mapped_column(Integer(), ForeignKey(Licences.id_licence))
+    licence = relationship("Licences")
     allowed_roles = association_proxy(
         "cor_roles_exports",
         "role",
@@ -176,14 +175,14 @@ class Export(DB.Model):
 class ExportSchedules(DB.Model):
     __tablename__ = "t_export_schedules"
     __table_args__ = {"schema": "gn_exports"}
-    id_export_schedule = DB.Column(DB.Integer, primary_key=True, nullable=False)
-    frequency = DB.Column(DB.Integer(), nullable=False)
-    format = DB.Column(DB.String(10), nullable=False)
-    id_export = DB.Column(DB.Integer(), DB.ForeignKey(Export.id))
+    id_export_schedule: Mapped[int] = mapped_column(Integer, primary_key=True)
+    frequency: Mapped[int] = mapped_column(Integer())
+    format: Mapped[str] = mapped_column(String(10))
+    id_export: Mapped[Optional[int]] = mapped_column(Integer(), ForeignKey(Export.id))
 
-    export = DB.relationship("Export", lazy="subquery", cascade="all,delete")
+    export = relationship("Export", lazy="subquery", cascade="all,delete")
 
-    in_process = DB.Column(DB.Boolean, default=False)
+    in_process: Mapped[Optional[bool]] = mapped_column(Boolean, default=False)
 
     @property
     def skip_newer_than(self):
