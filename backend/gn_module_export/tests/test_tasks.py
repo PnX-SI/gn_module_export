@@ -7,8 +7,6 @@ import tempfile
 import os
 from flask import current_app
 
-from geonature.tests.fixtures import *
-
 # from geonature.tests.utils import set_logged_user_cookie
 from pypnusershub.tests.utils import set_logged_user_cookie
 
