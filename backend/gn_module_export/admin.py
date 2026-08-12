@@ -329,6 +329,4 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
 
 flask_admin.add_view(ExportView(DB, name="Exports", category="Export"))
 flask_admin.add_view(LicenceView(DB, name="Licences", category="Export"))
-flask_admin.add_view(
-    ExportSchedulesView(DB, name="Planification des exports", category="Export")
-)
+flask_admin.add_view(ExportSchedulesView(DB, name="Planification des exports", category="Export"))
