@@ -159,7 +159,12 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
      LEFT JOIN utilisateurs.bib_organismes orga ON orga.id_organisme = act.id_organism
      LEFT JOIN utilisateurs.t_roles roles ON roles.id_role = act.id_role
   GROUP BY d.id_dataset
-)
+), nommenclature_sinp as (
+  SELECT tn.id_nomenclature,
+     coalesce(tn2.label_default, tn.label_default) label_default 
+    FROM ref_nomenclatures.t_nomenclatures tn
+	  LEFT JOIN ref_nomenclatures.t_nomenclatures tn2 on tn2.id_nomenclature = nullif(tn.id_broader,0)
+		)
  SELECT s.id_synthese AS "id_synthese",
     s.entity_source_pk_value AS "id_source",
     s.unique_id_sinp AS "id_perm_sinp",
@@ -237,25 +242,25 @@ CREATE OR REPLACE VIEW gn_exports.v_synthese_sinp AS
      JOIN gn_meta.t_acquisition_frameworks af ON d.id_acquisition_framework = af.id_acquisition_framework
      JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
      LEFT JOIN ref_habitats.habref h ON h.cd_hab = s.cd_hab
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n3 ON s.id_nomenclature_behaviour = n3.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n4 ON s.id_nomenclature_obs_technique = n4.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n5 ON s.id_nomenclature_bio_status = n5.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n6 ON s.id_nomenclature_bio_condition = n6.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n7 ON s.id_nomenclature_naturalness = n7.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n8 ON s.id_nomenclature_exist_proof = n8.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n9 ON s.id_nomenclature_diffusion_level = n9.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n10 ON s.id_nomenclature_life_stage = n10.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n11 ON s.id_nomenclature_sex = n11.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n12 ON s.id_nomenclature_obj_count = n12.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n13 ON s.id_nomenclature_type_count = n13.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n14 ON s.id_nomenclature_sensitivity = n14.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n15 ON s.id_nomenclature_observation_status = n15.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n16 ON s.id_nomenclature_blurring = n16.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n17 ON s.id_nomenclature_source_status = n17.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n18 ON s.id_nomenclature_info_geo_type = n18.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature
+     LEFT JOIN nommenclature_sinp n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
+     LEFT JOIN nommenclature_sinp n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
+     LEFT JOIN nommenclature_sinp n3 ON s.id_nomenclature_behaviour = n3.id_nomenclature
+     LEFT JOIN nommenclature_sinp n4 ON s.id_nomenclature_obs_technique = n4.id_nomenclature
+     LEFT JOIN nommenclature_sinp n5 ON s.id_nomenclature_bio_status = n5.id_nomenclature
+     LEFT JOIN nommenclature_sinp n6 ON s.id_nomenclature_bio_condition = n6.id_nomenclature
+     LEFT JOIN nommenclature_sinp n7 ON s.id_nomenclature_naturalness = n7.id_nomenclature
+     LEFT JOIN nommenclature_sinp n8 ON s.id_nomenclature_exist_proof = n8.id_nomenclature
+     LEFT JOIN nommenclature_sinp n9 ON s.id_nomenclature_diffusion_level = n9.id_nomenclature
+     LEFT JOIN nommenclature_sinp n10 ON s.id_nomenclature_life_stage = n10.id_nomenclature
+     LEFT JOIN nommenclature_sinp n11 ON s.id_nomenclature_sex = n11.id_nomenclature
+     LEFT JOIN nommenclature_sinp n12 ON s.id_nomenclature_obj_count = n12.id_nomenclature
+     LEFT JOIN nommenclature_sinp n13 ON s.id_nomenclature_type_count = n13.id_nomenclature
+     LEFT JOIN nommenclature_sinp n14 ON s.id_nomenclature_sensitivity = n14.id_nomenclature
+     LEFT JOIN nommenclature_sinp n15 ON s.id_nomenclature_observation_status = n15.id_nomenclature
+     LEFT JOIN nommenclature_sinp n16 ON s.id_nomenclature_blurring = n16.id_nomenclature
+     LEFT JOIN nommenclature_sinp n17 ON s.id_nomenclature_source_status = n17.id_nomenclature
+     LEFT JOIN nommenclature_sinp n18 ON s.id_nomenclature_info_geo_type = n18.id_nomenclature
+     LEFT JOIN nommenclature_sinp n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature
 ;
 
 COMMENT ON COLUMN gn_exports.v_synthese_sinp."id_synthese"            IS 'Identifiant de la donnée dans la table synthese';
@@ -354,7 +359,12 @@ WITH cda AS (
 	FROM ref_geo.bib_areas_types ta
 	JOIN ref_geo.l_areas a_1 ON ta.id_type = a_1.id_type
 	WHERE  ta.type_code in ('DEP', 'COM', 'M1')
-)
+), nommenclature_sinp as (
+  SELECT tn.id_nomenclature,
+     coalesce(tn2.label_default, tn.label_default) label_default 
+    FROM ref_nomenclatures.t_nomenclatures tn
+	  LEFT JOIN ref_nomenclatures.t_nomenclatures tn2 on tn2.id_nomenclature = nullif(tn.id_broader,0)
+		)
  SELECT s.id_synthese AS "ID_synthese",
     s.entity_source_pk_value AS "idOrigine",
     s.unique_id_sinp AS "idSINPOccTax",
@@ -446,26 +456,26 @@ WITH cda AS (
 	     GROUP BY d_1.id_synthese
 	) a ON TRUE
      LEFT JOIN ref_habitats.habref h ON h.cd_hab = s.cd_hab
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n4 ON s.id_nomenclature_obs_technique = n4.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n5 ON s.id_nomenclature_bio_status = n5.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n6 ON s.id_nomenclature_bio_condition = n6.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n7 ON s.id_nomenclature_naturalness = n7.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n8 ON s.id_nomenclature_exist_proof = n8.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n9 ON s.id_nomenclature_diffusion_level = n9.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n10 ON s.id_nomenclature_life_stage = n10.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n11 ON s.id_nomenclature_sex = n11.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n12 ON s.id_nomenclature_obj_count = n12.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n13 ON s.id_nomenclature_type_count = n13.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n14 ON s.id_nomenclature_sensitivity = n14.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n15 ON s.id_nomenclature_observation_status = n15.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n16 ON s.id_nomenclature_blurring = n16.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n17 ON s.id_nomenclature_source_status = n17.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n18 ON s.id_nomenclature_info_geo_type = n18.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n20 ON s.id_nomenclature_behaviour = n20.id_nomenclature
-     LEFT JOIN ref_nomenclatures.t_nomenclatures n21 ON d.id_nomenclature_data_origin = n21.id_nomenclature
+     LEFT JOIN nommenclature_sinp n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
+     LEFT JOIN nommenclature_sinp n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
+     LEFT JOIN nommenclature_sinp n4 ON s.id_nomenclature_obs_technique = n4.id_nomenclature
+     LEFT JOIN nommenclature_sinp n5 ON s.id_nomenclature_bio_status = n5.id_nomenclature
+     LEFT JOIN nommenclature_sinp n6 ON s.id_nomenclature_bio_condition = n6.id_nomenclature
+     LEFT JOIN nommenclature_sinp n7 ON s.id_nomenclature_naturalness = n7.id_nomenclature
+     LEFT JOIN nommenclature_sinp n8 ON s.id_nomenclature_exist_proof = n8.id_nomenclature
+     LEFT JOIN nommenclature_sinp n9 ON s.id_nomenclature_diffusion_level = n9.id_nomenclature
+     LEFT JOIN nommenclature_sinp n10 ON s.id_nomenclature_life_stage = n10.id_nomenclature
+     LEFT JOIN nommenclature_sinp n11 ON s.id_nomenclature_sex = n11.id_nomenclature
+     LEFT JOIN nommenclature_sinp n12 ON s.id_nomenclature_obj_count = n12.id_nomenclature
+     LEFT JOIN nommenclature_sinp n13 ON s.id_nomenclature_type_count = n13.id_nomenclature
+     LEFT JOIN nommenclature_sinp n14 ON s.id_nomenclature_sensitivity = n14.id_nomenclature
+     LEFT JOIN nommenclature_sinp n15 ON s.id_nomenclature_observation_status = n15.id_nomenclature
+     LEFT JOIN nommenclature_sinp n16 ON s.id_nomenclature_blurring = n16.id_nomenclature
+     LEFT JOIN nommenclature_sinp n17 ON s.id_nomenclature_source_status = n17.id_nomenclature
+     LEFT JOIN nommenclature_sinp n18 ON s.id_nomenclature_info_geo_type = n18.id_nomenclature
+     LEFT JOIN nommenclature_sinp n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature
+     LEFT JOIN nommenclature_sinp n20 ON s.id_nomenclature_behaviour = n20.id_nomenclature
+     LEFT JOIN nommenclature_sinp n21 ON d.id_nomenclature_data_origin = n21.id_nomenclature
 ;
 
 COMMENT ON COLUMN gn_exports.v_synthese_sinp_dee."ID_synthese" IS 'Identifiant de la donnée dans la table synthese';
@@ -550,7 +560,12 @@ WITH info_dataset AS (
         JOIN utilisateurs.bib_organismes org
         ON da.id_organism = org.id_organisme
         WHERE r.mnemonique = 'Producteur du jeu de données'
-)
+), nommenclature_sinp as (
+  SELECT tn.id_nomenclature,
+     coalesce(tn2.label_default, tn.label_default) label_default 
+    FROM ref_nomenclatures.t_nomenclatures tn
+	  LEFT JOIN ref_nomenclatures.t_nomenclatures tn2 on tn2.id_nomenclature = nullif(tn.id_broader,0)
+		)
  SELECT s.id_synthese AS "idSynthese",
     s.unique_id_sinp AS "permId",
     COALESCE(s.unique_id_sinp_grp, s.unique_id_sinp) AS "permIdGrp",
@@ -608,23 +623,23 @@ FROM gn_synthese.synthese s
 JOIN taxonomie.taxref t ON t.cd_nom = s.cd_nom
 JOIN gn_meta.t_datasets d ON d.id_dataset = s.id_dataset
 JOIN gn_synthese.t_sources sources ON sources.id_source = s.id_source
-LEFT JOIN ref_nomenclatures.t_nomenclatures n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n3 ON s.id_nomenclature_behaviour = n3.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n4 ON s.id_nomenclature_obs_technique = n4.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n5 ON s.id_nomenclature_bio_status = n5.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n6 ON s.id_nomenclature_bio_condition = n6.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n7 ON s.id_nomenclature_naturalness = n7.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n8 ON s.id_nomenclature_exist_proof = n8.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n9 ON s.id_nomenclature_diffusion_level = n9.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n10 ON s.id_nomenclature_life_stage = n10.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n11 ON s.id_nomenclature_sex = n11.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n12 ON s.id_nomenclature_obj_count = n12.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n13 ON s.id_nomenclature_type_count = n13.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n14 ON s.id_nomenclature_sensitivity = n14.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n15 ON s.id_nomenclature_observation_status = n15.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n16 ON s.id_nomenclature_blurring = n16.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n17 ON s.id_nomenclature_source_status = n17.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n18 ON s.id_nomenclature_info_geo_type = n18.id_nomenclature
-LEFT JOIN ref_nomenclatures.t_nomenclatures n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature
+LEFT JOIN nommenclature_sinp n1 ON s.id_nomenclature_geo_object_nature = n1.id_nomenclature
+LEFT JOIN nommenclature_sinp n2 ON s.id_nomenclature_grp_typ = n2.id_nomenclature
+LEFT JOIN nommenclature_sinp n3 ON s.id_nomenclature_behaviour = n3.id_nomenclature
+LEFT JOIN nommenclature_sinp n4 ON s.id_nomenclature_obs_technique = n4.id_nomenclature
+LEFT JOIN nommenclature_sinp n5 ON s.id_nomenclature_bio_status = n5.id_nomenclature
+LEFT JOIN nommenclature_sinp n6 ON s.id_nomenclature_bio_condition = n6.id_nomenclature
+LEFT JOIN nommenclature_sinp n7 ON s.id_nomenclature_naturalness = n7.id_nomenclature
+LEFT JOIN nommenclature_sinp n8 ON s.id_nomenclature_exist_proof = n8.id_nomenclature
+LEFT JOIN nommenclature_sinp n9 ON s.id_nomenclature_diffusion_level = n9.id_nomenclature
+LEFT JOIN nommenclature_sinp n10 ON s.id_nomenclature_life_stage = n10.id_nomenclature
+LEFT JOIN nommenclature_sinp n11 ON s.id_nomenclature_sex = n11.id_nomenclature
+LEFT JOIN nommenclature_sinp n12 ON s.id_nomenclature_obj_count = n12.id_nomenclature
+LEFT JOIN nommenclature_sinp n13 ON s.id_nomenclature_type_count = n13.id_nomenclature
+LEFT JOIN nommenclature_sinp n14 ON s.id_nomenclature_sensitivity = n14.id_nomenclature
+LEFT JOIN nommenclature_sinp n15 ON s.id_nomenclature_observation_status = n15.id_nomenclature
+LEFT JOIN nommenclature_sinp n16 ON s.id_nomenclature_blurring = n16.id_nomenclature
+LEFT JOIN nommenclature_sinp n17 ON s.id_nomenclature_source_status = n17.id_nomenclature
+LEFT JOIN nommenclature_sinp n18 ON s.id_nomenclature_info_geo_type = n18.id_nomenclature
+LEFT JOIN nommenclature_sinp n19 ON s.id_nomenclature_determination_method = n19.id_nomenclature
 LEFT OUTER JOIN info_dataset info_d ON info_d.id_dataset = d.id_dataset;
