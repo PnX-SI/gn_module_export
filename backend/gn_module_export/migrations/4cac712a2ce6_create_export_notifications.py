@@ -127,9 +127,7 @@ def downgrade():
         notification_rules.delete().where(notification_rules.c.code_category == CATEGORY_CODE)
     )
     bind.execute(
-        notification_template.delete().where(
-            notification_template.c.code_category == CATEGORY_CODE
-        )
+        notification_template.delete().where(notification_template.c.code_category == CATEGORY_CODE)
     )
     bind.execute(
         notification_category.delete().where(notification_category.c.code == CATEGORY_CODE)
