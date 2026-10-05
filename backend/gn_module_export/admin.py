@@ -32,8 +32,8 @@ class LicenceView(CruvedProtectedMixin, ModelView):
     module_code = "EXPORTS"
     object_code = None
 
-    def __init__(self, session, **kwargs):
-        super(LicenceView, self).__init__(Licences, session, **kwargs)
+    def __init__(self, db, **kwargs):
+        super(LicenceView, self).__init__(Licences, db, **kwargs)
 
     form_excluded_columns = "exports"
     column_labels = dict(name_licence="Nom de la licence", url_licence="URL de la licence")
@@ -60,9 +60,9 @@ class ExportView(CruvedProtectedMixin, ModelView):
     module_code = "EXPORTS"
     object_code = None
 
-    def __init__(self, session, **kwargs):
+    def __init__(self, db, **kwargs):
         # Référence au model utilisé
-        super(ExportView, self).__init__(Export, session, **kwargs)
+        super(ExportView, self).__init__(Export, db, **kwargs)
 
     def filer_role_by_app():
         return User.query.filter_by_app().order_by()(User.groupe.desc(), User.nom_role)
@@ -305,8 +305,8 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
         format_list = [(k, k) for k in current_app.config["EXPORTS"]["export_format_map"].keys()]
         form_choices = {"format": format_list}
 
-    def __init__(self, session, **kwargs):
-        super(ExportSchedulesView, self).__init__(ExportSchedules, session, **kwargs)
+    def __init__(self, db, **kwargs):
+        super(ExportSchedulesView, self).__init__(ExportSchedules, db, **kwargs)
 
     def delete_model(self, model):
         """
@@ -319,16 +319,14 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
             ExportSchedules.id_export_schedule == model.id_export_schedule
         )
         try:
-            self.session.execute(query)
-            self.session.commit()
+            DB.session.execute(query)
+            DB.session.commit()
         except:
-            self.session.rollback()
+            DB.session.rollback()
             return False
         return True
 
 
-flask_admin.add_view(ExportView(DB.session, name="Exports", category="Export"))
-flask_admin.add_view(LicenceView(DB.session, name="Licences", category="Export"))
-flask_admin.add_view(
-    ExportSchedulesView(DB.session, name="Planification des exports", category="Export")
-)
+flask_admin.add_view(ExportView(DB, name="Exports", category="Export"))
+flask_admin.add_view(LicenceView(DB, name="Licences", category="Export"))
+flask_admin.add_view(ExportSchedulesView(DB, name="Planification des exports", category="Export"))

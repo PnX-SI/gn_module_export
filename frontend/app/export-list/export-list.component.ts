@@ -107,7 +107,7 @@ export class ExportListComponent implements OnInit {
           });
           this.exports = exports;
           //Chargement des données de l'utilisateur
-          this._userService.getRole(parseInt(this.currentUser.id_role)).subscribe((res) => {
+          this._userService.getCurrentUserRole().subscribe((res) => {
             this._fullUser = res;
             this.loadingIndicator = false;
           });
