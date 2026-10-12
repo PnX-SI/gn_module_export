@@ -20,7 +20,6 @@ from sqlalchemy.exc import IntegrityError
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from gn_module_export.models import Export, ExportSchedules, Licences
-from pypnusershub.db.models import User
 from wtforms import validators
 
 
@@ -65,7 +64,9 @@ class ExportView(CruvedProtectedMixin, ModelView):
         super(ExportView, self).__init__(Export, db, **kwargs)
 
     def filer_role_by_app():
-        return User.query.filter_by_app().order_by()(User.groupe.desc(), User.nom_role)
+        return User.query.where(User.filter_by_app()).order_by(
+            User.groupe.desc(), User.identifiant
+        )
 
     def format_user_role(user):
         if user.groupe:
@@ -162,7 +163,9 @@ class ExportView(CruvedProtectedMixin, ModelView):
     column_sortable_list = ("id", "label")
 
     def fiter_user_by_app():
-        return User.query.filter_by_app().order_by(User.groupe.desc(), User.identifiant)
+        return User.query.where(User.filter_by_app()).order_by(
+            User.groupe.desc(), User.identifiant
+        )
 
     form_args = {
         "allowed_roles": {
