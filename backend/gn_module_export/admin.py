@@ -15,7 +15,7 @@ from geonature.utils.filemanager import removeDisallowedFilenameChars
 from gn_module_export.models import Export, ExportSchedules, Licences
 from psycopg2.errors import ForeignKeyViolation
 from pypnusershub.db.models import Application, AppRole, User, UserApplicationRight
-from sqlalchemy import or_, delete
+from sqlalchemy import or_, delete, select
 from sqlalchemy.exc import IntegrityError
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
@@ -294,8 +294,16 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
 
         return Markup(html_output)
 
+    def fiter_export_public():
+        return DB.session.scalars(
+            select(Export).where(Export.public.is_(True)).order_by(Export.label)
+        ).all()
+
     form_args = {
-        "export": {"validators": [validators.DataRequired()]},
+        "export": {
+            "validators": [validators.DataRequired()],
+            "query_factory": fiter_export_public,
+        },
         "frequency": {"validators": [validators.NumberRange(1, 365)]},
     }
     column_formatters = {
