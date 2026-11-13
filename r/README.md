@@ -3,7 +3,7 @@
 
 ## Récupérer les données du module d'export via R
 
-Le fichier `gn2_get_export_api_data.R` offre des fonctions qui permettent de récupérer les données d'une api du modèle d'export.
+Le fichier `gn2_get_export_api_data.R` offre des fonctions qui permettent de récupérer les données d'une API du modèle Export.
 
 Il repose sur la librairie `httr2`.
 
