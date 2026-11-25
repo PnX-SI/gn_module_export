@@ -247,7 +247,7 @@ Nécessite la version 2.9 de GeoNature. Non compatible avec les versions
 - Correction de l'URL générée par défaut pour l'envoi des emails des
   fichiers exportés
 
-  1.2.7 (2021-12-21)
+## 1.2.7 (2021-12-21)
 
 Nécessite la version 2.8.0 (ou plus) de GeoNature
 
