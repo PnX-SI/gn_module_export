@@ -294,7 +294,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
 
         return Markup(html_output)
 
-    def fiter_export_public():
+    def filter_export_public():
         return DB.session.scalars(
             select(Export).where(Export.public.is_(True)).order_by(Export.label)
         ).all()
@@ -302,7 +302,7 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
     form_args = {
         "export": {
             "validators": [validators.DataRequired()],
-            "query_factory": fiter_export_public,
+            "query_factory": filter_export_public,
         },
         "frequency": {"validators": [validators.NumberRange(1, 365)]},
     }
