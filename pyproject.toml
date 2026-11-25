@@ -1,3 +1,58 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gn_module_export"
+dynamic = ["version"]
+dependencies = [
+    "utils-flask-sqlalchemy>=0.5.0",
+    "utils-flask-sqlalchemy-geo>=0.4.0",
+    "pypnusershub>=3.3.3",
+    "geonature>=2.18.0",
+    "rdflib",
+]
+description = "Module export"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE.txt"]
+maintainers = [
+    { name = "Parcs nationaux des Écrins et des Cévennes", email = "geonature@ecrins-parcnational.fr" },
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/PnX-SI/gn_module_export/"
+
+[project.entry-points.gn_module]
+code = "gn_module_export:MODULE_CODE"
+picto = "gn_module_export:MODULE_PICTO"
+blueprint = "gn_module_export.blueprint:blueprint"
+config_schema = "gn_module_export.conf_schema_toml:GnModuleSchemaConf"
+migrations = "gn_module_export:migrations"
+
+[tool.setuptools]
+package-dir = { "" = "backend" }
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+
+[tool.setuptools.package-data]
+gn_module_export = ["templates/**", "static/**"]
+"gn_module_export.migrations" = ["data/*.sql"]
+
+[tool.setuptools.dynamic]
+version = { file = "VERSION" }
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 testpaths = [
