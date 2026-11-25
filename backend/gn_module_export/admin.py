@@ -21,6 +21,7 @@ from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from gn_module_export.models import Export, ExportSchedules, Licences
 from wtforms import validators
+from wtforms.validators import ValidationError
 
 
 class LicenceView(CruvedProtectedMixin, ModelView):
@@ -208,6 +209,27 @@ class ExportView(CruvedProtectedMixin, ModelView):
                 return False
 
         return super(ExportView, self).validate_form(form)
+
+    def on_model_change(self, form, model, is_created):
+        """
+        Un export planifié doit rester public : les fichiers générés sont
+        téléchargeables sans authentification.
+        """
+        if not is_created and not model.public:
+            with DB.session.no_autoflush:
+                is_scheduled = DB.session.scalar(
+                    select(ExportSchedules.id_export_schedule)
+                    .where(ExportSchedules.id_export == model.id)
+                    .limit(1)
+                )
+            if is_scheduled is not None:
+                raise ValidationError(
+                    gettext(
+                        "L'export est planifié et doit rester public. "
+                        "Supprimez d'abord ses planifications."
+                    )
+                )
+        return super().on_model_change(form, model, is_created)
 
     def handle_view_exception(self, exc):
         """

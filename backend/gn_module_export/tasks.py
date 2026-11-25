@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from sqlalchemy import func
+from sqlalchemy import func, select
 from celery.utils.log import get_task_logger
 from celery.schedules import crontab
 
@@ -39,7 +39,13 @@ def setup_periodic_tasks(sender, **kwargs):
 
 @celery_app.task(bind=True)
 def generate_scheduled_exports(self):
-    for scheduled_export in ExportSchedules.query.all():
+    for scheduled_export in db.session.scalars(select(ExportSchedules)).all():
+        if not scheduled_export.export.public:
+            logger.warning(
+                f"Skip schedule {scheduled_export.id_export_schedule}: "
+                f"export {scheduled_export.id_export} is not public"
+            )
+            continue
         export_request = ExportRequest(
             id_export=scheduled_export.id_export,
             user=None,
