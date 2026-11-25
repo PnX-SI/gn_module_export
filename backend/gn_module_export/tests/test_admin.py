@@ -18,7 +18,7 @@ class TestExportSchedulesAdmin:
         view = ExportSchedulesView(db.session)
         with app.test_request_context():
             form = view.create_form()
-            choices = {str(choice[0]): choice[1] for choice in form.export.iter_choices()}
+            choices = {str(choice[0]): str(choice[1]) for choice in form.export.iter_choices()}
 
         labels = set(choices.values())
         assert exports["public"].label in labels
