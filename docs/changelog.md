@@ -4,8 +4,8 @@
 
 **💥 Breaking changes**
 
-Dans cette version les exports planifiées doivent être publics ! Dans cette version, les exports non-publics planifiés existants ne sont pas supprimés mais
-ils ne seront pas régénéré ! Il est recommandé de faire les modifications nécessaires sur vos exports si vous souhaitez toujours les rendre planifiables !
+Dans cette version les exports planifiées doivent être publics ! Les exports non-publics planifiés existants ne sont pas supprimés mais
+ils ne seront pas régénéré ! Il est recommandé de faire les modifications nécessaires sur vos exports si vous souhaitez qu'ils soient encore dans le système de planification !
 
 **⚠️ Notes de version**
 
