@@ -5,7 +5,6 @@ from jsonschema import validate as validate_json
 from flask import url_for
 from werkzeug.datastructures import Headers
 
-from geonature.tests.fixtures import *
 from pypnusershub.tests.utils import set_logged_user_cookie
 
 from .fixtures import *

@@ -2,9 +2,15 @@ name: pytest
 on:
   push:
     branches:
-      - main
+      - master
       - develop
+    paths-ignore:
+      - docs/**
   pull_request:
+    branches:
+      - develop
+    paths-ignore:
+      - docs/**
 
 jobs:
   build:
