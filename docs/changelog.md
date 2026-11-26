@@ -13,6 +13,7 @@ Compatible uniquement avec les versions de GeoNature >= 2.18.0
 ### 🐛 Corrections
 
 - [Admin] Correction de la liste des rôles proposés dans le formulaire d'un export (appel `order_by` invalide), désormais triée par groupe puis par identifiant (par @jacquesfize)
+- [Script] Documentation sur la récupération des données via logiciel `R` (#217 par @amandine-sahl)
 
 ## 1.8.2 (2026-03-09)
 
