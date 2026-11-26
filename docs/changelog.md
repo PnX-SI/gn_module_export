@@ -2,9 +2,9 @@
 
 ## 1.8.3 (2026-11-25)
 
-** 💥 Breaking changes**
+**💥 Breaking changes**
 
-Dans cette version les exports planifiées doivent être publiques ! Dans cette version, les exports planifiés existants ne sont pas supprimés mais
+Dans cette version les exports planifiées doivent être publics ! Dans cette version, les exports non-publics planifiés existants ne sont pas supprimés mais
 ils ne seront pas régénéré ! Il est recommandé de faire les modifications nécessaires sur vos exports si vous souhaitez toujours les rendre planifiables !
 
 **⚠️ Notes de version**
