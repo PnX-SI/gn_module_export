@@ -53,6 +53,10 @@ def generate(export_id, export_format, user_id, skip_newer_than):
         )
         if not scheduled_export:
             raise ClickException(f"Schedule export {export_id} format {export_format} not found.")
+        if not scheduled_export.export.public:
+            raise ClickException(
+                f"Export {export_id} is not public, scheduled generation is not allowed."
+            )
         id_export_schedule = scheduled_export.id_export_schedule
         # Parameter skip_newer_than overide scheduled_export.skip_newer_than property
         if not skip_newer_than:

@@ -15,12 +15,13 @@ from geonature.utils.filemanager import removeDisallowedFilenameChars
 from gn_module_export.models import Export, ExportSchedules, Licences
 from psycopg2.errors import ForeignKeyViolation
 from pypnusershub.db.models import Application, AppRole, User, UserApplicationRight
-from sqlalchemy import or_, delete
+from sqlalchemy import or_, delete, select
 from sqlalchemy.exc import IntegrityError
 from utils_flask_sqla_geo.generic import GenericQueryGeo
 
 from gn_module_export.models import Export, ExportSchedules, Licences
 from wtforms import validators
+from wtforms.validators import ValidationError
 
 
 class LicenceView(CruvedProtectedMixin, ModelView):
@@ -209,6 +210,27 @@ class ExportView(CruvedProtectedMixin, ModelView):
 
         return super(ExportView, self).validate_form(form)
 
+    def on_model_change(self, form, model, is_created):
+        """
+        Un export planifié doit rester public : les fichiers générés sont
+        téléchargeables sans authentification.
+        """
+        if not is_created and not model.public:
+            with DB.session.no_autoflush:
+                is_scheduled = DB.session.scalar(
+                    select(ExportSchedules.id_export_schedule)
+                    .where(ExportSchedules.id_export == model.id)
+                    .limit(1)
+                )
+            if is_scheduled is not None:
+                raise ValidationError(
+                    gettext(
+                        "L'export est planifié et doit rester public. "
+                        "Supprimez d'abord ses planifications."
+                    )
+                )
+        return super().on_model_change(form, model, is_created)
+
     def handle_view_exception(self, exc):
         """
         Customisation du message d'erreur en cas de suppresion de l'export
@@ -294,8 +316,16 @@ class ExportSchedulesView(CruvedProtectedMixin, ModelView):
 
         return Markup(html_output)
 
+    def filter_export_public():
+        return DB.session.scalars(
+            select(Export).where(Export.public.is_(True)).order_by(Export.label)
+        ).all()
+
     form_args = {
-        "export": {"validators": [validators.DataRequired()]},
+        "export": {
+            "validators": [validators.DataRequired()],
+            "query_factory": filter_export_public,
+        },
         "frequency": {"validators": [validators.NumberRange(1, 365)]},
     }
     column_formatters = {

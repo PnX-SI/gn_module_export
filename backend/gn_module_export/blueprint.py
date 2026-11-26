@@ -39,7 +39,7 @@ from sqlalchemy.orm.exc import NoResultFound
 import sqlalchemy as sa
 from utils_flask_sqla.response import json_resp, to_json_resp
 from utils_flask_sqla.db import ordered
-from werkzeug.exceptions import Forbidden
+from werkzeug.exceptions import BadRequest, Forbidden
 
 LOGGER = current_app.logger
 LOGGER.setLevel(logging.DEBUG)
@@ -165,6 +165,9 @@ def forceScheduleExport(scope, id_export, export_format):
 
     if not export.has_instance_permission(scope=scope):
         raise Forbidden
+
+    if not export.public:
+        raise Forbidden(f"Export {export.id} is not public and cannot be generated as scheduled")
 
     export_request = ExportRequest(
         id_export=id_export, format=schedule_export.format, skip_newer_than=None, user=None

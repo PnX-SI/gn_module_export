@@ -2,6 +2,11 @@
 
 ## 1.8.3 (2026-11-25)
 
+**💥 Breaking changes**
+
+Dans cette version les exports planifiées doivent être publics ! Les exports non-publics planifiés existants ne sont pas supprimés mais
+ils ne seront pas régénéré ! Il est recommandé de faire les modifications nécessaires sur vos exports si vous souhaitez qu'ils soient encore dans le système de planification !
+
 **⚠️ Notes de version**
 
 Compatible uniquement avec les versions de GeoNature >= 2.18.0
@@ -14,6 +19,7 @@ Compatible uniquement avec les versions de GeoNature >= 2.18.0
 
 - [Admin] Correction de la liste des rôles proposés dans le formulaire d'un export (appel `order_by` invalide), désormais triée par groupe puis par identifiant (par @jacquesfize)
 - [Script] Documentation sur la récupération des données via logiciel `R` (#217 par @amandine-sahl)
+- [Planification] Seuls les exports publics peuvent être planifiés (#250 par @TheoLechemia)
 
 ## 1.8.2 (2026-03-09)
 
